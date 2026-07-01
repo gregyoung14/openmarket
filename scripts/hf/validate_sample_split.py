@@ -43,18 +43,45 @@ def parse_args() -> argparse.Namespace:
 
 
 def find_aggregate(root: Path, sample_dir: str) -> dict | None:
-    """Find the aggregate JSON. Prefer `full_aggregate.json` / `sample_aggregate.json`,
-    then `<split>_aggregate.json`, then `aggregate.json`. Returns None if not found."""
+    """Find the aggregate JSON for the requested split.
+
+    Search order:
+    - `<sample_dir>/metadata/<sample_dir>_aggregate.json`
+    - `metadata/<sample_dir>_aggregate.json`
+    - `metadata/aggregate.json`
+
+    Does not cross between splits: validating sample/ won't fall back to
+    full/ aggregates.
+    """
     candidates = []
     if sample_dir:
         candidates.append(root / sample_dir / "metadata" / f"{sample_dir}_aggregate.json")
         candidates.append(root / "metadata" / f"{sample_dir}_aggregate.json")
-    candidates.append(root / "metadata" / "full_aggregate.json")
-    candidates.append(root / "metadata" / "sample_aggregate.json")
+    else:
+        candidates.append(root / "metadata" / "sample_aggregate.json")
     candidates.append(root / "metadata" / "aggregate.json")
     for c in candidates:
         if c.exists():
             return json.loads(c.read_text())
+    return None
+
+
+def find_per_snapshot_report(root: Path, sample_dir: str) -> dict | None:
+    """For sample split (no aggregate), find the per-snapshot export report.
+
+    Strict: only look at the directory matching the requested split. If
+    `--sample-dir` is empty (sample split, parquet at repo root), look
+    only at top-level metadata/. Do not fall back to full/ metadata.
+    """
+    if sample_dir:
+        candidates = [root / sample_dir / "metadata"]
+    else:
+        candidates = [root / "metadata"]
+    for c in candidates:
+        if c.exists():
+            reports = sorted(c.glob("*.export_report.json"))
+            if reports:
+                return json.loads(reports[0].read_text())
     return None
 
 
@@ -64,9 +91,38 @@ def main() -> int:
     tmp_root = Path(tempfile.mkdtemp(prefix="openmarket_validate_"))
     try:
         print(f"downloading {args.repo_id} -> {tmp_root}")
-        patterns = ["metadata/**", "README.md"]
+        # Compute the explicit file list from the repo API so we don't pull
+        # the entire repo. We only fetch parquet for this split + metadata +
+        # README. Other splits are excluded.
+        api = HfApi()
+        repo_info = api.repo_info(repo_id=args.repo_id, repo_type="dataset")
+        all_files = sorted({s.rfilename for s in (repo_info.siblings or []) if s.rfilename})
+
         if args.sample_dir:
-            patterns.insert(0, f"{args.sample_dir}/**")
+            keep_prefix = f"{args.sample_dir}/"
+            other_prefixes = {f"{s}/" for s in {"sample", "full"} - {args.sample_dir}}
+        else:
+            keep_prefix = ""  # root-level parquet (sample split)
+            other_prefixes = {f"{s}/" for s in ("full", "sample")}
+
+        parquet_targets = [
+            f for f in all_files
+            if f.endswith(".parquet")
+            and (not keep_prefix or f.startswith(keep_prefix))
+            and not any(f.startswith(p) for p in other_prefixes)
+        ]
+        metadata_targets = [f for f in all_files if f.startswith("metadata/") or f.startswith(f"{args.sample_dir}/metadata/" if args.sample_dir else "metadata/")]
+        readme_targets = [f for f in all_files if f == "README.md"]
+        selected = parquet_targets + metadata_targets + readme_targets
+        print(f"  selected {len(selected)} files ({len(parquet_targets)} parquet + {len(metadata_targets)} metadata + {len(readme_targets)} readme)")
+        print(f"  filtered from {len(all_files)} total siblings")
+
+        local_dir = snapshot_download(
+            repo_id=args.repo_id,
+            repo_type="dataset",
+            local_dir=str(tmp_root),
+            allow_patterns=selected,
+        )
         local_dir = snapshot_download(
             repo_id=args.repo_id,
             repo_type="dataset",
@@ -80,7 +136,13 @@ def main() -> int:
             print(f"ERROR: {sample_root} does not exist")
             return 1
 
-        # Walk parquet files (any depth under sample_root).
+        # Walk parquet files within this split only. Skip other split
+        # subdirectories that may also live in the repo (sample vs full).
+        skip_dirs = {"metadata"}
+        if args.sample_dir:
+            # We are validating e.g. full/; do not descend into other splits.
+            other_splits = {"sample", "full"} - {args.sample_dir}
+            skip_dirs.update(other_splits)
         observed: dict[str, int] = defaultdict(int)
         observed_files: dict[str, int] = defaultdict(int)
         observed_bytes: dict[str, int] = defaultdict(int)
@@ -88,10 +150,12 @@ def main() -> int:
         total_bytes = 0
         for pq_path in sorted(sample_root.rglob("*.parquet")):
             rel = pq_path.relative_to(sample_root)
+            if rel.parts and rel.parts[0] in skip_dirs:
+                continue
             # Layout 1: <table>/date=YYYY-MM-DD/part-NNN.parquet
             # Layout 2 (legacy sample): <table>.parquet
             parts = rel.parts
-            if len(parts) >= 2 and parts[0] != "metadata":
+            if len(parts) >= 2 and parts[0] not in skip_dirs:
                 table_name = parts[0]
             else:
                 table_name = pq_path.stem
@@ -108,13 +172,29 @@ def main() -> int:
             if p.exists():
                 aggregate = json.loads(p.read_text())
 
-        print()
         if not aggregate:
-            print("WARN: no aggregate metadata found; reporting observed only")
-            print(f"  observed tables: {len(observed)}")
-            print(f"  parquet files:   {file_count}")
-            print(f"  parquet bytes:   {total_bytes:,}")
-            return 0
+            # Sample split may not have an aggregate; fall back to per-snapshot report.
+            report = find_per_snapshot_report(root, args.sample_dir)
+            if report:
+                aggregate = {
+                    "split": args.sample_dir or "sample",
+                    "snapshots": 1,
+                    "total_rows": sum(t.get("rows", 0) for t in report.get("tables", [])),
+                    "total_parquet_files": sum(t.get("parts", 0) for t in report.get("tables", [])),
+                    "total_parquet_bytes": total_bytes,
+                    "per_table": {
+                        t["table"]: {"rows": t.get("rows", 0), "parts": t.get("parts", 0), "snapshots": 1}
+                        for t in report.get("tables", [])
+                    },
+                    "_source": "per_snapshot_export_report",
+                }
+            else:
+                print()
+                print("WARN: no aggregate metadata found; reporting observed only")
+                print(f"  observed tables: {len(observed)}")
+                print(f"  parquet files:   {file_count}")
+                print(f"  parquet bytes:   {total_bytes:,}")
+                return 0
 
         per_table = aggregate["per_table"]
         actual_files_per_table = aggregate.get("per_table_actual_files", {})

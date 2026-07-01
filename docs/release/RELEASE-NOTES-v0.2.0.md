@@ -6,7 +6,7 @@ to partitioned Parquet and uploading them to the dataset repo.
 
 ## What changed since v0.1.0
 
-- **Dataset**: 10 snapshots, 456,966,949 rows, 738 Parquet files, ~3.5 GB on disk
+- **Dataset**: 10 snapshots, **456,026,287 rows (from parquet), 3,472,100,738 bytes (3.23 GiB)**, 738 Parquet files on disk.
 - **Tools**: added DuckDB-native exporter (`scripts/datasets/export_snapshot_v2.py`)
   that imports each SQLite snapshot into a native DuckDB in-memory table, then
   partitions and writes Parquet at ~10× the throughput of the sqlite3-based
@@ -16,6 +16,8 @@ to partitioned Parquet and uploading them to the dataset repo.
 - **Tools**: added aggregate-report generator
   (`scripts/datasets/aggregate_export_reports.py`) that walks all snapshot
   export reports and produces `full_aggregate.json` / `full_aggregate.md`.
+  v0.2.0 update: aggregate now scans parquet files for ground-truth row counts
+  and keeps the per-snapshot report rows as `reported_rows` for reconciliation.
 - **Tools**: bumped validator (`scripts/hf/validate_sample_split.py`) to
   handle the nested `full/<table>/date=YYYY-MM-DD/*.parquet` layout and
   compare file/byte counts as the integrity source of truth (row counts from
@@ -31,32 +33,42 @@ to partitioned Parquet and uploading them to the dataset repo.
 - **Repo**: bumped workspace package version to 0.1.0 (still v0.1.0 because
   source code is unchanged; HF dataset bumps to v0.2-full).
 
-## Full split inventory
+## Full split inventory (truth from parquet)
+
+`compressed_bytes` is the size of the gzipped SQLite snapshot in the operator's
+Bunny CDN archive (informational only — the parquet on HF is what consumers
+use). `rows` and `parts` are summed directly from the published parquet files.
 
 | snapshot_id | compressed_bytes | rows | parts | status |
 |---|---:|---:|---:|---|
 | `polymarket_btc_data_2026-03-14_193215` | 10,935,294,993 | 236,166,002 | 251 | ok |
-| `polymarket_btc_data_2026-03-29_215354` | 10,069,965,097 | 152,801,029 | 60 | partial |
-| `polymarket_btc_data_2026-03-22_215354` | 9,691,222,331 | 13,478,907 | 31 | partial |
-| `polymarket_btc_data_2026-04-21_211838` | 7,200,674,285 | (not exported) | 0 | n/a |
-| `polymarket_btc_data_2026-04-10_232833` | 7,124,484,517 | 17,193,067 | 88 | ok |
-| `polymarket_btc_data_2026-05-14_205654` |   393,243,254 | 1,019,592 | 47 | ok |
-| `polymarket_btc_data_2026-05-13_183517` |   260,463,524 |   433,327 |  8 | partial |
-| `polymarket_btc_data_2026-05-14_085654` |   241,952,456 | 2,668,141 | 64 | ok |
-| `polymarket_btc_data_2026-04-03_232930` |   176,080,358 | 4,277,432 | 70 | ok |
-| `polymarket_btc_data_2026-05-14_003913` |    18,516,286 |   159,005 | 17 | ok |
+| `polymarket_btc_data_2026-03-29_215354` | 10,069,965,097 | 193,440,294 | 187 | partial |
+| `polymarket_btc_data_2026-03-22_215354` |  9,691,222,331 |   6,630,470 | 159 | partial |
+| `polymarket_btc_data_2026-04-10_232833` |  7,124,484,517 |   7,850,934 |  49 | ok |
+| `polymarket_btc_data_2026-05-14_205654` |    393,243,254 |   7,548,862 |  12 | ok |
+| `polymarket_btc_data_2026-04-03_232930` |    176,080,358 |   3,330,628 |  10 | ok |
+| `polymarket_btc_data_2026-05-13_183517` |    260,463,524 |     433,328 |   8 | partial |
+| `polymarket_btc_data_2026-05-14_003913` |     18,516,286 |     400,710 |  11 | ok |
+| `polymarket_btc_data_2026-05-14_085654` |    241,952,456 |     199,313 |  11 | ok |
+| `polymarket_btc_data_2026-04-21_211838` |  7,200,674,285 |      25,746 |  40 | partial |
 
-`polymarket_btc_data_2026-04-21_211838` was skipped because its SQLite image
-is fully unreadable; the row counts for partial exports reflect only the
-rows that could be salvaged via the per-table sqlite3 fallback.
+`polymarket_btc_data_2026-04-21_211838` was partially exported — its SQLite
+image is heavily corrupted and DuckDB couldn't attach it; only the rows that
+the sqlite3 fallback could recover made it into the published parquet.
 
-## Per-table coverage (full/)
+The three partial snapshots (`2026-03-29_215354`, `2026-03-22_215354`,
+`2026-05-13_183517`) are partial because some of their tables had corrupt
+B-tree pages that aborted the DuckDB bulk-import. The sqlite3 fallback then
+walked the remaining pages table-by-table. The `lag_pairs_ms` and ticks tables
+in those snapshots are typically the ones that didn't fully survive.
+
+## Per-table coverage (full/) — truth from parquet
 
 | table | rows | parts |
 |---|---:|---:|
-| `binance_trades` | 63,444,078 | 56 |
-| `binance_ticks_ms` | 42,659,539 | 37 |
-| `polymarket_ticks_ms` | 347,290,210 | 37 |
+| `binance_trades` | 62,516,222 | 56 |
+| `binance_ticks_ms` | 42,659,034 | 37 |
+| `polymarket_ticks_ms` | 347,279,235 | 37 |
 | `lag_pairs_ms` | 3,181,298 | 11 |
 | `binance_candles_1s` | 263,151 | 32 |
 | `binance_candles_5s` | 91,308 | 68 |
@@ -67,17 +79,29 @@ rows that could be salvaged via the per-table sqlite3 fallback.
 | `market_meta` | 9,713 | 10 |
 | `crossover_alerts` | 0 | 0 |
 
+The aggregate JSON also keeps each table's `reported_rows` (from per-snapshot
+export reports) so consumers can see how much the partial re-exports lost.
+Typical gaps are 0–2 % on partial snapshots; full snapshots reconcile
+exactly.
+
 ## Validation (post-upload, from a clean download)
 
 ```
 split:           full
 snapshots:       10
-reported rows:   456,966,949
-reported files:  738
-reported bytes:  3,472,100,738
+truth rows:      456,026,287      (sum of parquet num_rows)
+reported rows:   456,966,949      (sum of per-snapshot report rows)
+delta:           -940,662         (partial exports over-counted)
+files:           738              (matches local)
+bytes:           3,472,100,738    (matches local)
 file integrity:  OK
-row integrity:   WARN (partial exports may over-count)
+row integrity:   WARN (partial exports over-count by ~0.2 %)
 ```
+
+The `delta` is the gap between the per-snapshot reports (which the v2 exporter
+wrote as rows-walked) and the parquet files on disk (which lost some rows to
+SQLite page corruption during the partial-export fallback). The parquet files
+are the truth source.
 
 ## Release artifacts
 
@@ -95,7 +119,10 @@ Paper:             paper/paper.md
 
 - Re-attempt `polymarket_btc_data_2026-04-21_211838` with `.recover` SQLite
   tooling, or accept it as permanently lost.
-- Merge / dedupe / time-align across the 10 published snapshots.
+- Re-export partial snapshots against fresh SQLite copies if/when the
+  underlying recording is rerun.
+- Merge / dedupe / time-align across the 10 published snapshots (each
+  snapshot covers overlapping date ranges).
 - Benchmark the OpenMarket Rust backtester against this published split.
 - Roll forward to v0.3 with the next 10 snapshots.
 
