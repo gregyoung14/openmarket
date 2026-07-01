@@ -8,7 +8,8 @@ the full archive.
 
 - **Dataset `full/`**: expanded from 10 to **202** published snapshots
   (3,258 parquet files, ~598M rows before dedupe).
-- **Dataset `unified/`**: rebuilt as **`v0.4-unified`** from the complete
+- **Dataset `unified/`**: rebuilt as **`v0.4-unified`** (later refreshed to
+  **`v0.4.1-unified`** after `04-21` recovery) from the complete
   `full/` tree — **586,158,580 rows**, **467 parquet files**, **7.5 GB** on
   disk. Removed **12,118,682 duplicates** (~2.0 %) across 598,277,262 input
   rows.

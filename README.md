@@ -137,7 +137,7 @@ Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingfac
 
 | Split | Version | Use |
 |---|---|---|
-| `unified/` | v0.4-unified | **Recommended** — deduped timeline from complete archive |
+| `unified/` | v0.4.1-unified | **Recommended** — deduped timeline from complete archive |
 | `features/` | v0.4-features | ML features — step2 (100ms/1s) + step3 binary calibration |
 | `full/` | v0.2-full | Complete 202-snapshot per-export archive |
 | `sample/` | v0.1-sample | CI, quickstarts — 12 tables, 9,352 rows, ~204 KB |
@@ -160,8 +160,8 @@ Archival status:
 
 - 202 SQLite snapshots inventoried in the redacted manifest; all 202 published
   in `full/` (`198 clean`, `4 partial` table exports).
-- `unified/` (`v0.4-unified`) deduped from the complete `full/` tree — 586M
-  rows, 467 parquet files.
+- `unified/` (`v0.4.1-unified`) deduped from the complete `full/` tree — 587M
+  rows, 478 parquet files (refreshed after `04-21` recovery).
 - See `docs/release/PROJECT-STATUS.md` for queue metadata and closeout notes.
 
 ## Models
