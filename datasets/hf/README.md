@@ -2,126 +2,8 @@
 configs:
   - config_name: default
     data_files:
-      - split: sample
-        path: sample/*.parquet
-dataset_info:
-  description: |
-    High-frequency research dataset pairing Binance BTC/USDT market data with
-    Polymarket BTC binary-market order book events. The published sample split
-    covers a single SQLite snapshot from the operator archive and is intended
-    for tests, CI, and quickstarts. The full multi-gigabyte archive is released
-    incrementally through additional splits.
-  features:
-    - name: binance_trades
-      description: Binance BTC/USDT spot trades streamed from `wss://stream.binance.com:9443/ws/btcusdt@trade`
-      columns:
-        - {name: trade_id, dtype: int64}
-        - {name: trade_time, dtype: int64, description: 'exchange trade timestamp (ms since epoch)'}
-        - {name: price, dtype: float64}
-        - {name: quantity, dtype: float64}
-        - {name: quote_volume, dtype: float64}
-        - {name: is_buyer_maker, dtype: bool}
-        - {name: received_at, dtype: int64, description: 'collector ingest timestamp (ms since epoch)'}
-        - {name: date, dtype: string, description: 'UTC date partition derived from trade_time'}
-    - name: binance_ticks_ms
-      description: Binance top-of-book millisecond snapshots from the order-book stream
-      columns:
-        - {name: id, dtype: int64}
-        - {name: source_ts_ms, dtype: int64}
-        - {name: ingest_ts_ms, dtype: int64}
-        - {name: market_slug, dtype: string}
-        - {name: price, dtype: float64}
-        - {name: best_bid, dtype: float64}
-        - {name: best_ask, dtype: float64}
-        - {name: date, dtype: string}
-    - name: polymarket_ticks_ms
-      description: Polymarket CLOB top-of-book millisecond snapshots for the corresponding BTC binary market
-      columns:
-        - {name: id, dtype: int64}
-        - {name: source_ts_ms, dtype: int64}
-        - {name: ingest_ts_ms, dtype: int64}
-        - {name: market_slug, dtype: string}
-        - {name: asset_id, dtype: string}
-        - {name: side_label, dtype: string, description: '"up" or "down"' }
-        - {name: event_type, dtype: string}
-        - {name: price, dtype: float64}
-        - {name: best_bid, dtype: float64}
-        - {name: best_ask, dtype: float64}
-        - {name: size, dtype: float64}
-        - {name: paired, dtype: bool}
-        - {name: date, dtype: string}
-    - name: lag_pairs_ms
-      description: Paired Binance/Polymarket events with computed lead/lag in milliseconds
-      columns:
-        - {name: id, dtype: int64}
-        - {name: paired_at_ms, dtype: int64}
-        - {name: market_slug, dtype: string}
-        - {name: side_label, dtype: string}
-        - {name: binance_tick_id, dtype: int64}
-        - {name: polymarket_tick_id, dtype: int64}
-        - {name: binance_source_ts_ms, dtype: int64}
-        - {name: polymarket_source_ts_ms, dtype: int64}
-        - {name: lead_lag_ms, dtype: int64, description: 'polymarket_source_ts_ms - binance_source_ts_ms'}
-        - {name: binance_price, dtype: float64}
-        - {name: polymarket_bid, dtype: float64}
-        - {name: price_delta_bps, dtype: float64}
-        - {name: quality_flag, dtype: int64}
-        - {name: date, dtype: string}
-    - name: binance_candles_1s
-      description: Binance 1-second aggregated candles for BTC/USDT
-      columns:
-        - {name: candle_start, dtype: int64}
-        - {name: open, dtype: float64}
-        - {name: high, dtype: float64}
-        - {name: low, dtype: float64}
-        - {name: close, dtype: float64}
-        - {name: volume, dtype: float64}
-        - {name: quote_volume, dtype: float64}
-        - {name: trades, dtype: int64}
-        - {name: date, dtype: string}
-    - name: binance_candles_5s
-      description: Binance 5-second aggregated candles
-      columns: &candle_cols
-        - {name: candle_start, dtype: int64}
-        - {name: open, dtype: float64}
-        - {name: high, dtype: float64}
-        - {name: low, dtype: float64}
-        - {name: close, dtype: float64}
-        - {name: volume, dtype: float64}
-        - {name: quote_volume, dtype: float64}
-        - {name: trades, dtype: int64}
-        - {name: date, dtype: string}
-    - name: binance_candles_1m
-      description: Binance 1-minute aggregated candles
-      columns: *candle_cols
-    - name: binance_candles_5m
-      description: Binance 5-minute aggregated candles
-      columns: *candle_cols
-    - name: binance_candles_15m
-      description: Binance 15-minute aggregated candles
-      columns: *candle_cols
-    - name: binance_candles_1h
-      description: Binance 1-hour aggregated candles
-      columns: *candle_cols
-    - name: market_meta
-      description: Polymarket market metadata for the BTC binary markets referenced in this snapshot
-      columns:
-        - {name: slug, dtype: string}
-        - {name: condition_id, dtype: string}
-        - {name: question, dtype: string}
-        - {name: end_date_iso, dtype: string}
-        - {name: up_token_id, dtype: string}
-        - {name: down_token_id, dtype: string}
-        - {name: resolved_outcome, dtype: string}
-        - {name: closed, dtype: bool}
-        - {name: date, dtype: string, description: 'always "unpartitioned"'}
-    - name: crossover_alerts
-      description: Reserved table; always empty in this snapshot.
-      columns: []
-  splits:
-    - name: sample
-      num_examples: 9352
-      num_bytes: 204401
+      - split: train
+        path: "*.parquet"
 license: apache-2.0
 task_categories:
   - tabular-classification
@@ -140,28 +22,29 @@ size_categories:
 
 # OpenMarket BTC Polymarket
 
-OpenMarket BTC Polymarket is a high-frequency research dataset pairing Binance
-BTC/USDT market data with Polymarket BTC binary-market order book events.
+OpenMarket BTC Polymarket is a high-frequency research dataset pairing
+Binance BTC/USDT market data with Polymarket BTC binary-market order book
+events.
 
-The dataset is released to support reproducible prediction-market research,
-feature engineering, market microstructure analysis, and backtesting.
+The dataset is released to support reproducible prediction-market
+research, feature engineering, market microstructure analysis, and
+backtesting.
 
 ## Repository Layout
 
 ```text
-sample/
-  binance_trades.parquet
-  binance_ticks_ms.parquet
-  polymarket_ticks_ms.parquet
-  lag_pairs_ms.parquet
-  binance_candles_1s.parquet
-  binance_candles_5s.parquet
-  binance_candles_1m.parquet
-  binance_candles_5m.parquet
-  binance_candles_15m.parquet
-  binance_candles_1h.parquet
-  market_meta.parquet
-  crossover_alerts.parquet      # reserved; empty in this snapshot
+binance_trades.parquet
+binance_ticks_ms.parquet
+polymarket_ticks_ms.parquet
+lag_pairs_ms.parquet
+binance_candles_1s.parquet
+binance_candles_5s.parquet
+binance_candles_1m.parquet
+binance_candles_5m.parquet
+binance_candles_15m.parquet
+binance_candles_1h.parquet
+market_meta.parquet
+crossover_alerts.parquet      # reserved; empty in this snapshot
 metadata/
   snapshot_manifest.json        # full archive inventory (URLs redacted)
   snapshot_manifest.tsv         # same, TSV
@@ -169,10 +52,11 @@ metadata/
 README.md
 ```
 
-The flat layout (one parquet file per table under `sample/`) is what the
-Hugging Face Data Studio viewer auto-converts. Each parquet file includes a
-`date` column (UTC, `YYYY-MM-DD`) so downstream code can filter by day
-without relying on Hive-style partition segments.
+The parquet files sit at the repository root (one per table) so the
+Hugging Face Data Studio viewer auto-indexes them without traversal of a
+split subdirectory. Each parquet file includes a `date` column
+(UTC, `YYYY-MM-DD`) so downstream code can filter by day without
+relying on Hive-style partition segments.
 
 ## Current Sample
 
@@ -206,14 +90,115 @@ Rows exported per table:
 
 The operator archive currently contains 202 SQLite snapshot files from
 `2026-03-14T19:32:15Z` through `2026-07-01T02:56:54Z`, totaling
-46,205,325,113 compressed bytes across 5 large snapshots (≥1 GB each) and
-192 smaller post-prune residue snapshots. The full inventory is published
-in `metadata/snapshot_manifest.{json,tsv}` with the operator's storage
-hostname redacted to `cdn.example.com`.
+46,205,325,113 compressed bytes across 5 large snapshots (≥1 GB each)
+and 192 smaller post-prune residue snapshots. The full inventory is
+published in `metadata/snapshot_manifest.{json,tsv}` with the
+operator's storage hostname redacted to `cdn.example.com`.
 
-The full public Parquet release will populate the `full/` split
-incrementally via `scripts/hf/release_split.py` once per-snapshot export
-quality is validated.
+The full public Parquet release will populate additional splits
+incrementally via `scripts/hf/release_split.py` once per-snapshot
+export quality is validated.
+
+## Schema
+
+Each parquet file is a flat table; column dtypes are inferred from the
+file and surfaced by `huggingface_hub.list_repo_files` /
+`pyarrow.parquet.read_schema`. A reference schema follows:
+
+### `binance_trades`
+
+| column | dtype | description |
+|---|---|---|
+| `trade_id` | int64 | Binance trade ID |
+| `trade_time` | int64 | exchange trade timestamp (ms since epoch, UTC) |
+| `price` | float64 | trade price (USDT per BTC) |
+| `quantity` | float64 | trade quantity (BTC) |
+| `quote_volume` | float64 | trade quantity * price (USDT) |
+| `is_buyer_maker` | bool | true if buyer was the maker side |
+| `received_at` | int64 | collector ingest timestamp (ms since epoch, UTC) |
+| `date` | string | UTC date partition derived from `trade_time` |
+
+### `binance_ticks_ms`
+
+| column | dtype | description |
+|---|---|---|
+| `id` | int64 | synthetic ID |
+| `source_ts_ms` | int64 | source event timestamp (ms since epoch, UTC) |
+| `ingest_ts_ms` | int64 | collector ingest timestamp (ms since epoch, UTC) |
+| `market_slug` | string | related Polymarket market slug |
+| `price` | float64 | Binance mid price |
+| `best_bid` | float64 | Binance top bid |
+| `best_ask` | float64 | Binance top ask |
+| `date` | string | UTC date partition derived from `source_ts_ms` |
+
+### `polymarket_ticks_ms`
+
+| column | dtype | description |
+|---|---|---|
+| `id` | int64 | synthetic ID |
+| `source_ts_ms` | int64 | source event timestamp (ms since epoch, UTC) |
+| `ingest_ts_ms` | int64 | collector ingest timestamp (ms since epoch, UTC) |
+| `market_slug` | string | Polymarket market slug |
+| `asset_id` | string | conditional token ID |
+| `side_label` | string | `"up"` or `"down"` |
+| `event_type` | string | Polymarket event type |
+| `price` | float64 | mid price |
+| `best_bid` | float64 | top bid |
+| `best_ask` | float64 | top ask |
+| `size` | float64 | depth at top of book |
+| `paired` | bool | true if this tick was paired with a Binance tick |
+| `date` | string | UTC date partition derived from `source_ts_ms` |
+
+### `lag_pairs_ms`
+
+| column | dtype | description |
+|---|---|---|
+| `id` | int64 | synthetic ID |
+| `paired_at_ms` | int64 | pairing timestamp (ms since epoch, UTC) |
+| `market_slug` | string | Polymarket market slug |
+| `side_label` | string | `"up"` or `"down"` |
+| `binance_tick_id` | int64 | FK → `binance_ticks_ms.id` |
+| `polymarket_tick_id` | int64 | FK → `polymarket_ticks_ms.id` |
+| `binance_source_ts_ms` | int64 | paired Binance source timestamp |
+| `polymarket_source_ts_ms` | int64 | paired Polymarket source timestamp |
+| `lead_lag_ms` | int64 | `polymarket_source_ts_ms - binance_source_ts_ms` |
+| `binance_price` | float64 | Binance mid at pairing time |
+| `polymarket_bid` | float64 | Polymarket bid at pairing time |
+| `price_delta_bps` | float64 | price differential in basis points |
+| `quality_flag` | int64 | pairing quality flag (0 = good) |
+| `date` | string | UTC date partition derived from `paired_at_ms` |
+
+### `binance_candles_{1s,5s,1m,5m,15m,1h}`
+
+| column | dtype | description |
+|---|---|---|
+| `candle_start` | int64 | candle start timestamp (ms since epoch, UTC) |
+| `open` | float64 | open price |
+| `high` | float64 | high price |
+| `low` | float64 | low price |
+| `close` | float64 | close price |
+| `volume` | float64 | base asset volume (BTC) |
+| `quote_volume` | float64 | quote asset volume (USDT) |
+| `trades` | int64 | number of trades in the candle |
+| `date` | string | UTC date partition derived from `candle_start` |
+
+### `market_meta`
+
+| column | dtype | description |
+|---|---|---|
+| `slug` | string | Polymarket market slug |
+| `condition_id` | string | on-chain condition ID |
+| `question` | string | market question |
+| `end_date_iso` | string | market close time (ISO 8601) |
+| `up_token_id` | string | conditional token ID for "up" outcome |
+| `down_token_id` | string | conditional token ID for "down" outcome |
+| `resolved_outcome` | string | winning outcome, if resolved |
+| `closed` | bool | true if market is closed |
+| `date` | string | always `"unpartitioned"` |
+
+### `crossover_alerts`
+
+Empty in this snapshot; reserved for the strategy alert table.
 
 ## Timestamp Semantics
 
@@ -221,8 +206,8 @@ quality is validated.
 - `ingest_ts_ms`: timestamp observed by the collector (ms since epoch, UTC)
 - `lead_lag_ms = polymarket_source_ts_ms - binance_source_ts_ms`
 
-Positive `lead_lag_ms` values indicate that the Polymarket event timestamp
-follows the Binance event timestamp.
+Positive `lead_lag_ms` values indicate that the Polymarket event
+timestamp follows the Binance event timestamp.
 
 ## Limitations
 
@@ -230,11 +215,12 @@ follows the Binance event timestamp.
 - Collector host clocks can drift.
 - Raw JSON columns are excluded from the default Parquet export.
 - Top-of-book backtests may overstate executable fill quality.
-- The initial sample is intentionally small and is not representative of
-  full historical coverage.
-- This snapshot is a point-in-time export; re-running the export pipeline on
-  a later snapshot may produce slightly different row counts if the
-  underlying recorder continued collecting between exports.
+- The initial sample is intentionally small and is not representative
+  of full historical coverage.
+- This snapshot is a point-in-time export; re-running the export
+  pipeline on a later snapshot may produce slightly different row
+  counts if the underlying recorder continued collecting between
+  exports.
 
 ## Release artifacts
 
@@ -248,5 +234,5 @@ Model version:   deferred; model-card scaffold uploaded
 
 ## Citation
 
-If you use OpenMarket, cite the GitHub repository and the dataset version
-used in your experiment.
+If you use OpenMarket, cite the GitHub repository and the dataset
+version used in your experiment.
