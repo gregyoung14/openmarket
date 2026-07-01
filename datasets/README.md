@@ -4,12 +4,13 @@ Large datasets are released outside Git on Hugging Face:
 
 - [`gregyoung14/openmarket-btc-polymarket`](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
 
-The HF repo holds two splits:
+The HF repo holds three splits:
 
-| Split | Size on disk | Contents |
-|---|---:|---|
-| `sample/` | ~371 KB | Smallest SQLite snapshot exported to Parquet. 12 tables, 9,352 rows. Used for tests, CI, and quickstarts. |
-| `full/` | (planned, multi-GB) | All medium and large snapshots. Populated incrementally via `scripts/hf/release_split.py`. |
+| Split | Version | Contents |
+|---|---|---|
+| `unified/` | v0.3-unified | **Recommended.** Deduped timeline merged from all `full/` exports. |
+| `full/` | v0.2-full | 10 per-snapshot exports (~456M rows before dedupe). Overlapping date ranges. |
+| `sample/` | v0.1-sample | Smallest snapshot. 12 tables, 9,352 rows. CI and quickstarts. |
 
 Per-snapshot metadata (`export_report.json`) and the master
 `snapshot_manifest.{json,tsv}` (all 202 snapshots in the operator archive)
@@ -29,6 +30,8 @@ sample/
   metadata/<snapshot>.export_report.json
 full/
   ... same layout, multiple snapshots ...
+unified/
+  ... same layout, deduped single timeline ...
 metadata/
   snapshot_manifest.json     # full inventory of operator archive
   snapshot_manifest.tsv      # same, TSV for easy diffing
@@ -57,12 +60,18 @@ print(table.num_rows, "rows; columns:", table.schema.names)
 
 See `notebooks/quickstart.ipynb` for an end-to-end walkthrough.
 
+## Downloading
+
+```bash
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
+.venv/bin/python datasets/download.py --split sample --out data/hf_cache
+```
+
 ## Legacy Bunny CDN path
 
-`datasets/download.py --snapshot <name-or-url>` is kept for migration from the
-operator's Bunny CDN archive. It is **not** the recommended public path —
-prefer the HF download above. The default `--snapshot sample` resolves to the
-~10.9 GB first SQLite snapshot, so always pass `--out` to a path you intend.
+`datasets/download.py --legacy-cdn <snapshot>` is kept for operator migration
+from the Bunny CDN archive. It is **not** the recommended public path.
+`--legacy-cdn sample` resolves to the ~10.9 GB first SQLite snapshot.
 
 ## Do Not Commit
 

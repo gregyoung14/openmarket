@@ -27,7 +27,7 @@ DEFAULT_ROOT = Path("data/hf_release")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", choices=("sample", "full"), default="full")
+    parser.add_argument("--split", choices=("sample", "full", "unified"), default="full")
     parser.add_argument("--root", default=DEFAULT_ROOT, type=Path)
     parser.add_argument("--no-actuals", action="store_true",
                         help="skip parquet scan (faster but reported_rows only)")
@@ -60,16 +60,36 @@ def main() -> int:
         print(f"ERROR: {meta_dir} does not exist")
         return 1
 
+    quality_path = meta_dir / "merge_quality_report.json"
     reports = sorted(meta_dir.glob("*.export_report.json"))
-    if not reports:
-        print(f"ERROR: no export reports in {meta_dir}")
-        return 1
 
     reported_per_table: dict[str, dict[str, int]] = defaultdict(
         lambda: {"rows": 0, "parts": 0, "snapshots": 0}
     )
     snapshot_summaries = []
-    for r in reports:
+
+    if args.split == "unified" and quality_path.exists():
+        quality = json.loads(quality_path.read_text())
+        for entry in quality.get("per_table", []):
+            table = entry["table"]
+            reported_per_table[table]["rows"] = entry.get("output_rows", 0)
+            reported_per_table[table]["parts"] = entry.get("output_parts", 0)
+            reported_per_table[table]["snapshots"] = 1
+        snapshot_summaries.append({
+            "snapshot_id": "unified-merge",
+            "snapshot": None,
+            "reported_rows": quality.get("output_rows", 0),
+            "reported_parts": sum(e.get("output_parts", 0) for e in quality.get("per_table", [])),
+            "engine": "merge_partitions",
+            "integrity_status": "ok",
+        })
+    elif not reports:
+        print(f"ERROR: no export reports in {meta_dir}")
+        return 1
+    else:
+        pass
+
+    for r in (reports if args.split != "unified" or not quality_path.exists() else []):
         data = json.loads(r.read_text())
         snapshot_id = data.get("snapshot_id", r.stem.replace(".export_report", ""))
         snap_rows = 0

@@ -95,9 +95,24 @@ and 192 smaller post-prune residue snapshots. The full inventory is
 published in `metadata/snapshot_manifest.{json,tsv}` with the
 operator's storage hostname redacted to `cdn.example.com`.
 
-The full public Parquet release will populate additional splits
-incrementally via `scripts/hf/release_split.py` once per-snapshot
-export quality is validated.
+Three splits are published:
+
+| Split | Version | Description |
+|---|---|---|
+| `unified/` | v0.3-unified | Deduped research timeline (recommended) |
+| `full/` | v0.2-full | 10 per-snapshot exports with overlapping ranges |
+| `sample/` | v0.1-sample | Tiny demo split for CI and quickstarts |
+
+Load the unified split:
+
+```python
+from huggingface_hub import snapshot_download
+root = snapshot_download(
+    "gregyoung14/openmarket-btc-polymarket",
+    repo_type="dataset",
+    allow_patterns=["unified/**", "metadata/**", "README.md"],
+)
+```
 
 ## Schema
 
@@ -227,7 +242,7 @@ timestamp follows the Binance event timestamp.
 ```text
 Source repo:     github.com/gregyoung14/openmarket
 Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-Dataset version: v0.2-full
+Dataset version: v0.3-unified
 Models:          huggingface.co/gregyoung14/openmarket-models
 Model version:   deferred; model-card scaffold uploaded
 ```

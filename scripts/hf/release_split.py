@@ -21,13 +21,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", choices=("sample", "full"), default="full")
+    parser.add_argument("--split", choices=("sample", "full", "unified"), default="full")
     parser.add_argument("--repo-id", default="gregyoung14/openmarket-btc-polymarket")
     parser.add_argument("--max-snapshots", type=int, default=5)
     parser.add_argument("--min-bytes", type=int, default=10 * 1024 * 1024)
     parser.add_argument("--chunk-rows", type=int, default=50_000)
     parser.add_argument("--new-version", required=True, help="new dataset version, e.g. v0.2-full")
     parser.add_argument("--skip-export", action="store_true")
+    parser.add_argument("--skip-merge", action="store_true",
+                        help="for unified split: skip merge_partitions.py")
     parser.add_argument("--skip-upload", action="store_true")
     return parser.parse_args()
 
@@ -50,6 +52,16 @@ def main() -> int:
         ])
         if rc != 0:
             print("export failed", file=sys.stderr)
+            return rc
+
+    if args.split == "unified" and not args.skip_merge:
+        rc = run([py, "scripts/datasets/merge_partitions.py"])
+        if rc != 0:
+            print("merge failed", file=sys.stderr)
+            return rc
+        rc = run([py, "scripts/datasets/aggregate_export_reports.py", "--split", "unified"])
+        if rc != 0:
+            print("aggregate failed", file=sys.stderr)
             return rc
 
     rc = run([

@@ -1,5 +1,8 @@
 # An Open-Source High-Frequency Data Pipeline and Machine Learning Research Framework for Polymarket Prediction Markets
 
+> **LaTeX build:** `paper/main.tex` wires `sections/synchronization.tex` and
+> `bibliography.bib`. Run `paper/scripts/compile.sh` or `cd paper && latexmk -pdf main.tex`.
+
 ## Abstract
 
 Prediction markets have become increasingly important for forecasting real-world
@@ -12,10 +15,11 @@ synchronization and lead-lag pairing, feature generation, technical indicators,
 machine learning research utilities, a strategy framework, and reproducible
 backtesting. The primary contribution is not a claim of persistent trading
 profitability, but a research platform: source code, dataset schemas,
-reproducibility commands, model release conventions, and a dataset release plan
-for synchronized Binance/Polymarket market data. OpenMarket is designed to
-support academic and industrial research on prediction-market microstructure,
-forecasting, and execution.
+reproducibility commands, model release conventions, and a staged dataset
+release. The `v0.1-sample` split (12 tables, ~204 KB) is live on Hugging Face;
+a `v0.2-full` release (~45 GB compressed) is planned. OpenMarket enables
+research into prediction-market microstructure, forecasting, and execution
+rather than claiming persistent trading alpha.
 
 ## 1. Introduction
 
@@ -36,17 +40,24 @@ intended to generalize to additional markets and exchanges.
 
 ## 2. Background
 
-Polymarket lists binary outcome markets where contracts settle to 1 if an event
-occurs and 0 otherwise. BTC 15-minute markets ask whether Bitcoin will be above
-or below a reference price at the end of a short window. These markets combine
-elements of options, sports-style binary markets, and crypto exchange
-microstructure.
+Prediction markets aggregate information through prices of contracts tied to
+future outcomes [Wolfers and Zitzewitz, 2004; Hanson, 2003]. Polymarket lists
+binary outcome markets where contracts settle to 1 if an event occurs and 0
+otherwise. BTC 15-minute markets ask whether Bitcoin will be above or below a
+reference price at the end of a short window. These markets combine elements of
+options, sports-style binary markets, and crypto exchange microstructure.
+Recent empirical work documents Polymarket microstructure, arbitrage, and
+decentralized prediction-market (DePM) design trade-offs [Dubach, 2026; Saguillo
+et al., 2025; Rahman et al., 2025]. Reproducible public infrastructure for
+high-frequency Polymarket research remains scarce.
 
 Binance BTC/USDT is used as the external reference stream because it is liquid,
 high frequency, and closely related to the Polymarket BTC outcome. The research
-problem is to align the external price stream with Polymarket order book updates,
-derive features, generate labels, and evaluate models or strategies without
-leaking future information.
+problem follows multi-venue price-discovery practice [Hasbrouck, 1995]: align the
+external price stream with Polymarket order book updates, derive features,
+generate labels, and evaluate models or strategies without leaking future
+information. High-frequency order-book dynamics motivate millisecond-resolution
+storage and pairing [O'Hara, 2015; Cont et al., 2014].
 
 ## 3. Contributions
 
@@ -63,7 +74,8 @@ OpenMarket contributes:
   whipsaw, volume gates, calibration, and Brier monitoring
 - A legacy ML archive containing Python prototypes for XGBoost, LightGBM, SHAP,
   and stacked classifiers
-- A public dataset and model release plan using Hugging Face
+- A public dataset release on Hugging Face (sample live; full split planned) and
+  a model release convention (artifacts external to Git)
 - Reproducibility commands, Docker scaffolding, documentation, and benchmarks
 
 ## 4. System Architecture
@@ -163,8 +175,12 @@ price, Polymarket bid, market slug, side label, and price delta in basis points.
 
 Important synchronization risks include clock drift, dropped WebSocket messages,
 duplicate payloads, reconnect gaps, stale order book state, out-of-order events,
-and sensitivity to the alignment window. OpenMarket treats these as first-class
-dataset quality metrics rather than hidden implementation details.
+and sensitivity to the alignment window [Dubach, 2026]. OpenMarket treats these
+as first-class dataset quality metrics rather than hidden implementation details.
+
+A LaTeX version of this section with a lead-lag timeline figure specification
+is provided in `paper/sections/synchronization.tex` (TikZ Figure 1: source vs.
+ingest timestamps, alignment window `W`, and `lead_lag_ms = t_P - t_B`).
 
 ## 7. Feature Engineering
 
@@ -216,13 +232,16 @@ vectors; model outputs are probability estimates for UP or DOWN market
 resolution.
 
 For public releases, model binaries should be uploaded to Hugging Face Models or
-GitHub Releases. Git should contain only model metadata, feature schemas,
-training code, hyperparameters, and reproducibility manifests.
+GitHub Releases. As of the current release, the Hugging Face models repository
+is scaffolded and the first pinned model artifact is deferred; Git contains
+model metadata, feature schemas, training code, hyperparameters, and
+reproducibility manifests.
 
 ## 9. Strategy Framework
 
-Strategies combine model confidence, market price, entry constraints, and risk
-controls. The current strategy research line includes:
+The strategy modules document a research archive (v1–v15 iterations), not a
+single validated production system. Strategies combine model confidence, market
+price, entry constraints, and risk controls. The current research line includes:
 
 - drift and order-flow imbalance signals
 - scoreboard-derived Polymarket book signals
@@ -232,16 +251,18 @@ controls. The current strategy research line includes:
 - entry price bounds
 - confidence and edge thresholds
 - Brier-score circuit breakers
-- confidence-bin profitability gates
+- confidence-bin empirical edge gates
 
-Position sizing and execution realism are intentionally separated from
-directional accuracy. Backtests should report slippage, fees, assumed fill
-prices, and market impact assumptions.
+Position sizing and simulated execution assumptions are intentionally separated
+from directional accuracy. Backtests should report slippage, fees, assumed fill
+prices, and market impact assumptions explicitly; reported outcomes are
+counterfactual simulations, not live trading results.
 
 ## 10. Backtesting
 
 Backtesting processes market windows independently and evaluates entry signals
-against market outcomes. Preferred validation methods include:
+against settled outcomes under documented simulation assumptions. Preferred
+validation methods include:
 
 - walk-forward validation
 - rolling-window evaluation
@@ -254,24 +275,22 @@ are highly autocorrelated.
 
 ## 11. Evaluation
 
-Evaluation should include both predictive and economic metrics:
+Evaluation should include both predictive and simulated-economic metrics.
+Economic metrics are counterfactual diagnostics under explicit fill, fee, and
+slippage assumptions; they do not constitute claims of live or persistent
+trading profitability.
 
-- accuracy
-- precision
-- recall
-- F1
-- ROC AUC
-- Brier score
-- calibration curves
-- win rate
-- expectancy
-- PnL
-- Sharpe
-- Sortino
-- maximum drawdown
-- turnover
-- average entry price
-- fill assumptions
+Predictive metrics:
+
+- accuracy, precision, recall, F1, ROC AUC
+- Brier score and calibration curves [Brier, 1950]
+
+Simulated-economic metrics (require stated fill model):
+
+- simulated win rate, expectancy, PnL
+- Sharpe and Sortino ratios under the simulation assumptions
+- maximum drawdown, turnover, average entry price
+- documented fill, fee, and slippage assumptions
 
 Calibration is especially important because binary market strategies are
 sensitive to the difference between predicted probability and market-implied
@@ -279,8 +298,8 @@ price.
 
 ## 12. Performance
 
-Rust enables high-throughput collection and backtesting. Benchmarks should
-report:
+Rust enables high-throughput collection and backtesting. Benchmark categories and
+harnesses are documented in the repository; published tables should report:
 
 - WebSocket messages per second
 - normalization latency
@@ -296,13 +315,25 @@ command, and configuration.
 
 ## 13. Dataset
 
-The target public dataset is:
+The public dataset lives at:
 
 ```text
 huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 ```
 
-Recommended layout:
+### 13.1 Release Status
+
+| Split | Version | Status | Purpose |
+|-------|---------|--------|---------|
+| Unified | `v0.3-unified` | **Live** | Deduped research timeline (recommended) |
+| Full | `v0.2-full` | **Live** | Per-snapshot exports with overlapping ranges |
+| Sample | `v0.1-sample` | **Live** | Schema validation, quickstart, baseline benchmarks |
+
+All splits are published on Hugging Face and validated via
+`scripts/hf/validate_sample_split.py`. The unified split is produced by
+`scripts/datasets/merge_partitions.py` from the `full/` exports.
+
+### 13.2 Target Layout
 
 ```text
 raw/
@@ -324,40 +355,108 @@ baselines.
 
 ## 14. Reproducibility
 
-A result should be reproducible from:
+OpenMarket treats reproducibility as a first-class systems requirement. Any
+benchmark, backtest, or paper result should be reconstructible from six
+identifiers:
 
-- source commit
-- dataset version
-- model version
-- config file
-- command
-- random seed
+- source commit (Git SHA)
+- dataset version (HF revision or snapshot manifest hash)
+- model version (when applicable; may be `none` for strategy-only runs)
+- config file path and contents
+- exact command line
+- random seed (when stochastic components are used)
 
-Example (fast path, ~204 KB HF sample split):
+### 14.1 Build Verification
+
+After cloning the repository, verify the Rust workspace compiles:
 
 ```bash
 git clone https://github.com/gregyoung14/openmarket.git
 cd openmarket
-python3 -m venv .venv && .venv/bin/pip install pyarrow huggingface_hub
-.venv/bin/python scripts/hf/validate_sample_split.py
-cargo run -p v15_brier_calibration --release -- --db-path <path-from-full-split>
+cargo check --workspace
 ```
 
-Example (full reproduction, ~10.9 GB SQLite snapshot via legacy Bunny CDN):
+### 14.2 Fast Path (Hugging Face Sample Split)
+
+The recommended public entry point is the published HF sample split
+(`v0.1-sample`): 12 tables, 9,352 rows, ~204 KB Parquet, downloadable in
+seconds. This path validates dataset layout and schema without a multi-gigabyte
+download.
 
 ```bash
 git clone https://github.com/gregyoung14/openmarket.git
 cd openmarket
-python3 datasets/download.py --snapshot sample --out data/openmarket.db
+python3 -m venv .venv
+.venv/bin/pip install -r scripts/datasets/requirements.txt -r scripts/hf/requirements.txt
+.venv/bin/python scripts/hf/validate_sample_split.py      # round-trip + row-count check
+.venv/bin/python scripts/hf/benchmark_baseline.py         # record load-time baseline
+```
+
+Optional notebook walkthrough:
+
+```bash
+.venv/bin/pip install jupyter pandas matplotlib
+.venv/bin/jupyter nbconvert --to notebook --execute notebooks/quickstart.ipynb
+```
+
+Strategy backtests that require SQLite can use a converted database from the
+full operator archive; the HF sample split alone is intended for schema
+validation and baseline benchmarking, not full strategy reproduction.
+
+### 14.3 Full Reproduction (Unified HF Split)
+
+Full strategy reproduction uses the unified Hugging Face Parquet split:
+
+```bash
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
+```
+
+Legacy operator SQLite snapshots remain available for migration only:
+
+```bash
+python3 datasets/download.py --legacy-cdn sample --out data/openmarket.db
 cargo run -p v15_brier_calibration --release -- --db-path data/openmarket.db
 ```
 
-Docker-based reproduction should also be supported:
+### 14.4 Docker Reproduction
+
+For end-to-end service reproduction (collector, recorder, dashboards):
 
 ```bash
 cp configs/openmarket.example.env .env
 docker compose -f docker/docker-compose.yml up
 ```
+
+### 14.5 Required Reporting Metadata
+
+Each published result should report:
+
+- CPU model
+- RAM
+- storage type (SSD/NVMe vs. network)
+- OS and kernel version
+- Rust toolchain version (`rustc --version`)
+- Python version (when scripts are used)
+- dataset version or HF revision
+- model version (or `none`)
+- config file
+- command
+- random seed
+
+Without this metadata, throughput and backtest numbers cannot be compared across
+environments.
+
+### 14.6 Reproducibility Flow
+
+```text
+git clone → cargo check → HF sample validate → (optional) notebook
+                |
+                +→ SQLite snapshot download → strategy backtest
+                |
+                +→ docker compose up → live collector stack
+```
+
+See `docs/reproducibility.md` for the canonical reproduction guide.
 
 ## 15. Limitations
 
@@ -367,7 +466,7 @@ OpenMarket has several limitations:
 - Collector host clocks can drift.
 - Top-of-book backtests may overestimate execution quality.
 - Label definitions can leak information if settlement is mishandled.
-- Strategy performance may be sensitive to a small number of market regimes.
+- Simulated strategy outcomes may be sensitive to a small number of market regimes.
 - Historical Polymarket liquidity may not match future liquidity.
 - Live execution has additional latency, queue position, and partial-fill risks.
 - BTC 15-minute markets are only one prediction-market domain.
@@ -395,13 +494,29 @@ The public release plan includes:
 
 - GitHub repository: `github.com/gregyoung14/openmarket`
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
-- Hugging Face models: `gregyoung14/openmarket-models`
+- Hugging Face models: `gregyoung14/openmarket-models` (scaffolded; first pinned
+  artifact deferred)
 - mdBook documentation
 - Rust API documentation
 - Docker reproducibility
 - benchmark tables
 - contribution guide
 - GitHub issues labeled by contribution area
+
+## 18. References
+
+Bibliography source: `paper/bibliography.bib` (BibTeX). Key references:
+
+- Berg, J. E., Nelson, F. D., and Rietz, T. A. (2008). Prediction Markets as a Research Tool. *The Economists' Voice*, 5(1).
+- Brier, G. W. (1950). Verification of Forecasts Expressed in Terms of Probability. *Monthly Weather Review*, 78(1), 1–3.
+- Cont, R., Kukanov, A., and Stoikov, S. (2014). The Price Impact of Order Book Events. *Journal of Financial Econometrics*, 12(1), 47–88.
+- Dubach, P. D. (2026). The Anatomy of a Decentralized Prediction Market: Microstructure Evidence from the Polymarket Order Book. *arXiv:2604.24366*.
+- Hanson, R. (2003). Combinatorial Information Market Design. *Information Systems Frontiers*, 5(1), 107–119.
+- Hasbrouck, J. (1995). One Security, Many Markets: Determining the Contributions to Price Discovery. *Journal of Finance*, 50(4), 1175–1199.
+- O'Hara, M. (2015). High Frequency Market Microstructure. *Journal of Financial Economics*, 116(2), 257–270.
+- Rahman, N., Al-Chami, J., and Clark, J. (2025). SoK: Market Microstructure for Decentralized Prediction Markets (DePMs). *arXiv:2510.15612*.
+- Saguillo, O., Ghafouri, V., Kiffer, L., and Suarez-Tangil, G. (2025). Unravelling the Probabilistic Forest: Arbitrage in Prediction Markets. *arXiv:2508.03474*.
+- Wolfers, J., and Zitzewitz, E. (2004). Prediction Markets. *Journal of Economic Perspectives*, 18(2), 107–126.
 
 ## Appendix A. Schema Summary
 
@@ -432,16 +547,87 @@ Matched Binance/Polymarket event pairs: pair timestamp, market, side, tick IDs,
 source timestamps, lead-lag, Binance price, Polymarket bid, price delta, quality
 flag.
 
-## Appendix B. Figures To Add
+## Appendix B. Figure Specifications
 
-- Overall architecture diagram
-- WebSocket message flow
-- Synchronization timeline
-- Lead-lag histogram
-- Order book visualization
-- Feature engineering pipeline
-- Training workflow
-- Backtesting engine
-- Dataset schema
-- Reproducibility flow
-- Benchmark charts
+Each figure below is specified for LaTeX/TikZ or matplotlib generation. Asset
+paths are placeholders under `paper/assets/figures/`.
+
+### B.1 Architecture Diagram (`fig:architecture`)
+
+**Type:** Block diagram (TikZ).
+**Content:** Reproduce §4 pipeline: Binance WS → Tick Collector → Timestamp
+Synchronizer ← Polymarket WS → Order Book Collector → Feature Generator →
+ML/Signal Engine → Backtester → Evaluation.
+**Labels:** Crate names (`exchange-binance`, `recorder`, `backtester`) on boxes.
+**Status:** `[TODO: generate PDF]`
+
+### B.2 WebSocket Message Flow (`fig:ws-flow`)
+
+**Type:** Sequence diagram.
+**Content:** Subscribe → heartbeat → trade/book event → normalize → persist;
+show reconnect branch with gap marker.
+**Data source:** `docs/architecture/overview.md`.
+**Status:** `[TODO]`
+
+### B.3 Synchronization Timeline (`fig:lead-lag-timeline`)
+
+**Type:** TikZ timeline (implemented in `paper/sections/synchronization.tex`).
+**Content:** Source times $t_B$, $t_P$; ingest times $t_B^{ing}$, $t_P^{ing}$;
+alignment window $W$; bracket for `lead_lag_ms`.
+**Status:** `[LaTeX stub ready]`
+
+### B.4 Lead-Lag Histogram (`fig:lead-lag-hist`)
+
+**Type:** Histogram (matplotlib).
+**Content:** Distribution of `lead_lag_ms` from `lag_pairs_ms`, faceted by date
+and UP/DOWN side. Overlay median and 5th/95th percentiles.
+**Data source:** HF `sample/lag_pairs_ms/` or SQLite export.
+**Status:** `[TODO: notebook script]`
+
+### B.5 Order Book Snapshot (`fig:orderbook`)
+
+**Type:** Depth chart or bid-ask ladder.
+**Content:** Top-of-book bid/ask for UP and DOWN tokens at a single
+`polymarket_ticks_ms` timestamp; annotate spread and microprice.
+**Status:** `[TODO]`
+
+### B.6 Feature Engineering Pipeline (`fig:features`)
+
+**Type:** Flowchart.
+**Content:** Raw ticks → alignment → feature families (§7) → label generation.
+**Status:** `[TODO]`
+
+### B.7 Training Workflow (`fig:training`)
+
+**Type:** Flowchart.
+**Content:** Feature matrix → train/validation split (time-based) → model fit →
+calibration check → artifact export to Hugging Face (metadata in Git).
+**Status:** `[TODO]`
+
+### B.8 Backtesting Engine (`fig:backtest`)
+
+**Type:** Block diagram.
+**Content:** Per-market window loop, signal gate, simulated fill, settlement,
+metric aggregation. Emphasize "simulated" on economic outputs.
+**Status:** `[TODO]`
+
+### B.9 Dataset Schema (`fig:schema`)
+
+**Type:** Entity-relationship or table diagram.
+**Content:** Tables from Appendix A with key foreign keys (`market_slug`,
+`tick_id` pairing).
+**Status:** `[TODO]`
+
+### B.10 Reproducibility Flow (`fig:repro`)
+
+**Type:** Flowchart (matches §14.6).
+**Content:** `git clone` → `cargo check` → HF validate → optional notebook /
+SQLite / Docker branches.
+**Status:** `[TODO]`
+
+### B.11 Benchmark Charts (`fig:benchmarks`)
+
+**Type:** Bar or time-series charts.
+**Content:** Outputs from `scripts/hf/benchmark_baseline.py` and planned Rust
+harnesses (throughput, latency). Label as environment-specific measurements.
+**Status:** `[TODO: run harness, plot results]`
