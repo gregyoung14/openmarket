@@ -18,8 +18,8 @@ split.
   - `sample/` (`v0.1-sample`)
   - `full/` (`v0.2-full`) — complete 202-snapshot CDN archive (3258 parquet
     files as of 2026-07-01)
-  - `unified/` (`v0.4.1-unified`) deduped from the complete 202-snapshot archive
-    (587M rows, 478 parquet files; refreshed on HF 2026-07-01 after `04-21` recovery)
+  - `unified/` (`v0.4.2-unified`) deduped from the complete 202-snapshot archive
+    (722M rows; refreshed on HF 2026-07-01 after all partial recoveries)
 - Hugging Face models: `gregyoung14/openmarket-models`
   - `v0.1/` calibrated binary-outcome model payload and metrics
 
@@ -29,8 +29,8 @@ split.
   `data/hf_release/metadata/snapshot_manifest.json`: 202
 - Snapshots with local export reports: 202
 - Snapshots reflected in the published queue metadata:
-  - `published-clean`: 198
-  - `published-partial`: 4
+  - `published-clean`: 202
+  - `published-partial`: 0
   - `corrupt`: 0
 
 The public `full/` split now matches the complete fixed CDN inventory.
