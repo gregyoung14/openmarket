@@ -159,7 +159,7 @@ See [datasets/README.md](datasets/README.md) and
 Archival status:
 
 - 202 SQLite snapshots inventoried in the redacted manifest; all 202 published
-  in `full/` (`197 clean`, `5 partial` table exports).
+  in `full/` (`198 clean`, `4 partial` table exports).
 - `unified/` (`v0.4-unified`) deduped from the complete `full/` tree — 586M
   rows, 467 parquet files.
 - See `docs/release/PROJECT-STATUS.md` for queue metadata and closeout notes.

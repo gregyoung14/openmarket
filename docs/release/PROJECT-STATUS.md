@@ -29,8 +29,8 @@ split.
   `data/hf_release/metadata/snapshot_manifest.json`: 202
 - Snapshots with local export reports: 202
 - Snapshots reflected in the published queue metadata:
-  - `published-clean`: 197
-  - `published-partial`: 5
+  - `published-clean`: 198
+  - `published-partial`: 4
   - `corrupt`: 0
 
 The public `full/` split now matches the complete fixed CDN inventory.

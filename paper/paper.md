@@ -477,7 +477,8 @@ OpenMarket has several limitations:
 OpenMarket is no longer an active data-collection project. Archival closeout
 completed on 2026-07-01:
 
-- all 202 CDN manifest snapshots published in `full/` (`197 clean`, `5 partial`)
+- all 202 CDN manifest snapshots published in `full/` (`198 clean`, `4 partial`;
+  `04-21` reclassified after sqlite3 recovery)
 - `unified/` rebuilt from the complete archive (`v0.4-unified`, 586M rows)
 - queue metadata reconciled in `docs/release/full-snapshot-publish-status.json`
 - final source tag `v0.5.0` marks the frozen public research record

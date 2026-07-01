@@ -13,7 +13,8 @@ the full archive.
   disk. Removed **12,118,682 duplicates** (~2.0 %) across 598,277,262 input
   rows.
 - **Queue metadata**: `docs/release/full-snapshot-publish-status.json` reconciled
-  (`197 published-clean`, `5 published-partial`, `0 corrupt`).
+  (`198 published-clean`, `4 published-partial`, `0 corrupt` after `04-21`
+  recovery reclassification).
 - **Docs**: README, dataset cards, paper, and `PROJECT-STATUS.md` updated to
   describe archival shutdown with complete coverage.
 
@@ -40,8 +41,8 @@ the full archive.
 |---|---:|
 | CDN manifest snapshots | 202 |
 | `full/` export reports | 202 |
-| `published-clean` queue | 197 |
-| `published-partial` queue | 5 |
+| `published-clean` queue | 198 |
+| `published-partial` queue | 4 |
 | Clean batches completed | 01–20 |
 
 ## Release artifacts
@@ -60,6 +61,6 @@ Paper:             paper/paper.md
 
 - No ongoing data collection or model maintenance
 - No claim of deployable production trading alpha
-- The five `published-partial` snapshots retain table-level `partial` export
-  status from the original release lane; they are published but not re-exported
-  in this closeout pass
+- Four `published-partial` snapshots retain table-level `partial` export status;
+  `polymarket_btc_data_2026-04-21_211838` was recovered via `sqlite3 .recover`
+  and reclassified to `published-clean` post-release
