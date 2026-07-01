@@ -243,7 +243,7 @@ timestamp follows the Binance event timestamp.
 ```text
 Source repo:     github.com/gregyoung14/openmarket
 Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-Dataset version: v0.3-unified
+Dataset version: v0.4-features
 Models:          huggingface.co/gregyoung14/openmarket-models
 Model version:   deferred; model-card scaffold uploaded
 ```
