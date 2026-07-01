@@ -37,8 +37,10 @@ The public `full/` split now matches the complete fixed CDN inventory.
 
 ## Remaining Archive-Closeout Work
 
-1. Push source tag `v0.5.0` and verify GitHub/HF release workflow alignment.
-2. Optional: refresh LaTeX/arXiv bundle if the paper is submitted externally.
+1. Optional: refresh LaTeX/arXiv bundle if the paper is submitted externally.
+2. Optional: tag `v0.5.1` on `main` if you want the post-recovery commits
+   (`d45dda0`) captured in a release pointer; `v0.5.0` remains the archival
+   milestone tag.
 
 ## What This Project Is Not Doing Anymore
 
