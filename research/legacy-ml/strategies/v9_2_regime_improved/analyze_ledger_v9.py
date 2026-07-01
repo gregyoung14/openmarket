@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 import warnings
 warnings.filterwarnings('ignore')
 
-LEDGER_URL = "http://3.252.71.29/redeem/ledger"
+LEDGER_URL = os.environ.get("OPENMARKET_LEDGER_URL", "http://localhost:8006/ledger")
 DB_PATH = "polymarket_btc_data.db"
 
 # ── Pull ledger ────────────────────────────────────────────────────────────────
