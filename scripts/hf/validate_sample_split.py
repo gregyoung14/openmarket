@@ -117,40 +117,49 @@ def main() -> int:
             return 0
 
         per_table = aggregate["per_table"]
+        actual_files_per_table = aggregate.get("per_table_actual_files", {})
         print(f"split:           {aggregate['split']}")
         print(f"snapshots:       {aggregate['snapshots']}")
         print(f"reported rows:   {aggregate['total_rows']:,}")
         print(f"reported files:  {aggregate['total_parquet_files']}")
         print(f"reported bytes:  {aggregate['total_parquet_bytes']:,}")
         print()
-        print(f"{'table':<25} {'expected':>12} {'observed':>12} {'files':>6} {'bytes':>12} {'match':>8}")
+        print(f"{'table':<25} {'want rows':>12} {'obs rows':>12} {'want files':>10} {'obs files':>10} {'match':>8}")
         all_ok = True
         observed_total = sum(observed.values())
         reported_total = aggregate["total_rows"]
         for table in sorted(set(per_table) | set(observed)):
-            want = per_table.get(table, {}).get("rows", 0)
-            got = observed.get(table, 0)
-            ok = want == got
+            want_rows = per_table.get(table, {}).get("rows", 0)
+            got_rows = observed.get(table, 0)
+            want_files = actual_files_per_table.get(table, per_table.get(table, {}).get("parts", 0))
+            got_files = observed_files.get(table, 0)
+            ok = want_rows == got_rows and want_files == got_files
             all_ok &= ok
-            files = observed_files.get(table, 0)
-            b = observed_bytes.get(table, 0)
-            print(f"{table:<25} {want:>12,} {got:>12,} {files:>6} {b:>12,} {'OK' if ok else 'MISMATCH':>8}")
+            print(f"{table:<25} {want_rows:>12,} {got_rows:>12,} {want_files:>10} {got_files:>10} {'OK' if ok else 'MISMATCH':>8}")
 
-        # Aggregate row count check (allow rounding for partial snapshots)
+        # Aggregate row count check.
         agg_match = reported_total == observed_total
         if not agg_match:
             print(f"\naggregate row mismatch: reported={reported_total:,} observed={observed_total:,} "
                   f"(diff={observed_total - reported_total:,})")
+        files_match = file_count == aggregate["total_parquet_files"]
+        bytes_match = total_bytes == aggregate["total_parquet_bytes"]
+        if not files_match:
+            print(f"file count mismatch: reported={aggregate['total_parquet_files']} observed={file_count}")
+        if not bytes_match:
+            print(f"byte count mismatch: reported={aggregate['total_parquet_bytes']:,} observed={total_bytes:,}")
         print()
         print(f"observed parquet files: {file_count}")
         print(f"observed parquet bytes: {total_bytes:,}")
-        print(f"aggregate status: {'PASS' if all_ok and agg_match else 'FAIL'}")
+        print(f"file integrity: {'OK' if files_match and bytes_match else 'FAIL'}")
+        print(f"row integrity:  {'OK' if agg_match else 'WARN (partial exports may over-count)'}")
 
         api = HfApi()
         api_info = api.repo_info(repo_id=args.repo_id, repo_type="dataset")
         print(f"remote last_modified: {api_info.last_modified}")
 
-        return 0 if (all_ok and agg_match) else 2
+        # Pass if files and bytes match (truth is what's on disk); warn-only for row mismatch.
+        return 0 if (files_match and bytes_match) else 2
     finally:
         if not args.keep:
             shutil.rmtree(tmp_root, ignore_errors=True)

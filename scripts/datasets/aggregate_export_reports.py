@@ -65,19 +65,25 @@ def main() -> int:
             "engine": data.get("engine"),
         })
 
-    # Compute parquet bytes from actual files
+    # Compute parquet bytes and file counts from actual files (truth source).
     parquet_root = args.root / f"{args.split}_parquet"
+    actual_files_per_table: dict[str, int] = defaultdict(int)
     for pq in parquet_root.rglob("*.parquet"):
         total_parquet_bytes += pq.stat().st_size
+        rel = pq.relative_to(parquet_root)
+        parts = rel.parts
+        if len(parts) >= 1 and parts[0] != "metadata":
+            actual_files_per_table[parts[0]] += 1
 
     summary = {
         "split": args.split,
         "snapshots": len(snapshot_summaries),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "total_rows": sum(v["rows"] for v in per_table.values()),
-        "total_parquet_files": sum(v["parts"] for v in per_table.values()),
+        "total_parquet_files": sum(actual_files_per_table.values()),
         "total_parquet_bytes": total_parquet_bytes,
         "per_table": {k: dict(v) for k, v in sorted(per_table.items())},
+        "per_table_actual_files": dict(actual_files_per_table),
         "snapshots_detail": snapshot_summaries,
     }
 
