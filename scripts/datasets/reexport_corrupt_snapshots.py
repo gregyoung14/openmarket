@@ -88,6 +88,17 @@ def main() -> int:
         if db_line and db_line.endswith(".recovered.db"):
             export_target = Path(db_line).name.replace(".recovered.db", ".db.gz")
 
+        out_dir = Path(args.out_dir)
+        removed = 0
+        for pq in out_dir.rglob(f"*{snap_id}*.parquet"):
+            pq.unlink()
+            removed += 1
+        report = out_dir / "metadata" / f"{snap_id}.export_report.json"
+        if report.exists():
+            report.unlink()
+            removed += 1
+        print(f"cleaned {removed} prior artifact(s)", flush=True)
+
         print(f"=== export {snap_id} ===", flush=True)
         export = subprocess.run(
             [args.python, EXPORTER, export_target,

@@ -121,8 +121,13 @@ def main() -> int:
     snapshot_id = filename.removesuffix(".db.gz").removesuffix(".db")
     db_path = materialize(source, filename, Path(args.staging_dir))
     recovered_path = db_path.with_name(db_path.stem + ".recovered.db")
+    recovered_journal = Path(f"{recovered_path}-journal")
 
-    if recovered_path.exists() and not args.force:
+    if recovered_journal.exists():
+        print(f"recover in progress: {recovered_path}", flush=True)
+        return 2
+
+    if recovered_path.exists() and recovered_path.stat().st_size > 0 and not args.force:
         print(recovered_path)
         return 0
 
