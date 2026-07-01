@@ -18,8 +18,8 @@ split.
   - `sample/` (`v0.1-sample`)
   - `full/` (`v0.2-full`) — complete 202-snapshot CDN archive (3258 parquet
     files as of 2026-07-01)
-  - `unified/` (`v0.4-unified`) deduped from the complete 202-snapshot archive
-    (586M rows, 467 parquet files, synced to HF 2026-07-01)
+  - `unified/` (`v0.4.1-unified`) deduped from the complete 202-snapshot archive
+    (587M rows, 478 parquet files; refreshed on HF 2026-07-01 after `04-21` recovery)
 - Hugging Face models: `gregyoung14/openmarket-models`
   - `v0.1/` calibrated binary-outcome model payload and metrics
 
