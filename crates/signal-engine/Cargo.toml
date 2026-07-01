@@ -1,0 +1,19 @@
+[package]
+name = "signal-engine"
+version = "14.0.0"
+edition = "2021"
+
+[dependencies]
+btc-common = { path = "../common" }
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.7", features = ["ws"] }
+tokio-tungstenite = { version = "0.26", features = ["native-tls"] }
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+anyhow = "1.0"
+parking_lot = "0.12"
+chrono = { version = "0.4", features = ["serde"] }

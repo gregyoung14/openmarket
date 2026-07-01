@@ -1,0 +1,18 @@
+[package]
+name = "paper-executor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = { version = "0.28", features = ["rustls-tls-native-roots"] }
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+parking_lot = "0.12"
+anyhow = "1.0"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }

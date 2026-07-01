@@ -1,0 +1,13 @@
+[package]
+name = "data-prep"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = "0.4"
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+indicatif = "0.17"
+rusqlite = { version = "0.32", features = ["bundled"] }
+csv = "1.3"
+rayon = "1.8"

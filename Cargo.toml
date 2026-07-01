@@ -1,0 +1,29 @@
+[workspace]
+members = [
+  "crates/backtester",
+  "crates/common",
+  "crates/data-prep",
+  "crates/dataset-downloader",
+  "crates/exchange-binance",
+  "crates/exchange-polymarket",
+  "crates/execution-engine",
+  "crates/paper-executor",
+  "crates/recorder",
+  "crates/signal-engine",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/gregyoung14/openmarket"
+homepage = "https://github.com/gregyoung14/openmarket"
+
+[workspace.metadata.openmarket]
+canonical_dataset = "huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket"
+canonical_models = "huggingface.co/gregyoung14/openmarket-models"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

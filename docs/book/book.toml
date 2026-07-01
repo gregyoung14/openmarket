@@ -1,0 +1,5 @@
+[book]
+title = "OpenMarket"
+authors = ["Gregory Young"]
+language = "en"
+src = "src"
