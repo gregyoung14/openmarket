@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a defect or unexpected behavior
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out the
+        template below so we can reproduce and fix it.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      placeholder: A clear one-paragraph description.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Run command X
+        2. Observe Y
+        3. Expected Z
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      placeholder: |
+        - OS / architecture:
+        - Rust version (`rustc --version`):
+        - Python version (`python3 --version`):
+        - OpenMarket commit (`git rev-parse HEAD`):
+        - HF dataset version (if applicable):
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Low (cosmetic, docs)
+        - Medium (incorrect behavior, workaround exists)
+        - High (broken core feature)
+        - Critical (data loss, security, money-related)
+    validations:
+      required: true

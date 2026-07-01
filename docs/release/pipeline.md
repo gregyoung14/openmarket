@@ -25,7 +25,7 @@ For GitHub:
 ```text
   .github/workflows/release.yml             (auto-tag HF on `v*` push)
   .github/workflows/ci.yml                  (cargo + python validation)
-  scripts/release/                          (any extra repo automation)
+  scripts/hf/                               (HF release automation)
 ```
 
 ## Cutting a GitHub release

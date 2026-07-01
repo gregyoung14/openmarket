@@ -333,7 +333,17 @@ A result should be reproducible from:
 - command
 - random seed
 
-Example:
+Example (fast path, ~204 KB HF sample split):
+
+```bash
+git clone https://github.com/gregyoung14/openmarket.git
+cd openmarket
+python3 -m venv .venv && .venv/bin/pip install pyarrow huggingface_hub
+.venv/bin/python scripts/hf/validate_sample_split.py
+cargo run -p v15_brier_calibration --release -- --db-path <path-from-full-split>
+```
+
+Example (full reproduction, ~10.9 GB SQLite snapshot via legacy Bunny CDN):
 
 ```bash
 git clone https://github.com/gregyoung14/openmarket.git

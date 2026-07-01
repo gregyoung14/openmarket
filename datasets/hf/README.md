@@ -1,13 +1,11 @@
 ---
-dataset_info:
-  features:
-    - name: source_ts_ms
-      dtype: int64
-    - name: ingest_ts_ms
-      dtype: int64
-  splits:
-    - name: sample
-      num_examples: 9352
+configs:
+  - config_name: default
+    data_files:
+      - split: sample
+        path: sample/**/*
+      - split: full
+        path: full/**/*
 license: apache-2.0
 task_categories:
   - tabular-classification
@@ -21,6 +19,8 @@ tags:
   - high-frequency-data
 pretty_name: OpenMarket BTC Polymarket
 ---
+
+# OpenMarket BTC Polymarket
 
 # OpenMarket BTC Polymarket
 
