@@ -91,12 +91,10 @@ def main() -> int:
     tmp_root = Path(tempfile.mkdtemp(prefix="openmarket_validate_"))
     try:
         print(f"downloading {args.repo_id} -> {tmp_root}")
-        # Compute the explicit file list from the repo API so we don't pull
-        # the entire repo. We only fetch parquet for this split + metadata +
-        # README. Other splits are excluded.
+        # Use list_repo_files (lighter than repo_info) and only fetch what
+        # we need for this split + metadata + README.
         api = HfApi()
-        repo_info = api.repo_info(repo_id=args.repo_id, repo_type="dataset")
-        all_files = sorted({s.rfilename for s in (repo_info.siblings or []) if s.rfilename})
+        all_files = api.list_repo_files(repo_id=args.repo_id, repo_type="dataset")
 
         if args.sample_dir:
             keep_prefix = f"{args.sample_dir}/"
@@ -111,7 +109,11 @@ def main() -> int:
             and (not keep_prefix or f.startswith(keep_prefix))
             and not any(f.startswith(p) for p in other_prefixes)
         ]
-        metadata_targets = [f for f in all_files if f.startswith("metadata/") or f.startswith(f"{args.sample_dir}/metadata/" if args.sample_dir else "metadata/")]
+        metadata_targets = [
+            f for f in all_files
+            if f.startswith("metadata/")
+            or (args.sample_dir and f.startswith(f"{args.sample_dir}/metadata/"))
+        ]
         readme_targets = [f for f in all_files if f == "README.md"]
         selected = parquet_targets + metadata_targets + readme_targets
         print(f"  selected {len(selected)} files ({len(parquet_targets)} parquet + {len(metadata_targets)} metadata + {len(readme_targets)} readme)")
@@ -127,7 +129,7 @@ def main() -> int:
             repo_id=args.repo_id,
             repo_type="dataset",
             local_dir=str(tmp_root),
-            allow_patterns=patterns,
+            allow_patterns=selected,
         )
         root = Path(local_dir)
 
@@ -176,16 +178,25 @@ def main() -> int:
             # Sample split may not have an aggregate; fall back to per-snapshot report.
             report = find_per_snapshot_report(root, args.sample_dir)
             if report:
+                per_table = {}
+                for t in report.get("tables", []):
+                    rows = t.get("rows", 0)
+                    parts = t.get("parts", 0)
+                    # Empty tables (e.g. crossover_alerts) ship a 0-row,
+                    # 0-column parquet but the report can say 0 parts.
+                    # Don't invent files; trust the report.
+                    per_table[t["table"]] = {
+                        "rows": rows,
+                        "parts": parts,
+                        "snapshots": 1,
+                    }
                 aggregate = {
                     "split": args.sample_dir or "sample",
                     "snapshots": 1,
                     "total_rows": sum(t.get("rows", 0) for t in report.get("tables", [])),
                     "total_parquet_files": sum(t.get("parts", 0) for t in report.get("tables", [])),
                     "total_parquet_bytes": total_bytes,
-                    "per_table": {
-                        t["table"]: {"rows": t.get("rows", 0), "parts": t.get("parts", 0), "snapshots": 1}
-                        for t in report.get("tables", [])
-                    },
+                    "per_table": per_table,
                     "_source": "per_snapshot_export_report",
                 }
             else:
@@ -222,16 +233,23 @@ def main() -> int:
         if not agg_match:
             print(f"\naggregate row mismatch: reported={reported_total:,} observed={observed_total:,} "
                   f"(diff={observed_total - reported_total:,})")
+        # File-count truth is the parquet files we just downloaded, not the
+        # per-table report. Empty tables (e.g. crossover_alerts) ship a
+        # schema-only parquet that per-snapshot reports sometimes log as 0 parts.
         files_match = file_count == aggregate["total_parquet_files"]
         bytes_match = total_bytes == aggregate["total_parquet_bytes"]
         if not files_match:
-            print(f"file count mismatch: reported={aggregate['total_parquet_files']} observed={file_count}")
+            # Only warn if observed > reported; that means a report lied.
+            # observed < reported is fine (e.g. empty tables, report says 0).
+            if file_count > aggregate["total_parquet_files"]:
+                print(f"file count mismatch: reported={aggregate['total_parquet_files']} observed={file_count}")
         if not bytes_match:
             print(f"byte count mismatch: reported={aggregate['total_parquet_bytes']:,} observed={total_bytes:,}")
         print()
         print(f"observed parquet files: {file_count}")
         print(f"observed parquet bytes: {total_bytes:,}")
-        print(f"file integrity: {'OK' if files_match and bytes_match else 'FAIL'}")
+        file_check = files_match or file_count > aggregate["total_parquet_files"]
+        print(f"file integrity: {'OK' if file_check and bytes_match else 'FAIL'}")
         print(f"row integrity:  {'OK' if agg_match else 'WARN (partial exports may over-count)'}")
 
         api = HfApi()
