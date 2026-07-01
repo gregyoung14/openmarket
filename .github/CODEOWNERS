@@ -1,0 +1,12 @@
+# Default owners for everything in the repo.
+*       @gregyoung14
+
+# Docs and HF releases need a second pair of eyes for review friction.
+/docs/             @gregyoung14
+/datasets/         @gregyoung14
+/scripts/hf/       @gregyoung14
+
+# Workflow and CI files.
+/.github/           @gregyoung14
+*.yml              @gregyoung14
+*.yaml             @gregyoung14

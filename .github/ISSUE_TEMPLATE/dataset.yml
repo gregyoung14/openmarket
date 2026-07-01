@@ -1,0 +1,42 @@
+name: Dataset / model question
+description: Question about the Hugging Face dataset or model artifacts
+title: "[dataset] "
+labels: ["question", "dataset"]
+body:
+  - type: dropdown
+    id: artifact
+    attributes:
+      label: Which artifact?
+      options:
+        - "openmarket-btc-polymarket (dataset)"
+        - "openmarket-models (model)"
+        - "Both / not sure"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: split
+    attributes:
+      label: Split (if dataset)
+      options:
+        - "sample/"
+        - "full/"
+        - "Both"
+        - "N/A"
+    validations:
+      required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code or commands you tried
+      render: shell
+    validations:
+      required: false

@@ -92,32 +92,33 @@ cd openmarket
 cargo check --workspace
 ```
 
-Load the published sample split (≈204 KB, no large download):
+Load the published HF sample split (~204 KB, no large download):
 
 ```bash
-.venv/bin/python scripts/hf/validate_sample_split.py     # round-trip the sample
-.venv/bin/python scripts/hf/benchmark_baseline.py        # record metrics
+python3 -m venv .venv && .venv/bin/pip install -r scripts/datasets/requirements.txt -r scripts/hf/requirements.txt
+.venv/bin/python scripts/hf/validate_sample_split.py      # round-trip the sample
+.venv/bin/python scripts/hf/benchmark_baseline.py         # record metrics
+.venv/bin/pip install jupyter pandas matplotlib
 .venv/bin/jupyter nbconvert --to notebook --execute notebooks/quickstart.ipynb
-```
-
-Download a dataset snapshot:
-
-```bash
-python3 datasets/download.py --snapshot sample --out data/openmarket.db
 ```
 
 Run a backtest:
 
 ```bash
-cargo run -p v15_brier_calibration --release -- \
-  --db-path data/openmarket.db
+cargo run -p v15_brier_calibration --release -- --db-path data/openmarket.db
 ```
 
-Run the local service stack:
+Run the local service stack (collector + recorder + dashboards):
 
 ```bash
 cp configs/openmarket.example.env .env
 docker compose -f docker/docker-compose.yml up
+```
+
+Legacy snapshot download (Bunny CDN; not the recommended public path):
+
+```bash
+python3 datasets/download.py --snapshot <snapshot-or-url> --out data/openmarket.db
 ```
 
 ## Datasets

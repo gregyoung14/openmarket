@@ -1,0 +1,55 @@
+# OpenMarket
+
+Copyright 2026 Greg Young
+
+This product includes software developed at
+[The Apache Software Foundation](https://www.apache.org/) (Apache License 2.0).
+
+## Data Sources
+
+OpenMarket pairs publicly available market data feeds:
+
+- **Binance BTC/USDT** spot market trades via the public Binance WebSocket
+  (`wss://stream.binance.com:9443/ws/btcusdt@trade`). Consult Binance's market
+  data terms before redistributing bulk historical archives.
+- **Polymarket CLOB** (Central Limit Order Book) via the public
+  `clob.polymarket.com`, `gamma-api.polymarket.com`, and
+  `ws-subscriptions-clob.polymarket.com` WebSocket endpoints. Consult
+  Polymarket's API terms before redistributing bulk historical archives.
+- **Polygon** JSON-RPC public endpoints (`polygon-bor-rpc.publicnode.com`,
+  `rpc.ankr.com/polygon`, `polygon-rpc.com`) for on-chain settlement reads.
+
+No private keys, wallet addresses, account IDs, or other operator
+credentials are included in this repository or in the published Hugging
+Face datasets. The operator's Bunny CDN storage zone
+(`YOUR_STORAGE_ZONE`) hosts private archival snapshots and is not part of this
+release.
+
+## Third-Party Rust Dependencies
+
+This release uses (not exhaustive; full list in each crate's `Cargo.lock`):
+
+- `tokio` (MIT) — async runtime
+- `axum` (MIT) — HTTP server
+- `tokio-tungstenite` (MIT) — WebSocket client
+- `serde` (MIT/Apache-2.0) — serialization
+- `rusqlite` (MIT) — SQLite bindings
+- `reqwest` (MIT/Apache-2.0) — HTTP client
+- `alloy` (MIT/Apache-2.0) — Ethereum signer
+- `polymarket-client-sdk` — third-party Polymarket Rust SDK
+- `pyo3` (MIT/Apache-2.0) — Python bindings
+- `numpy`, `pandas`, `pyarrow`, `scikit-learn` — Python data science
+- `huggingface_hub` (Apache-2.0) — HF upload API
+
+## Third-Party Frontend Dependencies
+
+- `solid-js` (MIT) — UI framework
+- `lightweight-charts` (Apache-2.0) — financial charts
+- `vite` (MIT) — bundler
+
+## Trademarks
+
+"Polymarket" is a trademark of Polymarket. "Binance" is a trademark of
+Binance Holdings Ltd. "Polygon" and "USDC.e" / "USDC" are trademarks of
+Polygon Labs and Circle respectively. OpenMarket is not affiliated with,
+endorsed by, or sponsored by these entities.
