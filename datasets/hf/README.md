@@ -100,6 +100,7 @@ Three splits are published:
 | Split | Version | Description |
 |---|---|---|
 | `unified/` | v0.3-unified | Deduped research timeline (recommended) |
+| `features/` | v0.4-features | ML feature exports (step2 100ms/1s, step3 calibration) |
 | `full/` | v0.2-full | 10 per-snapshot exports with overlapping ranges |
 | `sample/` | v0.1-sample | Tiny demo split for CI and quickstarts |
 

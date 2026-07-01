@@ -27,7 +27,7 @@ DEFAULT_ROOT = Path("data/hf_release")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", choices=("sample", "full", "unified"), default="sample")
+    parser.add_argument("--split", choices=("sample", "full", "unified", "features"), default="sample")
     parser.add_argument("--repo-id", default=DEFAULT_REPO)
     parser.add_argument("--root", default=DEFAULT_ROOT, type=Path)
     parser.add_argument("--commit-message", default=None)
@@ -43,9 +43,10 @@ def main() -> int:
         return 1
     meta_dir = local_dir / "metadata"
     metadata_files = list(meta_dir.glob("*.export_report.json"))
+    feature_reports = list(meta_dir.glob("*.features_export_report.json"))
     quality_report = meta_dir / "merge_quality_report.json"
-    if not metadata_files and not quality_report.exists():
-        print(f"ERROR: no export reports or merge_quality_report.json in {meta_dir}")
+    if not metadata_files and not feature_reports and not quality_report.exists():
+        print(f"ERROR: no export reports, feature reports, or merge_quality_report.json in {meta_dir}")
         return 1
 
     parquet_count = sum(1 for _ in local_dir.rglob("*.parquet"))

@@ -123,6 +123,9 @@ def materialize_db(source: str, filename: str, staging_dir: Path) -> Path:
     if compressed.suffix != ".gz":
         return compressed
     db_path = staging_dir / compressed.name.removesuffix(".gz")
+    recovered = db_path.with_name(db_path.stem + ".recovered.db")
+    if recovered.exists():
+        return recovered
     if db_path.exists():
         return db_path
     src_size = compressed.stat().st_size

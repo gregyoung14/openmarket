@@ -3,6 +3,18 @@ name = "market-data-recorder"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "market_data_recorder"
+path = "src/lib.rs"
+
+[[bin]]
+name = "market-data-recorder"
+path = "src/main.rs"
+
+[[bin]]
+name = "ml_export"
+path = "src/bin/ml_export.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 axum = { version = "0.7", features = ["ws"] }

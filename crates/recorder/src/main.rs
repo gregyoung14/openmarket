@@ -1,12 +1,4 @@
-mod config;
-mod db;
-mod handlers;
-mod ingest;
-mod lag;
-mod models;
-mod normalize;
-mod services;
-
+use market_data_recorder::{config, db, handlers, ingest, lag, models, services};
 use axum::{routing::get, Router};
 use tokio::sync::mpsc;
 use tracing::info;

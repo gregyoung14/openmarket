@@ -15,6 +15,10 @@ bot. The repository contains code, schemas, documentation, examples, and release
 scripts. Large datasets and pretrained models are released separately through
 Hugging Face and GitHub Releases.
 
+OpenMarket is now in archival shutdown. No new live data will be collected. The
+remaining publication work is to release as much of the fixed historical CDN
+archive as possible and freeze the project as a public research record.
+
 ## What This Project Provides
 
 - Rust WebSocket collectors for Binance BTC/USDT trades and Polymarket CLOB
@@ -134,6 +138,7 @@ Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingfac
 | Split | Version | Use |
 |---|---|---|
 | `unified/` | v0.3-unified | **Recommended** — deduped timeline across all exported snapshots |
+| `features/` | v0.4-features | ML features — step2 (100ms/1s) + step3 binary calibration |
 | `full/` | v0.2-full | Per-snapshot exports (10 snapshots, overlapping date ranges) |
 | `sample/` | v0.1-sample | CI, quickstarts — 12 tables, 9,352 rows, ~204 KB |
 
@@ -151,13 +156,20 @@ README.md
 See [datasets/README.md](datasets/README.md) and
 [docs/data/dataset-release.md](docs/data/dataset-release.md).
 
+Archival status:
+
+- 202 SQLite snapshots are inventoried in the redacted manifest.
+- `full/` and `unified/` currently cover the first 10 published snapshots.
+- Additional snapshots exist in the fixed CDN archive and are being published as
+  archive-closeout work, not as ongoing new data collection.
+
 ## Models
 
-Pretrained model artifacts are not committed to Git. They will live in:
+Pretrained model artifacts are not committed to Git. They live in:
 
 - [gregyoung14/openmarket-models](https://huggingface.co/gregyoung14/openmarket-models)
-  — currently scaffolded with `.gitattributes` + `README.md`; first v0.1.0 model
-  is **deferred** to a future release.
+  — public `v0.1/` artifacts are available, including a calibrated
+  binary-outcome scorer and metrics snapshots.
 
 The repository keeps model metadata, feature schemas, training code, and release
 manifests.

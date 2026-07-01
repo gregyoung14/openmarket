@@ -18,7 +18,7 @@ artifacts, feature schemas, and model cards.
 Model binaries should be uploaded here rather than committed to the OpenMarket
 GitHub repository.
 
-## Planned Artifacts
+## Repository Layout
 
 ```text
 v0.1/
@@ -41,6 +41,17 @@ v0.1/
 - calibration report
 - known limitations
 
-## Current Status
+## Current Release
 
-No public pretrained model has been released yet.
+| Artifact | Version | Description |
+|---|---|---|
+| `v0.1/binary_outcome_model.json` | v0.1 | Calibrated logistic binary-outcome scorer (Platt scaling) |
+| `v0.1/binary_outcome_metrics_*.json` | v0.1 | Training/validation metrics snapshots |
+| `v0.1/model_manifest.json` | v0.1 | Provenance manifest |
+
+Paired dataset: `gregyoung14/openmarket-btc-polymarket` at `v0.3-unified`.
+Feature schema: 43 columns (see `binary_outcome_model.json` → `feature_names`).
+
+OpenMarket is in archival shutdown. Model artifacts already published here are
+intended as fixed research outputs rather than the start of an ongoing model
+release cadence.
