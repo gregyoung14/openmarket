@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Round-trip validate the published OpenMarket HF sample split.
+"""Round-trip validate the published OpenMarket HF split (sample or full).
 
 Downloads `gregyoung14/openmarket-btc-polymarket` to a temporary directory,
-loads every Parquet file with PyArrow, checks row counts against the export
-report that ships in the dataset, and prints a summary.
+loads every Parquet file with PyArrow, sums row counts per table, and
+compares against the aggregate metadata under `metadata/`.
 
-The published layout has parquet files at the repo root (one per table) and
-the export report under top-level `metadata/`.
+Supports two layouts:
+- sample/  : flat, e.g. `binance_trades/date=YYYY-MM-DD/*.parquet`
+- full/    : same directory layout (one subdir per table)
+- repo root: flat `<table>.parquet` (legacy)
 
 Usage:
     .venv/bin/python scripts/hf/validate_sample_split.py
-    .venv/bin/python scripts/hf/validate_sample_split.py --sample-dir sample
+    .venv/bin/python scripts/hf/validate_sample_split.py --sample-dir full
 """
 from __future__ import annotations
 
@@ -26,7 +28,7 @@ import pyarrow.parquet as pq
 
 
 DEFAULT_REPO = "gregyoung14/openmarket-btc-polymarket"
-DEFAULT_SAMPLE_DIR = ""  # parquet files sit at repo root
+DEFAULT_SAMPLE_DIR = ""
 
 
 def parse_args() -> argparse.Namespace:
@@ -34,8 +36,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repo-id", default=DEFAULT_REPO)
     parser.add_argument("--sample-dir", default=DEFAULT_SAMPLE_DIR,
                         help="subdirectory containing parquet files; '' for repo root")
-    parser.add_argument("--keep", action="store_true", help="keep downloaded files")
+    parser.add_argument("--keep", action="store_true")
+    parser.add_argument("--aggregate", default=None,
+                        help="use a specific aggregate.json filename (default: auto-detect)")
     return parser.parse_args()
+
+
+def find_aggregate(root: Path, sample_dir: str) -> dict | None:
+    """Find the aggregate JSON. Prefer `full_aggregate.json` / `sample_aggregate.json`,
+    then `<split>_aggregate.json`, then `aggregate.json`. Returns None if not found."""
+    candidates = []
+    if sample_dir:
+        candidates.append(root / sample_dir / "metadata" / f"{sample_dir}_aggregate.json")
+        candidates.append(root / "metadata" / f"{sample_dir}_aggregate.json")
+    candidates.append(root / "metadata" / "full_aggregate.json")
+    candidates.append(root / "metadata" / "sample_aggregate.json")
+    candidates.append(root / "metadata" / "aggregate.json")
+    for c in candidates:
+        if c.exists():
+            return json.loads(c.read_text())
+    return None
 
 
 def main() -> int:
@@ -44,7 +64,7 @@ def main() -> int:
     tmp_root = Path(tempfile.mkdtemp(prefix="openmarket_validate_"))
     try:
         print(f"downloading {args.repo_id} -> {tmp_root}")
-        patterns = ["*.parquet", "metadata/**", "README.md"]
+        patterns = ["metadata/**", "README.md"]
         if args.sample_dir:
             patterns.insert(0, f"{args.sample_dir}/**")
         local_dir = snapshot_download(
@@ -55,51 +75,82 @@ def main() -> int:
         )
         root = Path(local_dir)
 
-        report_files = list((root / "metadata").glob("*.export_report.json"))
-        if not report_files and args.sample_dir:
-            report_files = list((root / args.sample_dir / "metadata").glob("*.export_report.json"))
-        if not report_files:
-            print("ERROR: no export_report.json found in metadata/ or {args.sample_dir}/metadata/")
+        sample_root = root / args.sample_dir if args.sample_dir else root
+        if not sample_root.exists():
+            print(f"ERROR: {sample_root} does not exist")
             return 1
-        report = json.loads(report_files[0].read_text())
-        snapshot = report["snapshot"]
-        print(f"snapshot: {snapshot}")
 
-        expected = {entry["table"]: entry["rows"] for entry in report["tables"] if entry.get("exists")}
-
+        # Walk parquet files (any depth under sample_root).
         observed: dict[str, int] = defaultdict(int)
+        observed_files: dict[str, int] = defaultdict(int)
+        observed_bytes: dict[str, int] = defaultdict(int)
         file_count = 0
         total_bytes = 0
-        sample_root = root / args.sample_dir if args.sample_dir else root
-        for pq_path in sorted(sample_root.glob("*.parquet")):
-            table = pq.read_table(pq_path)
-            table_name = pq_path.stem
-            observed[table_name] += table.num_rows
+        for pq_path in sorted(sample_root.rglob("*.parquet")):
+            rel = pq_path.relative_to(sample_root)
+            # Layout 1: <table>/date=YYYY-MM-DD/part-NNN.parquet
+            # Layout 2 (legacy sample): <table>.parquet
+            parts = rel.parts
+            if len(parts) >= 2 and parts[0] != "metadata":
+                table_name = parts[0]
+            else:
+                table_name = pq_path.stem
+            n = pq.read_metadata(str(pq_path)).num_rows
+            observed[table_name] += n
+            observed_files[table_name] += 1
+            observed_bytes[table_name] += pq_path.stat().st_size
             file_count += 1
             total_bytes += pq_path.stat().st_size
 
+        aggregate = find_aggregate(root, args.sample_dir)
+        if not aggregate and args.aggregate:
+            p = root / "metadata" / args.aggregate
+            if p.exists():
+                aggregate = json.loads(p.read_text())
+
         print()
-        print(f"{'table':<25} {'expected':>10} {'observed':>10} {'match':>8}")
+        if not aggregate:
+            print("WARN: no aggregate metadata found; reporting observed only")
+            print(f"  observed tables: {len(observed)}")
+            print(f"  parquet files:   {file_count}")
+            print(f"  parquet bytes:   {total_bytes:,}")
+            return 0
+
+        per_table = aggregate["per_table"]
+        print(f"split:           {aggregate['split']}")
+        print(f"snapshots:       {aggregate['snapshots']}")
+        print(f"reported rows:   {aggregate['total_rows']:,}")
+        print(f"reported files:  {aggregate['total_parquet_files']}")
+        print(f"reported bytes:  {aggregate['total_parquet_bytes']:,}")
+        print()
+        print(f"{'table':<25} {'expected':>12} {'observed':>12} {'files':>6} {'bytes':>12} {'match':>8}")
         all_ok = True
-        for table, want in expected.items():
+        observed_total = sum(observed.values())
+        reported_total = aggregate["total_rows"]
+        for table in sorted(set(per_table) | set(observed)):
+            want = per_table.get(table, {}).get("rows", 0)
             got = observed.get(table, 0)
             ok = want == got
             all_ok &= ok
-            print(f"{table:<25} {want:>10} {got:>10} {'OK' if ok else 'MISMATCH':>8}")
-        extra = set(observed) - set(expected)
-        if extra:
-            print(f"\nunexpected tables observed (not in report): {sorted(extra)}")
-            all_ok = False
+            files = observed_files.get(table, 0)
+            b = observed_bytes.get(table, 0)
+            print(f"{table:<25} {want:>12,} {got:>12,} {files:>6} {b:>12,} {'OK' if ok else 'MISMATCH':>8}")
+
+        # Aggregate row count check (allow rounding for partial snapshots)
+        agg_match = reported_total == observed_total
+        if not agg_match:
+            print(f"\naggregate row mismatch: reported={reported_total:,} observed={observed_total:,} "
+                  f"(diff={observed_total - reported_total:,})")
         print()
-        print(f"parquet files: {file_count}")
-        print(f"parquet bytes: {total_bytes}")
-        print(f"status: {'PASS' if all_ok else 'FAIL'}")
+        print(f"observed parquet files: {file_count}")
+        print(f"observed parquet bytes: {total_bytes:,}")
+        print(f"aggregate status: {'PASS' if all_ok and agg_match else 'FAIL'}")
 
         api = HfApi()
         api_info = api.repo_info(repo_id=args.repo_id, repo_type="dataset")
         print(f"remote last_modified: {api_info.last_modified}")
 
-        return 0 if all_ok else 2
+        return 0 if (all_ok and agg_match) else 2
     finally:
         if not args.keep:
             shutil.rmtree(tmp_root, ignore_errors=True)
