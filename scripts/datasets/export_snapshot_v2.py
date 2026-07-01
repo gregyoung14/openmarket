@@ -346,12 +346,16 @@ def main() -> int:
 
     try:
         imported = import_sqlite_to_duckdb(con, db_path, args.tables, args.include_raw_json)
-    except RuntimeError as exc:
-        print(f"  WARN: DuckDB attach failed ({exc}); falling back to sqlite3", file=sys.stderr, flush=True)
+    except (RuntimeError, Exception) as exc:
+        print(
+            f"  WARN: DuckDB import failed ({type(exc).__name__}: {exc}); "
+            f"falling back to v1 (sqlite3+pyarrow)",
+            file=sys.stderr, flush=True,
+        )
         con.close()
         # Hand off to v1 script
         cmd = [
-            ".venv/bin/python",
+            args.python if hasattr(args, "python") else ".venv/bin/python",
             "scripts/datasets/export_snapshot_fast.py",
             args.snapshot,
             "--manifest", args.manifest,
