@@ -69,15 +69,25 @@ def main() -> int:
         print("(dry-run: nothing uploaded)")
         return 0
 
-    api.upload_folder(
-        repo_id=args.repo_id,
-        repo_type="dataset",
-        folder_path=str(local_dir),
-        path_in_repo=args.split,
-        commit_message=commit,
-        multi_commits=True,
-        multi_commits_verbose=True,
-    )
+    try:
+        api.upload_folder(
+            repo_id=args.repo_id,
+            repo_type="dataset",
+            folder_path=str(local_dir),
+            path_in_repo=args.split,
+            commit_message=commit,
+            multi_commits=True,
+            multi_commits_verbose=True,
+        )
+    except TypeError:
+        # Older huggingface_hub doesn't support multi_commits.
+        api.upload_folder(
+            repo_id=args.repo_id,
+            repo_type="dataset",
+            folder_path=str(local_dir),
+            path_in_repo=args.split,
+            commit_message=commit,
+        )
 
     summary = {
         "split": args.split,
