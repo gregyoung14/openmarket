@@ -9,7 +9,7 @@ venv/
 *.egg-info/
 
 # Local data and generated artifacts
-data/
+/data/
 datasets/raw/
 datasets/processed/
 datasets/cache/
@@ -28,6 +28,7 @@ datasets/cache/
 .env
 .env.*
 !.env.example
+docs/.local/
 .DS_Store
 .vscode/
 .frg/
