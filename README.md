@@ -16,8 +16,8 @@ scripts. Large datasets and pretrained models are released separately through
 Hugging Face and GitHub Releases.
 
 OpenMarket is now in archival shutdown. No new live data will be collected. The
-remaining publication work is to release as much of the fixed historical CDN
-archive as possible and freeze the project as a public research record.
+complete 202-snapshot CDN archive is published on Hugging Face; the project is
+frozen as a public research record.
 
 ## What This Project Provides
 
@@ -137,14 +137,14 @@ Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingfac
 
 | Split | Version | Use |
 |---|---|---|
-| `unified/` | v0.3-unified | **Recommended** — deduped timeline across all exported snapshots |
+| `unified/` | v0.4-unified | **Recommended** — deduped timeline from complete archive |
 | `features/` | v0.4-features | ML features — step2 (100ms/1s) + step3 binary calibration |
-| `full/` | v0.2-full | Per-snapshot exports (10 snapshots, overlapping date ranges) |
+| `full/` | v0.2-full | Complete 202-snapshot per-export archive |
 | `sample/` | v0.1-sample | CI, quickstarts — 12 tables, 9,352 rows, ~204 KB |
 
 ```text
-unified/                     # deduped research timeline (v0.3+)
-full/                        # per-snapshot exports (v0.2)
+unified/                     # deduped research timeline (v0.4+)
+full/                        # per-snapshot exports, 202 snapshots (v0.2+)
 sample/                      # tiny demo split (v0.1)
 metadata/
   snapshot_manifest.json     # full archive inventory (CDN URLs redacted)
@@ -158,10 +158,11 @@ See [datasets/README.md](datasets/README.md) and
 
 Archival status:
 
-- 202 SQLite snapshots are inventoried in the redacted manifest.
-- `full/` and `unified/` currently cover the first 10 published snapshots.
-- Additional snapshots exist in the fixed CDN archive and are being published as
-  archive-closeout work, not as ongoing new data collection.
+- 202 SQLite snapshots inventoried in the redacted manifest; all 202 published
+  in `full/` (`197 clean`, `5 partial` table exports).
+- `unified/` (`v0.4-unified`) deduped from the complete `full/` tree — 586M
+  rows, 467 parquet files.
+- See `docs/release/PROJECT-STATUS.md` for queue metadata and closeout notes.
 
 ## Models
 

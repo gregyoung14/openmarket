@@ -49,7 +49,7 @@ v0.1/
 | `v0.1/binary_outcome_metrics_*.json` | v0.1 | Training/validation metrics snapshots |
 | `v0.1/model_manifest.json` | v0.1 | Provenance manifest |
 
-Paired dataset: `gregyoung14/openmarket-btc-polymarket` at `v0.3-unified`.
+Paired dataset: `gregyoung14/openmarket-btc-polymarket` at `v0.4-unified`.
 Feature schema: 43 columns (see `binary_outcome_model.json` → `feature_names`).
 
 OpenMarket is in archival shutdown. Model artifacts already published here are
