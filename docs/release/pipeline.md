@@ -9,9 +9,13 @@ Hugging Face dataset/model releases, and explains how the helper scripts in
 
 ```text
   scripts/datasets/export_many_snapshots.py
-    └─> per-snapshot scripts/datasets/export_snapshot_to_parquet.py
-        └─> writes data/hf_release/<split>_parquet/<table>/date=YYYY-MM-DD/*.parquet
+    └─> per-snapshot scripts/datasets/export_snapshot_v2.py
+        └─> writes data/hf_release/full_parquet/<table>/date=YYYY-MM-DD/*.parquet
             + metadata/<snapshot>.export_report.json
+
+  scripts/datasets/merge_partitions.py
+    └─> dedupes full_parquet/ -> unified_parquet/
+        + metadata/merge_quality_report.json
 
   scripts/hf/validate_sample_split.py       (round-trip + row-count check)
   scripts/hf/benchmark_baseline.py          (timing + row-count metrics)
@@ -59,6 +63,15 @@ Large change (full split):
     --max-snapshots 5 \
     --min-bytes 10000000 \
     --new-version v0.2-full
+```
+
+Unified deduped timeline (recommended public release):
+
+```bash
+.venv/bin/python scripts/hf/release_split.py \
+    --split unified \
+    --skip-export \
+    --new-version v0.3-unified
 ```
 
 Each step is also individually runnable:

@@ -27,7 +27,7 @@ DEFAULT_ROOT = Path("data/hf_release")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", choices=("sample", "full"), default="sample")
+    parser.add_argument("--split", choices=("sample", "full", "unified"), default="sample")
     parser.add_argument("--repo-id", default=DEFAULT_REPO)
     parser.add_argument("--root", default=DEFAULT_ROOT, type=Path)
     parser.add_argument("--commit-message", default=None)
@@ -41,9 +41,11 @@ def main() -> int:
     if not local_dir.exists():
         print(f"ERROR: {local_dir} does not exist")
         return 1
-    metadata_files = list((local_dir / "metadata").glob("*.export_report.json"))
-    if not metadata_files:
-        print(f"ERROR: no export reports in {local_dir}/metadata")
+    meta_dir = local_dir / "metadata"
+    metadata_files = list(meta_dir.glob("*.export_report.json"))
+    quality_report = meta_dir / "merge_quality_report.json"
+    if not metadata_files and not quality_report.exists():
+        print(f"ERROR: no export reports or merge_quality_report.json in {meta_dir}")
         return 1
 
     parquet_count = sum(1 for _ in local_dir.rglob("*.parquet"))
@@ -57,12 +59,15 @@ def main() -> int:
 
     commit = args.commit_message or (
         f"upload {args.split}/ split ({parquet_count} parquet files, "
-        f"{len(metadata_files)} export reports)"
+        f"{len(metadata_files)} export reports"
+        f"{', merge quality report' if quality_report.exists() else ''})"
     )
 
     print(f"uploading {local_dir} -> {args.repo_id} ({args.split}/)")
     print(f"parquet files: {parquet_count}")
     print(f"export reports: {len(metadata_files)}")
+    if quality_report.exists():
+        print(f"merge quality report: {quality_report.name}")
     print(f"commit: {commit}")
 
     if args.dry_run:
@@ -94,6 +99,7 @@ def main() -> int:
         "repo_id": args.repo_id,
         "parquet_files": parquet_count,
         "export_reports": len(metadata_files),
+        "has_merge_quality_report": quality_report.exists(),
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
         "commit_message": commit,
     }

@@ -19,17 +19,20 @@ python3 -m venv .venv && .venv/bin/pip install pyarrow huggingface_hub
 cargo run -p v15_brier_calibration --release -- --db-path <path-to-sqlite-from-full-split>
 ```
 
-For a full reproduction using the multi-gigabyte SQLite snapshots (operator
-archive), use the legacy Bunny CDN path:
+For the full research timeline, download the unified HF split:
 
 ```bash
-python3 datasets/download.py --snapshot sample --out data/openmarket.db
-cargo run -p v15_brier_calibration --release -- --db-path data/openmarket.db
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
 ```
 
-Note: `datasets/download.py --snapshot sample` resolves to the ~10.9 GB
-first SQLite snapshot in the operator archive, not the HF `sample/` split.
-For the HF split use the `snapshot_download` API shown above.
+The backtester can consume Parquet directly once a SQLite bridge is wired;
+until then, use a local SQLite export from the unified tables or the legacy
+operator CDN path:
+
+```bash
+python3 datasets/download.py --legacy-cdn sample --out data/openmarket.db
+cargo run -p v15_brier_calibration --release -- --db-path data/openmarket.db
+```
 
 ## Docker Reproduction
 

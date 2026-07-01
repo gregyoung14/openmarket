@@ -98,10 +98,10 @@ def main() -> int:
 
         if args.sample_dir:
             keep_prefix = f"{args.sample_dir}/"
-            other_prefixes = {f"{s}/" for s in {"sample", "full"} - {args.sample_dir}}
+            other_prefixes = {f"{s}/" for s in {"sample", "full", "unified"} - {args.sample_dir}}
         else:
             keep_prefix = ""  # root-level parquet (sample split)
-            other_prefixes = {f"{s}/" for s in ("full", "sample")}
+            other_prefixes = {f"{s}/" for s in ("full", "sample", "unified")}
 
         parquet_targets = [
             f for f in all_files
@@ -125,12 +125,6 @@ def main() -> int:
             local_dir=str(tmp_root),
             allow_patterns=selected,
         )
-        local_dir = snapshot_download(
-            repo_id=args.repo_id,
-            repo_type="dataset",
-            local_dir=str(tmp_root),
-            allow_patterns=selected,
-        )
         root = Path(local_dir)
 
         sample_root = root / args.sample_dir if args.sample_dir else root
@@ -143,7 +137,7 @@ def main() -> int:
         skip_dirs = {"metadata"}
         if args.sample_dir:
             # We are validating e.g. full/; do not descend into other splits.
-            other_splits = {"sample", "full"} - {args.sample_dir}
+            other_splits = {"sample", "full", "unified"} - {args.sample_dir}
             skip_dirs.update(other_splits)
         observed: dict[str, int] = defaultdict(int)
         observed_files: dict[str, int] = defaultdict(int)

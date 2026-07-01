@@ -115,34 +115,35 @@ cp configs/openmarket.example.env .env
 docker compose -f docker/docker-compose.yml up
 ```
 
-Legacy snapshot download (Bunny CDN; not the recommended public path):
+Download the unified research dataset (recommended):
 
 ```bash
-python3 datasets/download.py --snapshot <snapshot-or-url> --out data/openmarket.db
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
+```
+
+Legacy operator CDN snapshots (migration only):
+
+```bash
+python3 datasets/download.py --legacy-cdn sample --out data/openmarket.db
 ```
 
 ## Datasets
 
-Live on Hugging Face:
+Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)):
 
-- Sample split (v0.1-sample): [gregyoung14/openmarket-btc-polymarket](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
-  — 12 tables, 9,352 rows, ~204 KB parquet, ~370 KB on disk
-- Full split (planned v0.2-full): the 5 largest snapshots, ~45 GB compressed
-
-Dataset partitions inside the HF repo:
+| Split | Version | Use |
+|---|---|---|
+| `unified/` | v0.3-unified | **Recommended** — deduped timeline across all exported snapshots |
+| `full/` | v0.2-full | Per-snapshot exports (10 snapshots, overlapping date ranges) |
+| `sample/` | v0.1-sample | CI, quickstarts — 12 tables, 9,352 rows, ~204 KB |
 
 ```text
-sample/
-  binance_trades/date=YYYY-MM-DD/*.parquet
-  binance_ticks_ms/date=YYYY-MM-DD/*.parquet
-  polymarket_ticks_ms/date=YYYY-MM-DD/*.parquet
-  lag_pairs_ms/date=YYYY-MM-DD/*.parquet
-  binance_candles_{1s,5s,1m,5m,15m,1h}/date=YYYY-MM-DD/*.parquet
-  market_meta/
-  crossover_alerts/
+unified/                     # deduped research timeline (v0.3+)
+full/                        # per-snapshot exports (v0.2)
+sample/                      # tiny demo split (v0.1)
 metadata/
-  snapshot_manifest.json
-  snapshot_manifest.tsv
+  snapshot_manifest.json     # full archive inventory (CDN URLs redacted)
+  merge_quality_report.json  # unified dedupe stats
   per-snapshot export reports
 README.md
 ```
