@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "updated_at": "2026-07-01",
+  "description": "Queue state for batching full-split snapshot publication without blocking on corrupt snapshots.",
+  "queues": {
+    "published-clean": [
+      "polymarket_btc_data_2026-03-14_193215",
+      "polymarket_btc_data_2026-04-03_232930",
+      "polymarket_btc_data_2026-05-13_183517",
+      "polymarket_btc_data_2026-05-14_085654",
+      "polymarket_btc_data_2026-05-14_205654"
+    ],
+    "published-partial": [
+      "polymarket_btc_data_2026-03-22_215354",
+      "polymarket_btc_data_2026-03-29_215354",
+      "polymarket_btc_data_2026-04-10_232833",
+      "polymarket_btc_data_2026-04-21_211838",
+      "polymarket_btc_data_2026-05-14_003913"
+    ],
+    "corrupt": []
+  },
+  "notes": {
+    "published-clean": "Published snapshots with no table-level `partial` status in the local export reports as of 2026-07-01.",
+    "published-partial": "Published snapshots with at least one table-level `partial` status in the local export reports as of 2026-07-01. Keep these out of the clean backfill lane unless explicitly requeued.",
+    "corrupt": "Snapshots that fail clean-lane export should move here immediately so later clean batches can continue without waiting."
+  }
+}
