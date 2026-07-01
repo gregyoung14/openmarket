@@ -99,7 +99,7 @@ Three splits are published:
 
 | Split | Version | Description |
 |---|---|---|
-| `unified/` | v0.4.1-unified | Deduped research timeline from full archive (recommended) |
+| `unified/` | v0.4.2-unified | Deduped research timeline from full archive (recommended) |
 | `features/` | v0.4-features | ML feature exports (step2 100ms/1s, step3 calibration) |
 | `full/` | v0.2-full | Complete 202-snapshot per-export archive |
 | `sample/` | v0.1-sample | Tiny demo split for CI and quickstarts |
@@ -243,7 +243,7 @@ timestamp follows the Binance event timestamp.
 ```text
 Source repo:     github.com/gregyoung14/openmarket
 Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-Dataset version: v0.4.1-unified
+Dataset version: v0.4.2-unified
 Models:          huggingface.co/gregyoung14/openmarket-models
 Model version:   v0.1 (calibrated binary-outcome scorer)
 ```

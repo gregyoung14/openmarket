@@ -9,13 +9,13 @@ the full archive.
 - **Dataset `full/`**: expanded from 10 to **202** published snapshots
   (3,258 parquet files, ~598M rows before dedupe).
 - **Dataset `unified/`**: rebuilt as **`v0.4-unified`** (later refreshed to
-  **`v0.4.1-unified`** after `04-21` recovery) from the complete
+  **`v0.4.2-unified`** after all partial recoveries) from the complete
   `full/` tree — **586,158,580 rows**, **467 parquet files**, **7.5 GB** on
   disk. Removed **12,118,682 duplicates** (~2.0 %) across 598,277,262 input
   rows.
 - **Queue metadata**: `docs/release/full-snapshot-publish-status.json` reconciled
-  (`198 published-clean`, `4 published-partial`, `0 corrupt` after `04-21`
-  recovery reclassification).
+  (`202 published-clean`, `0 published-partial`, `0 corrupt` after sqlite3
+  recovery of all five formerly-partial snapshots).
 - **Docs**: README, dataset cards, paper, and `PROJECT-STATUS.md` updated to
   describe archival shutdown with complete coverage.
 
@@ -42,8 +42,8 @@ the full archive.
 |---|---:|
 | CDN manifest snapshots | 202 |
 | `full/` export reports | 202 |
-| `published-clean` queue | 198 |
-| `published-partial` queue | 4 |
+| `published-clean` queue | 202 |
+| `published-partial` queue | 0 |
 | Clean batches completed | 01–20 |
 
 ## Release artifacts
@@ -62,6 +62,6 @@ Paper:             paper/paper.md
 
 - No ongoing data collection or model maintenance
 - No claim of deployable production trading alpha
-- Four `published-partial` snapshots retain table-level `partial` export status;
-  `polymarket_btc_data_2026-04-21_211838` was recovered via `sqlite3 .recover`
-  and reclassified to `published-clean` post-release
+- All five formerly-partial snapshots (`03-22`, `03-29`, `04-10`, `04-21`,
+  `05-14_003913`) were recovered via `sqlite3 .recover` and reclassified to
+  `published-clean` post-release; queue now has zero partials

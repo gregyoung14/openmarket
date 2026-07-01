@@ -1,6 +1,7 @@
 # An Open-Source High-Frequency Data Pipeline and Machine Learning Research Framework for Polymarket Prediction Markets
 
 > **LaTeX build:** `paper/scripts/compile.sh` → `paper/main.pdf`.
+> **Empirical stats:** `paper/scripts/paper/analyze_unified.py` → `assets/stats/characterization.tex`
 > **arXiv bundle:** `paper/scripts/export-arxiv.sh` → `openmarket-paper-arxiv-*.tar.gz`.
 
 ## Abstract
@@ -477,9 +478,9 @@ OpenMarket has several limitations:
 OpenMarket is no longer an active data-collection project. Archival closeout
 completed on 2026-07-01:
 
-- all 202 CDN manifest snapshots published in `full/` (`198 clean`, `4 partial`;
-  `04-21` reclassified after sqlite3 recovery)
-- `unified/` rebuilt from the complete archive (`v0.4-unified`, 586M rows)
+- all 202 CDN manifest snapshots published in `full/` (`202 clean`, `0 partial`;
+  five formerly-partial snapshots recovered via sqlite3 `.recover`)
+- `unified/` rebuilt from the complete archive (`v0.4.2-unified`, 722M rows)
 - queue metadata reconciled in `docs/release/full-snapshot-publish-status.json`
 - final source tag `v0.5.0` marks the frozen public research record
 
