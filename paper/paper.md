@@ -1,7 +1,7 @@
 # An Open-Source High-Frequency Data Pipeline and Machine Learning Research Framework for Polymarket Prediction Markets
 
-> **LaTeX build:** `paper/main.tex` wires `sections/synchronization.tex` and
-> `bibliography.bib`. Run `paper/scripts/compile.sh` or `cd paper && latexmk -pdf main.tex`.
+> **LaTeX build:** `paper/scripts/compile.sh` → `paper/main.pdf`.
+> **arXiv bundle:** `paper/scripts/export-arxiv.sh` → `openmarket-paper-arxiv-*.tar.gz`.
 
 ## Abstract
 
@@ -16,8 +16,8 @@ machine learning research utilities, a strategy framework, and reproducible
 backtesting. The primary contribution is not a claim of persistent trading
 profitability, but a research platform: source code, dataset schemas,
 reproducibility commands, model release conventions, and a staged dataset
-release. The `v0.1-sample` split (12 tables, ~204 KB) is live on Hugging Face;
-a `v0.2-full` release (~45 GB compressed) is planned. OpenMarket enables
+release. The `v0.1-sample`, `v0.2-full` (202 snapshots), and `v0.4-unified`
+splits are live on Hugging Face as a complete fixed archive. OpenMarket enables
 research into prediction-market microstructure, forecasting, and execution
 rather than claiming persistent trading alpha.
 
@@ -74,7 +74,7 @@ OpenMarket contributes:
   whipsaw, volume gates, calibration, and Brier monitoring
 - A legacy ML archive containing Python prototypes for XGBoost, LightGBM, SHAP,
   and stacked classifiers
-- A public dataset release on Hugging Face (sample live; full split planned) and
+- Public dataset releases on Hugging Face (`sample/`, `full/`, `unified/`) and
   a model release convention (artifacts external to Git)
 - Reproducibility commands, Docker scaffolding, documentation, and benchmarks
 
@@ -231,10 +231,10 @@ feature analysis, and stacked ensembles. Model inputs are aligned feature
 vectors; model outputs are probability estimates for UP or DOWN market
 resolution.
 
-For public releases, model binaries should be uploaded to Hugging Face Models or
-GitHub Releases. As of the current release, the Hugging Face models repository
-is scaffolded and the first pinned model artifact is deferred; Git contains
-model metadata, feature schemas, training code, hyperparameters, and
+For public releases, model binaries are uploaded to Hugging Face Models rather
+than committed to Git. The current public model repo includes a `v0.1`
+calibrated binary-outcome scorer, metrics snapshots, and a provenance manifest;
+Git retains model metadata, feature schemas, training code, hyperparameters, and
 reproducibility manifests.
 
 ## 9. Strategy Framework
@@ -325,8 +325,9 @@ huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 
 | Split | Version | Status | Purpose |
 |-------|---------|--------|---------|
-| Unified | `v0.3-unified` | **Live** | Deduped research timeline (recommended) |
-| Full | `v0.2-full` | **Live** | Per-snapshot exports with overlapping ranges |
+| Unified | `v0.4-unified` | **Live** | Deduped research timeline from 202 snapshots (recommended) |
+| Full | `v0.2-full` | **Live** | Complete 202-snapshot per-export archive |
+| Features | `v0.4-features` | **Live** | ML feature exports (step2/step3) |
 | Sample | `v0.1-sample` | **Live** | Schema validation, quickstart, baseline benchmarks |
 
 All splits are published on Hugging Face and validated via
@@ -471,9 +472,18 @@ OpenMarket has several limitations:
 - Live execution has additional latency, queue position, and partial-fill risks.
 - BTC 15-minute markets are only one prediction-market domain.
 
-## 16. Future Work
+## 16. Archive Closeout and Research Extensions
 
-Future work includes:
+OpenMarket is no longer an active data-collection project. Archival closeout
+completed on 2026-07-01:
+
+- all 202 CDN manifest snapshots published in `full/` (`197 clean`, `5 partial`)
+- `unified/` rebuilt from the complete archive (`v0.4-unified`, 586M rows)
+- queue metadata reconciled in `docs/release/full-snapshot-publish-status.json`
+- final source tag `v0.5.0` marks the frozen public research record
+
+Optional research extensions, if anyone in the open-source community chooses to
+continue from this base, include:
 
 - Additional exchanges and assets
 - Polymarket non-crypto markets
@@ -490,12 +500,12 @@ Future work includes:
 
 ## 17. Open Source Release
 
-The public release plan includes:
+The public release includes:
 
 - GitHub repository: `github.com/gregyoung14/openmarket`
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
-- Hugging Face models: `gregyoung14/openmarket-models` (scaffolded; first pinned
-  artifact deferred)
+- Hugging Face models: `gregyoung14/openmarket-models` (`v0.1/` public model
+  artifacts)
 - mdBook documentation
 - Rust API documentation
 - Docker reproducibility
@@ -554,12 +564,8 @@ paths are placeholders under `paper/assets/figures/`.
 
 ### B.1 Architecture Diagram (`fig:architecture`)
 
-**Type:** Block diagram (TikZ).
-**Content:** Reproduce §4 pipeline: Binance WS → Tick Collector → Timestamp
-Synchronizer ← Polymarket WS → Order Book Collector → Feature Generator →
-ML/Signal Engine → Backtester → Evaluation.
-**Labels:** Crate names (`exchange-binance`, `recorder`, `backtester`) on boxes.
-**Status:** `[TODO: generate PDF]`
+**Type:** Native TikZ in `sections/architecture.tex`.
+**Status:** `[done]`
 
 ### B.2 WebSocket Message Flow (`fig:ws-flow`)
 
@@ -571,10 +577,8 @@ show reconnect branch with gap marker.
 
 ### B.3 Synchronization Timeline (`fig:lead-lag-timeline`)
 
-**Type:** TikZ timeline (implemented in `paper/sections/synchronization.tex`).
-**Content:** Source times $t_B$, $t_P$; ingest times $t_B^{ing}$, $t_P^{ing}$;
-alignment window $W$; bracket for `lead_lag_ms`.
-**Status:** `[LaTeX stub ready]`
+**Type:** Native TikZ in `sections/synchronization.tex`.
+**Status:** `[done]`
 
 ### B.4 Lead-Lag Histogram (`fig:lead-lag-hist`)
 
@@ -591,39 +595,11 @@ and UP/DOWN side. Overlay median and 5th/95th percentiles.
 `polymarket_ticks_ms` timestamp; annotate spread and microprice.
 **Status:** `[TODO]`
 
-### B.6 Feature Engineering Pipeline (`fig:features`)
+### B.6–B.10 Pipeline Figures (`fig:features`, `fig:training`, `fig:backtest`,
+`fig:schema`, `fig:repro`)
 
-**Type:** Flowchart.
-**Content:** Raw ticks → alignment → feature families (§7) → label generation.
-**Status:** `[TODO]`
-
-### B.7 Training Workflow (`fig:training`)
-
-**Type:** Flowchart.
-**Content:** Feature matrix → train/validation split (time-based) → model fit →
-calibration check → artifact export to Hugging Face (metadata in Git).
-**Status:** `[TODO]`
-
-### B.8 Backtesting Engine (`fig:backtest`)
-
-**Type:** Block diagram.
-**Content:** Per-market window loop, signal gate, simulated fill, settlement,
-metric aggregation. Emphasize "simulated" on economic outputs.
-**Status:** `[TODO]`
-
-### B.9 Dataset Schema (`fig:schema`)
-
-**Type:** Entity-relationship or table diagram.
-**Content:** Tables from Appendix A with key foreign keys (`market_slug`,
-`tick_id` pairing).
-**Status:** `[TODO]`
-
-### B.10 Reproducibility Flow (`fig:repro`)
-
-**Type:** Flowchart (matches §14.6).
-**Content:** `git clone` → `cargo check` → HF validate → optional notebook /
-SQLite / Docker branches.
-**Status:** `[TODO]`
+**Type:** Native TikZ in respective `sections/*.tex` files.
+**Status:** `[done]`
 
 ### B.11 Benchmark Charts (`fig:benchmarks`)
 

@@ -53,13 +53,13 @@ Source repo:       github.com/gregyoung14/openmarket
 Dataset:           huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 Dataset version:   v0.3-unified
 Models:            huggingface.co/gregyoung14/openmarket-models
-Model version:     deferred; model-card scaffold uploaded
+Model version:     v0.1
 Paper:             paper/paper.md
 ```
 
-## Post-release follow-ups
+## Archive-closeout follow-ups
 
-- ML feature exports (`step2_1s`, `step2_100ms`, `step3_binary_calibration`)
-  as a separate `features/` split.
-- Re-export corrupt partial snapshots if fresh SQLite copies become available.
-- Upload pretrained model weights to `openmarket-models`.
+- Publish the remaining snapshots from the fixed 202-snapshot CDN archive.
+- Reconcile queue metadata so published coverage exactly matches HF state.
+- Re-export corrupt partial snapshots if recoverable; otherwise classify them as
+  permanently lost.

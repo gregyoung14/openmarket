@@ -14,13 +14,11 @@ Source of truth on 2026-07-01:
 As of 2026-07-01:
 
 - Total archive snapshots: `202`
-- Already published: `10`
-- Remaining unbatched snapshots: `192`
+- Already published (queue metadata): `202` (`197 published-clean`, `5 published-partial`)
+- Local export reports on disk: `202`
+- Remaining unbatched snapshots: `0` (clean backlog complete as of 2026-07-01)
 - Remaining snapshots `>= 10 MB`: `0`
-- Remaining snapshots `< 10 MB`: `192`
-
-That means the next clean-throughput passes must use `--min-bytes 0`. The old
-`--min-bytes 10000000` lane is exhausted.
+- Clean backlog: **complete** (batches 01–20, July 2026)
 
 ## Queue policy
 
@@ -33,21 +31,34 @@ That means the next clean-throughput passes must use `--min-bytes 0`. The old
 - `clean`: derived queue, meaning "present in the archive manifest, not already
   published, and not listed under `corrupt`".
 
-## First clean backlog batch
+## Completed batches
 
-With the current manifest and queue file, the first `clean` batch at
-`--min-bytes 0 --batch-size 10 --batch-index 1` is:
+- `clean-batch-01`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-02`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-03`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-04`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-05`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-06`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-07`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-08`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-09`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-10`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-11`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-12`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-13`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-14`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-15`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-16`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-17`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-18`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-19`: exported and queued as `published-clean` (10 snapshots)
+- `clean-batch-20`: exported and queued as `published-clean` (2 snapshots)
 
-1. `polymarket_btc_data_2026-05-13_061941`
-2. `polymarket_btc_data_2026-05-13_123644`
-3. `polymarket_btc_data_2026-06-28_085654`
-4. `polymarket_btc_data_2026-06-28_025654`
-5. `polymarket_btc_data_2026-06-27_085654`
-6. `polymarket_btc_data_2026-06-25_205654`
-7. `polymarket_btc_data_2026-06-23_205654`
-8. `polymarket_btc_data_2026-06-22_205654`
-9. `polymarket_btc_data_2026-06-22_085654`
-10. `polymarket_btc_data_2026-06-22_025654`
+## Clean backlog status
+
+The clean publication lane is complete. All 202 CDN manifest snapshots are
+exported and reflected in `docs/release/full-snapshot-publish-status.json`.
+No further `clean` batches are pending.
 
 ## Operator flow
 

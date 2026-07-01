@@ -8,8 +8,9 @@ The HF repo holds three splits:
 
 | Split | Version | Contents |
 |---|---|---|
-| `unified/` | v0.3-unified | **Recommended.** Deduped timeline merged from all `full/` exports. |
-| `full/` | v0.2-full | 10 per-snapshot exports (~456M rows before dedupe). Overlapping date ranges. |
+| `unified/` | v0.4-unified | **Recommended.** Deduped timeline from complete 202-snapshot `full/` archive. |
+| `full/` | v0.2-full | Complete 202-snapshot per-export archive (~598M rows before dedupe). |
+| `features/` | v0.4-features | ML feature exports (step2 100ms/1s, step3 calibration). |
 | `sample/` | v0.1-sample | Smallest snapshot. 12 tables, 9,352 rows. CI and quickstarts. |
 
 Per-snapshot metadata (`export_report.json`) and the master
