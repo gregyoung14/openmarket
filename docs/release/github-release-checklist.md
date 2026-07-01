@@ -5,16 +5,16 @@
 Required before tagging:
 
 - [ ] Push `gregyoung14/openmarket`
-- [ ] Create `gregyoung14/openmarket-btc-polymarket`
-- [ ] Create `gregyoung14/openmarket-models`
-- [ ] Upload dataset card to the dataset repo
-- [ ] Upload `sample/` Parquet split
-- [ ] Upload snapshot manifest under `metadata/`
+- [x] Create `gregyoung14/openmarket-btc-polymarket`
+- [x] Create `gregyoung14/openmarket-models`
+- [x] Upload dataset card to the dataset repo
+- [x] Upload `sample/` Parquet split
+- [x] Upload snapshot manifest under `metadata/`
 - [ ] Validate sample split from a clean clone
 - [ ] Run `cargo check --workspace`
 - [ ] Run `python3 -m py_compile scripts/datasets/*.py scripts/hf/*.py`
 - [ ] Record benchmark baseline
-- [ ] Decide whether pretrained models ship in v0.1.0 or remain deferred
+- [x] Decide whether pretrained models ship in v0.1.0 or remain deferred
 
 Release metadata:
 
@@ -23,8 +23,18 @@ Source tag: v0.1.0
 Dataset: huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 Dataset version: v0.1-sample
 Models: huggingface.co/gregyoung14/openmarket-models
-Model version: none / deferred
+Model version: deferred; model-card scaffold uploaded
 Paper: paper/paper.md
+```
+
+Hugging Face upload verification:
+
+```bash
+hf download gregyoung14/openmarket-btc-polymarket --repo-type dataset --dry-run
+# 19 files, 370.7 KB
+
+hf download gregyoung14/openmarket-models --repo-type model --dry-run
+# 2 files, 2.3 KB
 ```
 
 Post-release:
