@@ -63,6 +63,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--include-raw-json", action="store_true")
     parser.add_argument("--skip-integrity-check", action="store_true")
     parser.add_argument("--keep-db", action="store_true")
+    parser.add_argument(
+        "--flat",
+        action="store_true",
+        help="Write one parquet per table directly under <out-dir>/<table>.parquet "
+             "instead of <out-dir>/<table>/date=YYYY-MM-DD/*.parquet. "
+             "Includes a `date` column for downstream filtering. Required for the "
+             "Hugging Face Data Studio viewer to auto-convert partitioned layouts.",
+    )
     return parser.parse_args()
 
 
@@ -169,6 +177,7 @@ def export_table(
     snapshot_id: str,
     chunk_rows: int,
     include_raw_json: bool,
+    flat: bool = False,
 ) -> dict[str, Any]:
     if not table_exists(conn, table):
         return {"table": table, "exists": False, "rows": 0, "parts": 0}
@@ -196,6 +205,48 @@ def export_table(
     part_counter = 0
     date_counts: dict[str, int] = defaultdict(int)
     column_names = [description[0] for description in cursor.description]
+
+    if flat:
+        all_rows: list[dict[str, Any]] = []
+        try:
+            while True:
+                batch = cursor.fetchmany(chunk_rows)
+                if not batch:
+                    break
+                for row in batch:
+                    record = dict(zip(column_names, row))
+                    if timestamp_column and timestamp_column in record:
+                        date = date_from_ms(record[timestamp_column])
+                    else:
+                        date = "unpartitioned"
+                    record["date"] = date
+                    all_rows.append(record)
+                    date_counts[date] += 1
+                    total_rows += 1
+        except sqlite3.DatabaseError as exc:
+            return {
+                "table": table,
+                "exists": True,
+                "rows": total_rows,
+                "parts": 0,
+                "status": "partial",
+                "error": f"{type(exc).__name__}: {exc}",
+                "dates": dict(sorted(date_counts.items())),
+            }
+
+        path = out_dir / f"{table}.parquet"
+        write_rows(path, all_rows)
+        part_counter = 1 if total_rows else 0
+        status = "ok" if total_rows else "empty"
+        return {
+            "table": table,
+            "exists": True,
+            "status": status,
+            "rows": total_rows,
+            "parts": part_counter,
+            "dates": dict(sorted(date_counts.items())),
+            "layout": "flat",
+        }
 
     while True:
         try:
@@ -244,6 +295,7 @@ def export_table(
         "rows": total_rows,
         "parts": part_counter,
         "dates": dict(sorted(date_counts.items())),
+        "layout": "partitioned",
     }
 
 
@@ -273,6 +325,7 @@ def main() -> int:
                 snapshot_id=snapshot_id,
                 chunk_rows=args.chunk_rows,
                 include_raw_json=args.include_raw_json,
+                flat=args.flat,
             )
             table_reports.append(report)
     finally:

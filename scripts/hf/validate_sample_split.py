@@ -53,7 +53,9 @@ def main() -> int:
 
         report_files = list((root / args.sample_dir / "metadata").glob("*.export_report.json"))
         if not report_files:
-            print("ERROR: no export_report.json found in sample/metadata/")
+            report_files = list((root / "metadata").glob("*.export_report.json"))
+        if not report_files:
+            print("ERROR: no export_report.json found in sample/metadata/ or top-level metadata/")
             return 1
         report = json.loads(report_files[0].read_text())
         snapshot = report["snapshot"]
@@ -65,10 +67,11 @@ def main() -> int:
         file_count = 0
         total_bytes = 0
         for pq_path in sorted(root.rglob("*.parquet")):
-            table = pq.read_table(pq_path)
             rel = pq_path.relative_to(root)
-            parts = rel.parts
-            table_name = parts[1] if len(parts) > 2 and parts[0] == args.sample_dir else parts[0]
+            if rel.parts[0] != args.sample_dir:
+                continue
+            table = pq.read_table(pq_path)
+            table_name = rel.stem
             observed[table_name] += table.num_rows
             file_count += 1
             total_bytes += pq_path.stat().st_size
