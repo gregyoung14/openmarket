@@ -1013,13 +1013,28 @@ fn obv_prev(closes: &[f64], volumes: &[f64], idx: usize) -> f64 {
     obv
 }
 
+fn resolve_export_start_ts(conn: &rusqlite::Connection) -> Result<i64> {
+    if let Ok(value) = std::env::var("EXPORT_START_TS_MS") {
+        return Ok(value.parse()?);
+    }
+    if std::env::var("ARCHIVE_EXPORT").ok().as_deref() == Some("1") {
+        let min_ts: Option<i64> = conn
+            .query_row("SELECT MIN(source_ts_ms) FROM binance_ticks_ms", [], |row| {
+                row.get(0)
+            })
+            .unwrap_or(None);
+        return Ok(min_ts.unwrap_or(0));
+    }
+    let lookback_ms = 72 * 60 * 60 * 1000_i64;
+    Ok(now_ms() - lookback_ms)
+}
+
 pub fn export_step2_hf_features_csv() -> Result<(String, String)> {
     let export_dir = config::export_dir();
     fs::create_dir_all(&export_dir)?;
     let conn = db::get_db_conn()?;
 
-    let lookback_ms = 72 * 60 * 60 * 1000_i64;
-    let start = now_ms() - lookback_ms;
+    let start = resolve_export_start_ts(&conn)?;
 
     let mut t_stmt = conn.prepare(
         "SELECT source_ts_ms, price, volume
@@ -1548,9 +1563,30 @@ pub fn export_step3_binary_calibration_csv(
     fs::create_dir_all(&export_dir)?;
     let conn = db::get_db_conn()?;
 
-    let end_ts_ms = options.end_ts_ms.unwrap_or_else(now_ms);
+    let archive = std::env::var("ARCHIVE_EXPORT").ok().as_deref() == Some("1");
+    let end_ts_ms = options.end_ts_ms.unwrap_or_else(|| {
+        if archive {
+            conn.query_row(
+                "SELECT MAX(source_ts_ms) FROM binance_ticks_ms",
+                [],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap_or_else(|_| now_ms())
+        } else {
+            now_ms()
+        }
+    });
     let start_ts_ms = options.start_ts_ms.unwrap_or_else(|| {
-        end_ts_ms.saturating_sub((options.lookback_hours as i64) * 60 * 60 * 1000)
+        if archive {
+            conn.query_row(
+                "SELECT MIN(source_ts_ms) FROM binance_ticks_ms",
+                [],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap_or(0)
+        } else {
+            end_ts_ms.saturating_sub((options.lookback_hours as i64) * 60 * 60 * 1000)
+        }
     });
 
     let mut markets = list_step3_markets(&conn, start_ts_ms, end_ts_ms)?;
