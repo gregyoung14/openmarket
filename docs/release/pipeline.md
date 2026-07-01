@@ -60,10 +60,20 @@ Large change (full split):
 ```bash
 .venv/bin/python scripts/hf/release_split.py \
     --split full \
-    --max-snapshots 5 \
-    --min-bytes 10000000 \
+    --queue clean \
+    --batch-size 10 \
+    --batch-index 1 \
+    --min-bytes 0 \
+    --reports-dir /Users/greg/Software/openmarket/data/hf_release/full_parquet/metadata \
     --new-version v0.2-full
 ```
+
+For the clean-snapshot publishing lane, keep queue state in
+`docs/release/full-snapshot-publish-status.json`, use
+`docs/release/full-snapshot-batching.md` as the runbook, and keep
+`docs/release/snapshot_recovery_status.json` as the recovery ledger. The
+`>= 10 MB` backlog is already exhausted as of 2026-07-01, so additional clean
+batches must set `--min-bytes 0`.
 
 Unified deduped timeline (recommended public release):
 
@@ -77,20 +87,37 @@ Unified deduped timeline (recommended public release):
 Each step is also individually runnable:
 
 ```bash
-# 1. Export N snapshots from the Bunny archive
+# 1. List the next clean batch without exporting it yet
 .venv/bin/python scripts/datasets/export_many_snapshots.py \
-    --max-snapshots 5
+    --manifest /Users/greg/Software/openmarket/data/hf_release/metadata/snapshot_manifest.json \
+    --reports-dir /Users/greg/Software/openmarket/data/hf_release/full_parquet/metadata \
+    --status-file docs/release/full-snapshot-publish-status.json \
+    --queue clean \
+    --min-bytes 0 \
+    --batch-size 10 \
+    --batch-index 1 \
+    --list-only \
+    --write-plan data/hf_release/metadata/clean-batch-01.plan.json
 
-# 2. Round-trip the produced split
+# 2. Export that exact batch from the Bunny archive
+.venv/bin/python scripts/datasets/export_many_snapshots.py \
+    --manifest /Users/greg/Software/openmarket/data/hf_release/metadata/snapshot_manifest.json \
+    --reports-dir /Users/greg/Software/openmarket/data/hf_release/full_parquet/metadata \
+    --status-file docs/release/full-snapshot-publish-status.json \
+    --snapshot-ids-file data/hf_release/metadata/clean-batch-01.plan.json \
+    --queue clean \
+    --min-bytes 0
+
+# 3. Round-trip the produced split
 .venv/bin/python scripts/hf/validate_sample_split.py --sample-dir full
 
-# 3. Upload to HF
+# 4. Upload to HF
 .venv/bin/python scripts/hf/upload_split.py --split full
 
-# 4. Bump dataset card version
+# 5. Bump dataset card version
 .venv/bin/python scripts/hf/bump_dataset_version.py --set v0.2-full
 
-# 5. Commit + push the card change
+# 6. Commit + push the card change
 git add datasets/hf/README.md
 git commit -m "Bump dataset version to v0.2-full"
 git push origin main

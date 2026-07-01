@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-07-01",
+  "source_manifest": "/Users/greg/Software/openmarket/data/hf_release/metadata/snapshot_manifest.json",
+  "inventory": {
+    "total_snapshots": 202,
+    "large_gte_1gb": 5,
+    "medium_10mb_to_1gb": 5,
+    "tiny_lt_10mb": 192
+  },
+  "categories": {
+    "table_level_page_corruption": {
+      "description": "Snapshot opens, but one or more tables export as partial because corrupt B-tree pages abort bulk reads.",
+      "lane": "recovery"
+    },
+    "duckdb_unopenable_sqlite": {
+      "description": "DuckDB cannot attach the SQLite image; only sqlite3 salvage may recover rows.",
+      "lane": "recovery"
+    },
+    "post_prune_residue": {
+      "description": "Tiny archive residue under 10 MiB. These snapshots need a separate validation pass before publication.",
+      "lane": "recovery"
+    }
+  },
+  "lane_policy": {
+    "publish_min_bytes": 10485760,
+    "tiny_residue_max_bytes": 10485760,
+    "publish_selection": "compressed_bytes >= publish_min_bytes and snapshot_id not in quarantined_snapshots",
+    "recovery_selection": "snapshot_id in quarantined_snapshots or compressed_bytes < tiny_residue_max_bytes",
+    "quarantined_snapshots": {
+      "polymarket_btc_data_2026-03-29_215354": {
+        "category": "table_level_page_corruption",
+        "compressed_bytes": 10069965097,
+        "status": "quarantined",
+        "reason": "Published as partial in v0.2.0 after corrupt table pages forced partial export.",
+        "operator_action": "Retry against a fresh SQLite copy and compare lag_pairs_ms plus tick-table row counts to the existing report."
+      },
+      "polymarket_btc_data_2026-03-22_215354": {
+        "category": "table_level_page_corruption",
+        "compressed_bytes": 9691222331,
+        "status": "quarantined",
+        "reason": "Published as partial in v0.2.0 after corrupt table pages forced partial export.",
+        "operator_action": "Retry against a fresh SQLite copy and compare lag_pairs_ms plus tick-table row counts to the existing report."
+      },
+      "polymarket_btc_data_2026-05-13_183517": {
+        "category": "table_level_page_corruption",
+        "compressed_bytes": 260463524,
+        "status": "quarantined",
+        "reason": "Published as partial in v0.2.0 after corrupt table pages forced partial export.",
+        "operator_action": "Retry against a fresh SQLite copy and compare lag_pairs_ms plus tick-table row counts to the existing report."
+      },
+      "polymarket_btc_data_2026-04-21_211838": {
+        "category": "duckdb_unopenable_sqlite",
+        "compressed_bytes": 7200674285,
+        "status": "quarantined",
+        "reason": "Published as partial in v0.2.0; DuckDB could not attach the SQLite image and only salvage rows were exported.",
+        "operator_action": "Attempt sqlite recover tooling or replace the archive copy before retrying export."
+      }
+    }
+  },
+  "backlog": [
+    {
+      "scope": "publish_lane",
+      "status": "ready",
+      "count": 6,
+      "selection": "compressed_bytes >= 10485760 and not explicitly quarantined"
+    },
+    {
+      "scope": "recovery_lane",
+      "status": "queued",
+      "count": 4,
+      "selection": "explicitly quarantined partial or corrupt snapshots"
+    },
+    {
+      "scope": "residue_lane",
+      "status": "queued",
+      "count": 192,
+      "selection": "compressed_bytes < 10485760"
+    }
+  ]
+}
