@@ -28,7 +28,7 @@ from huggingface_hub import HfApi
 
 
 DEFAULT_REPO = "gregyoung14/openmarket-btc-polymarket"
-DEFAULT_SAMPLE_DIR = Path("data/hf_release/sample_flat")
+DEFAULT_SAMPLE_DIR = Path("data/hf_release/data_flat")
 DEFAULT_MANIFEST_REDACTED = Path("data/hf_release/metadata_redacted")
 DEFAULT_METADATA_DIR = Path("data/hf_release/metadata")
 DEFAULT_CARD = Path("datasets/hf/README.md")
@@ -41,7 +41,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest-redacted-dir", default=DEFAULT_MANIFEST_REDACTED, type=Path)
     parser.add_argument("--metadata-dir", default=DEFAULT_METADATA_DIR, type=Path)
     parser.add_argument("--card", default=DEFAULT_CARD, type=Path)
-    parser.add_argument("--split-name", default="sample")
+    parser.add_argument("--split-name", default="train",
+                        help="HF split name in the dataset card YAML")
+    parser.add_argument("--at-root", action="store_true",
+                        help="Place parquet files at the repository root instead of under <split-name>/")
     parser.add_argument("--commit-message", default=None)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
@@ -51,10 +54,10 @@ def stage_upload_dir(args: argparse.Namespace) -> tuple[Path, dict[str, int]]:
     """Assemble a single temp directory that mirrors the desired repo layout."""
     counts: dict[str, int] = {"parquet": 0, "metadata": 0, "sidecar": 0}
     staging = Path(tempfile.mkdtemp(prefix="openmarket_upload_"))
-    sample_out = staging / args.split_name
-    sample_out.mkdir(parents=True, exist_ok=True)
+    parquet_root = staging if args.at_root else (staging / args.split_name)
+    parquet_root.mkdir(parents=True, exist_ok=True)
     for p in sorted(args.sample_dir.glob("*.parquet")):
-        shutil.copy2(p, sample_out / p.name)
+        shutil.copy2(p, parquet_root / p.name)
         counts["parquet"] += 1
 
     metadata_out = staging / "metadata"
