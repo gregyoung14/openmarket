@@ -14,7 +14,7 @@ Source of truth on 2026-07-01:
 As of 2026-07-01:
 
 - Total archive snapshots: `202`
-- Already published (queue metadata): `202` (`197 published-clean`, `5 published-partial`)
+- Already published (queue metadata): `202` (`198 published-clean`, `4 published-partial`)
 - Local export reports on disk: `202`
 - Remaining unbatched snapshots: `0` (clean backlog complete as of 2026-07-01)
 - Remaining snapshots `>= 10 MB`: `0`
