@@ -23,7 +23,8 @@ from pathlib import Path
 DEFAULT_MANIFEST = "data/hf_release/metadata/snapshot_manifest.json"
 DEFAULT_OUT_DIR = "data/hf_release/full_parquet"
 DEFAULT_STAGING = "data/hf_release/staging"
-EXPORTER = "scripts/datasets/export_snapshot_to_parquet.py"
+EXPORTER_FAST = "scripts/datasets/export_snapshot_fast.py"
+EXPORTER_LEGACY = "scripts/datasets/export_snapshot_to_parquet.py"
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,10 +32,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", default=DEFAULT_MANIFEST)
     parser.add_argument("--out-dir", default=DEFAULT_OUT_DIR)
     parser.add_argument("--staging-dir", default=DEFAULT_STAGING)
-    parser.add_argument("--chunk-rows", type=int, default=50_000)
     parser.add_argument("--max-snapshots", type=int, default=10)
     parser.add_argument("--min-bytes", type=int, default=10 * 1024 * 1024,
                         help="Only export snapshots at least this large (skip tiny residue)")
+    parser.add_argument("--min-bytes-fast", type=int, default=1 * 1024 * 1024 * 1024,
+                        help="Snapshots at least this large use the fast (DuckDB) exporter")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--keep-db", action="store_true")
     parser.add_argument("--python", default=".venv/bin/python")
@@ -71,21 +73,21 @@ def main() -> int:
     print(f"will export: {len(selected)}")
 
     for snap in selected:
-        print(f"\n=== {snap['filename']} ({snap['compressed_bytes']:,} bytes) ===")
+        print(f"\n=== {snap['filename']} ({snap['compressed_bytes']:,} bytes) ===", flush=True)
+        use_fast = snap["compressed_bytes"] >= args.min_bytes_fast
+        exporter = EXPORTER_FAST if use_fast else EXPORTER_LEGACY
+        print(f"  using {'fast (DuckDB)' if use_fast else 'legacy (sqlite3)'} exporter", flush=True)
         cmd = [
-            args.python, EXPORTER, snap["filename"],
+            args.python, exporter, snap["filename"],
             "--manifest", args.manifest,
             "--out-dir", args.out_dir,
             "--staging-dir", args.staging_dir,
-            "--chunk-rows", str(args.chunk_rows),
         ]
         if args.keep_db:
             cmd.append("--keep-db")
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        sys.stdout.write(result.stdout)
-        sys.stderr.write(result.stderr)
+        result = subprocess.run(cmd)
         if result.returncode != 0:
-            print(f"FAILED: {snap['filename']} (rc={result.returncode})", file=sys.stderr)
+            print(f"FAILED: {snap['filename']} (rc={result.returncode})", file=sys.stderr, flush=True)
             continue
 
     agg_path = out_dir / "metadata" / "full_export_summary.json"
