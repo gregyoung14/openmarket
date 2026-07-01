@@ -103,6 +103,16 @@ the Binance event timestamp.
 - The initial sample is intentionally small and is not representative of full
   historical coverage.
 
+## Release artifacts
+
+```text
+Source repo:     github.com/gregyoung14/openmarket
+Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
+Dataset version: v0.1-sample
+Models:          huggingface.co/gregyoung14/openmarket-models
+Model version:   deferred; model-card scaffold uploaded
+```
+
 ## Citation
 
 If you use OpenMarket, cite the GitHub repository and the dataset version used

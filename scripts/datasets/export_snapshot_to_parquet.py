@@ -180,7 +180,17 @@ def export_table(
 
     quoted = ", ".join(f'"{column}"' for column in columns)
     order_by = f' ORDER BY "{timestamp_column}"' if timestamp_column in columns else ""
-    cursor = conn.execute(f'SELECT {quoted} FROM "{table}"{order_by}')
+    try:
+        cursor = conn.execute(f'SELECT {quoted} FROM "{table}"{order_by}')
+    except sqlite3.DatabaseError as exc:
+        return {
+            "table": table,
+            "exists": True,
+            "rows": 0,
+            "parts": 0,
+            "status": "error",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
 
     total_rows = 0
     part_counter = 0
@@ -188,7 +198,18 @@ def export_table(
     column_names = [description[0] for description in cursor.description]
 
     while True:
-        batch = cursor.fetchmany(chunk_rows)
+        try:
+            batch = cursor.fetchmany(chunk_rows)
+        except sqlite3.DatabaseError as exc:
+            return {
+                "table": table,
+                "exists": True,
+                "rows": total_rows,
+                "parts": part_counter,
+                "status": "partial",
+                "error": f"{type(exc).__name__}: {exc}",
+                "dates": dict(sorted(date_counts.items())),
+            }
         if not batch:
             break
 
@@ -213,9 +234,13 @@ def export_table(
             )
             write_rows(path, rows)
 
+    status = "ok"
+    if total_rows == 0:
+        status = "empty"
     return {
         "table": table,
         "exists": True,
+        "status": status,
         "rows": total_rows,
         "parts": part_counter,
         "dates": dict(sorted(date_counts.items())),
@@ -237,11 +262,11 @@ def main() -> int:
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     try:
         integrity = "skipped" if args.skip_integrity_check else integrity_check(conn)
-        if integrity != "ok" and integrity != "skipped":
-            raise RuntimeError(f"integrity check failed: {integrity}")
+        integrity_status = "ok" if integrity == "ok" else ("skipped" if integrity == "skipped" else "degraded")
 
-        table_reports = [
-            export_table(
+        table_reports = []
+        for table in args.tables:
+            report = export_table(
                 conn=conn,
                 table=table,
                 out_dir=out_dir,
@@ -249,8 +274,7 @@ def main() -> int:
                 chunk_rows=args.chunk_rows,
                 include_raw_json=args.include_raw_json,
             )
-            for table in args.tables
-        ]
+            table_reports.append(report)
     finally:
         conn.close()
 
@@ -260,6 +284,7 @@ def main() -> int:
         "source": source,
         "db_path": str(db_path),
         "integrity_check": integrity,
+        "integrity_status": integrity_status,
         "tables": table_reports,
     }
     report_path = out_dir / "metadata" / f"{snapshot_id}.export_report.json"

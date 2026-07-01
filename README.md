@@ -1,5 +1,11 @@
 # OpenMarket
 
+[![CI](https://github.com/gregyoung14/openmarket/actions/workflows/ci.yml/badge.svg)](https://github.com/gregyoung14/openmarket/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/gregyoung14/openmarket)](https://github.com/gregyoung14/openmarket/releases)
+[![License](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE)
+[![Dataset](https://img.shields.io/badge/HF-dataset-yellow.svg)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
+[![Models](https://img.shields.io/badge/HF-models-yellow.svg)](https://huggingface.co/gregyoung14/openmarket-models)
+
 OpenMarket is an open-source Rust research platform for collecting,
 synchronizing, and backtesting high-frequency Polymarket prediction-market data
 against Binance BTC market data.
@@ -86,6 +92,14 @@ cd openmarket
 cargo check --workspace
 ```
 
+Load the published sample split (≈204 KB, no large download):
+
+```bash
+.venv/bin/python scripts/hf/validate_sample_split.py     # round-trip the sample
+.venv/bin/python scripts/hf/benchmark_baseline.py        # record metrics
+.venv/bin/jupyter nbconvert --to notebook --execute notebooks/quickstart.ipynb
+```
+
 Download a dataset snapshot:
 
 ```bash
@@ -108,28 +122,28 @@ docker compose -f docker/docker-compose.yml up
 
 ## Datasets
 
-The Git repository intentionally does not contain large market data.
+Live on Hugging Face:
 
-Planned public dataset:
+- Sample split (v0.1-sample): [gregyoung14/openmarket-btc-polymarket](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
+  — 12 tables, 9,352 rows, ~204 KB parquet, ~370 KB on disk
+- Full split (planned v0.2-full): the 5 largest snapshots, ~45 GB compressed
 
-```text
-huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-```
-
-Dataset partitions:
+Dataset partitions inside the HF repo:
 
 ```text
-raw/
-  binance_ticks/
-  polymarket_books/
-processed/
-  aligned/
-  features/
-  labels/
+sample/
+  binance_trades/date=YYYY-MM-DD/*.parquet
+  binance_ticks_ms/date=YYYY-MM-DD/*.parquet
+  polymarket_ticks_ms/date=YYYY-MM-DD/*.parquet
+  lag_pairs_ms/date=YYYY-MM-DD/*.parquet
+  binance_candles_{1s,5s,1m,5m,15m,1h}/date=YYYY-MM-DD/*.parquet
+  market_meta/
+  crossover_alerts/
 metadata/
-  markets/
-  schemas/
-  checksums/
+  snapshot_manifest.json
+  snapshot_manifest.tsv
+  per-snapshot export reports
+README.md
 ```
 
 See [datasets/README.md](datasets/README.md) and
@@ -137,11 +151,11 @@ See [datasets/README.md](datasets/README.md) and
 
 ## Models
 
-Pretrained model artifacts are not committed to Git. They belong in:
+Pretrained model artifacts are not committed to Git. They will live in:
 
-```text
-huggingface.co/gregyoung14/openmarket-models
-```
+- [gregyoung14/openmarket-models](https://huggingface.co/gregyoung14/openmarket-models)
+  — currently scaffolded with `.gitattributes` + `README.md`; first v0.1.0 model
+  is **deferred** to a future release.
 
 The repository keeps model metadata, feature schemas, training code, and release
 manifests.
