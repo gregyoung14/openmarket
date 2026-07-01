@@ -23,7 +23,8 @@ from pathlib import Path
 DEFAULT_MANIFEST = "data/hf_release/metadata/snapshot_manifest.json"
 DEFAULT_OUT_DIR = "data/hf_release/full_parquet"
 DEFAULT_STAGING = "data/hf_release/staging"
-EXPORTER_FAST = "scripts/datasets/export_snapshot_fast.py"
+EXPORTER_V2 = "scripts/datasets/export_snapshot_v2.py"
+EXPORTER_V1 = "scripts/datasets/export_snapshot_fast.py"
 EXPORTER_LEGACY = "scripts/datasets/export_snapshot_to_parquet.py"
 
 
@@ -35,8 +36,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-snapshots", type=int, default=10)
     parser.add_argument("--min-bytes", type=int, default=10 * 1024 * 1024,
                         help="Only export snapshots at least this large (skip tiny residue)")
-    parser.add_argument("--min-bytes-fast", type=int, default=1 * 1024 * 1024 * 1024,
-                        help="Snapshots at least this large use the fast (DuckDB) exporter")
+    parser.add_argument("--engine", choices=("v2", "v1", "auto"), default="auto",
+                        help="Exporter to use: v2 (DuckDB native, fastest), v1 (DuckDB attached), auto")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--keep-db", action="store_true")
     parser.add_argument("--python", default=".venv/bin/python")
@@ -74,9 +75,13 @@ def main() -> int:
 
     for snap in selected:
         print(f"\n=== {snap['filename']} ({snap['compressed_bytes']:,} bytes) ===", flush=True)
-        use_fast = snap["compressed_bytes"] >= args.min_bytes_fast
-        exporter = EXPORTER_FAST if use_fast else EXPORTER_LEGACY
-        print(f"  using {'fast (DuckDB)' if use_fast else 'legacy (sqlite3)'} exporter", flush=True)
+        if args.engine == "v2":
+            exporter = EXPORTER_V2
+        elif args.engine == "v1":
+            exporter = EXPORTER_V1
+        else:
+            exporter = EXPORTER_V2  # auto: always use v2
+        print(f"  using {exporter}", flush=True)
         cmd = [
             args.python, exporter, snap["filename"],
             "--manifest", args.manifest,
