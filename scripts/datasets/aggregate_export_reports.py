@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Aggregate per-snapshot export reports into a single split summary.
 
-Reads every `*.export_report.json` under `<split>_parquet/metadata/`, sums
-table row counts and parquet bytes, and writes an aggregated JSON + Markdown
-report under `<split>_parquet/metadata/`.
+Reads every `*.export_report.json` under `<split>_parquet/metadata/` for
+snapshot-level metadata (engines, source files, statuses), then walks the
+actual Parquet tree to compute ground-truth row counts, file counts, and
+total bytes. The per-snapshot `export_report.json` row counts are kept
+as `reported_rows` for reconciliation; the summary's `total_rows` and
+`per_table.rows` reflect the real on-disk totals.
 
 Usage:
     .venv/bin/python scripts/datasets/aggregate_export_reports.py --split full
@@ -16,6 +19,8 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pyarrow.parquet as pq
+
 
 DEFAULT_ROOT = Path("data/hf_release")
 
@@ -24,7 +29,28 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--split", choices=("sample", "full"), default="full")
     parser.add_argument("--root", default=DEFAULT_ROOT, type=Path)
+    parser.add_argument("--no-actuals", action="store_true",
+                        help="skip parquet scan (faster but reported_rows only)")
     return parser.parse_args()
+
+
+def scan_parquet(parquet_root: Path) -> tuple[dict[str, int], int]:
+    """Walk the parquet tree and return (per_table_rows, total_bytes)."""
+    per_table_rows: dict[str, int] = defaultdict(int)
+    total_bytes = 0
+    for pq_path in parquet_root.rglob("*.parquet"):
+        rel = pq_path.relative_to(parquet_root)
+        parts = rel.parts
+        if len(parts) == 0 or parts[0] == "metadata":
+            continue
+        table = parts[0]
+        try:
+            meta = pq.read_metadata(str(pq_path))
+            per_table_rows[table] += meta.num_rows
+        except Exception:
+            pass
+        total_bytes += pq_path.stat().st_size
+    return dict(per_table_rows), total_bytes
 
 
 def main() -> int:
@@ -39,12 +65,10 @@ def main() -> int:
         print(f"ERROR: no export reports in {meta_dir}")
         return 1
 
-    per_table: dict[str, dict[str, int]] = defaultdict(
+    reported_per_table: dict[str, dict[str, int]] = defaultdict(
         lambda: {"rows": 0, "parts": 0, "snapshots": 0}
     )
     snapshot_summaries = []
-    total_parquet_bytes = 0
-
     for r in reports:
         data = json.loads(r.read_text())
         snapshot_id = data.get("snapshot_id", r.stem.replace(".export_report", ""))
@@ -52,38 +76,52 @@ def main() -> int:
         snap_parts = 0
         for t in data.get("tables", []):
             table = t["table"]
-            per_table[table]["rows"] += t.get("rows", 0)
-            per_table[table]["parts"] += t.get("parts", 0)
-            per_table[table]["snapshots"] += 1
+            reported_per_table[table]["rows"] += t.get("rows", 0)
+            reported_per_table[table]["parts"] += t.get("parts", 0)
+            reported_per_table[table]["snapshots"] += 1
             snap_rows += t.get("rows", 0)
             snap_parts += t.get("parts", 0)
         snapshot_summaries.append({
             "snapshot_id": snapshot_id,
             "snapshot": data.get("snapshot"),
-            "rows": snap_rows,
-            "parts": snap_parts,
+            "reported_rows": snap_rows,
+            "reported_parts": snap_parts,
             "engine": data.get("engine"),
+            "integrity_status": data.get("integrity_status"),
         })
 
-    # Compute parquet bytes and file counts from actual files (truth source).
     parquet_root = args.root / f"{args.split}_parquet"
-    actual_files_per_table: dict[str, int] = defaultdict(int)
-    for pq in parquet_root.rglob("*.parquet"):
-        total_parquet_bytes += pq.stat().st_size
-        rel = pq.relative_to(parquet_root)
-        parts = rel.parts
-        if len(parts) >= 1 and parts[0] != "metadata":
-            actual_files_per_table[parts[0]] += 1
+    actual_per_table_files: dict[str, int] = defaultdict(int)
+    for pq_path in parquet_root.rglob("*.parquet"):
+        rel = pq_path.relative_to(parquet_root)
+        if len(rel.parts) and rel.parts[0] != "metadata":
+            actual_per_table_files[rel.parts[0]] += 1
+
+    if args.no_actuals:
+        actual_per_table_rows = {}
+        actual_total_bytes = 0
+    else:
+        actual_per_table_rows, actual_total_bytes = scan_parquet(parquet_root)
+
+    actual_per_table: dict[str, dict[str, int]] = {}
+    for table in sorted(set(reported_per_table) | set(actual_per_table_files) | set(actual_per_table_rows)):
+        actual_per_table[table] = {
+            "rows": actual_per_table_rows.get(table, 0),
+            "parts": actual_per_table_files.get(table, 0),
+            "snapshots": reported_per_table.get(table, {}).get("snapshots", 0),
+            "reported_rows": reported_per_table.get(table, {}).get("rows", 0),
+            "reported_parts": reported_per_table.get(table, {}).get("parts", 0),
+        }
 
     summary = {
         "split": args.split,
         "snapshots": len(snapshot_summaries),
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "total_rows": sum(v["rows"] for v in per_table.values()),
-        "total_parquet_files": sum(actual_files_per_table.values()),
-        "total_parquet_bytes": total_parquet_bytes,
-        "per_table": {k: dict(v) for k, v in sorted(per_table.items())},
-        "per_table_actual_files": dict(actual_files_per_table),
+        "total_rows": sum(v["rows"] for v in actual_per_table.values()),
+        "total_reported_rows": sum(v["reported_rows"] for v in actual_per_table.values()),
+        "total_parquet_files": sum(actual_per_table_files.values()),
+        "total_parquet_bytes": actual_total_bytes,
+        "per_table": actual_per_table,
         "snapshots_detail": snapshot_summaries,
     }
 
@@ -94,21 +132,24 @@ def main() -> int:
     lines = [
         f"# {args.split}/ aggregate — {summary['snapshots']} snapshot(s)",
         "",
-        f"- total_rows: **{summary['total_rows']:,}**",
+        f"- total_rows: **{summary['total_rows']:,}** (from parquet files)",
+        f"- total_reported_rows: **{summary['total_reported_rows']:,}** (from per-snapshot reports)",
         f"- total_parquet_files: **{summary['total_parquet_files']}**",
         f"- total_parquet_bytes: **{summary['total_parquet_bytes']:,}**",
         "",
-        "| table | rows | parts | snapshots |",
-        "|---|---:|---:|---:|",
+        "| table | rows | parts | snapshots | reported_rows |",
+        "|---|---:|---:|---:|---:|",
     ]
-    for t, info in sorted(per_table.items()):
-        lines.append(f"| `{t}` | {info['rows']:,} | {info['parts']} | {info['snapshots']} |")
+    for t, info in sorted(actual_per_table.items()):
+        lines.append(
+            f"| `{t}` | {info['rows']:,} | {info['parts']} | {info['snapshots']} | {info['reported_rows']:,} |"
+        )
     lines.append("")
     out_md.write_text("\n".join(lines), encoding="utf-8")
 
     print(f"wrote {out_json}")
     print(f"wrote {out_md}")
-    print(json.dumps({k: summary[k] for k in ("total_rows", "total_parquet_files", "total_parquet_bytes")}, indent=2))
+    print(json.dumps({k: summary[k] for k in ("total_rows", "total_reported_rows", "total_parquet_files", "total_parquet_bytes")}, indent=2))
     return 0
 
 
