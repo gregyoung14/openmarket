@@ -1,0 +1,24 @@
+services:
+  recorder:
+    build:
+      context: ..
+      dockerfile: docker/rust.Dockerfile
+    command: ["cargo", "run", "-p", "market-data-recorder"]
+    env_file:
+      - ../.env
+    volumes:
+      - ../data:/app/data
+    ports:
+      - "8005:8005"
+
+  signal-engine:
+    build:
+      context: ..
+      dockerfile: docker/rust.Dockerfile
+    command: ["cargo", "run", "-p", "signal-engine"]
+    env_file:
+      - ../.env
+    volumes:
+      - ../data:/app/data
+    ports:
+      - "8003:8003"

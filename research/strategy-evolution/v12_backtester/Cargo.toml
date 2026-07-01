@@ -1,0 +1,18 @@
+[package]
+name = "v12_backtester"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rusqlite = { version = "0.31", features = ["bundled"] }
+rayon = "1.8"
+serde = { version = "1.0", features = ["derive"] }
+csv = "1.3"
+clap = { version = "4.4", features = ["derive"] }
+anyhow = "1.0"
+indicatif = "0.17"
+prettytable-rs = "0.10"
+
+[[bin]]
+name = "v12_backtester"
+path = "src/main.rs"
