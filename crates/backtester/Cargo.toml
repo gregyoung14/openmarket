@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 polars = { version = "0.36", features = ["lazy", "sql", "temporal", "describe"] }
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.40", features = ["bundled"] }
 rayon = "1.8"
 statrs = "0.16"
 chrono = { version = "0.4", features = ["serde"] }
