@@ -1,9 +1,4 @@
 ---
-configs:
-  - config_name: default
-    data_files:
-      - split: train
-        path: "*.parquet"
 license: apache-2.0
 task_categories:
   - tabular-classification
@@ -17,7 +12,7 @@ tags:
   - high-frequency-data
 pretty_name: OpenMarket BTC Polymarket
 size_categories:
-  - 1K<n<10K
+  - 100M<n<1B
 ---
 
 # OpenMarket BTC Polymarket
@@ -33,42 +28,97 @@ backtesting.
 ## Repository Layout
 
 ```text
-binance_trades.parquet
+binance_trades.parquet         # v0.1-sample (flat at repo root for Data Studio)
 binance_ticks_ms.parquet
 polymarket_ticks_ms.parquet
 lag_pairs_ms.parquet
-binance_candles_1s.parquet
-binance_candles_5s.parquet
-binance_candles_1m.parquet
-binance_candles_5m.parquet
-binance_candles_15m.parquet
-binance_candles_1h.parquet
+binance_candles_{1s,5s,1m,5m,15m,1h}.parquet
 market_meta.parquet
-crossover_alerts.parquet      # reserved; empty in this snapshot
+crossover_alerts.parquet
+full/                          # complete 202-snapshot archive (v0.2-full)
+  <table>/date=YYYY-MM-DD/*.parquet
+  metadata/<snapshot>.export_report.json
+unified/                       # deduped research timeline (v0.4.2-unified)
+  <table>/date=YYYY-MM-DD/*.parquet
+  metadata/merge_quality_report.json
+features/                      # optional ML exports (v0.4-features; sample demo on HF)
+  step2_100ms/
+  step2_1s/
+  step3_binary_calibration/
 metadata/
-  snapshot_manifest.json        # full archive inventory (URLs redacted)
-  snapshot_manifest.tsv         # same, TSV
-  <snapshot>.export_report.json # per-snapshot export integrity report
+  snapshot_manifest.json       # full archive inventory (CDN URLs redacted)
+  snapshot_manifest.tsv
 README.md
 ```
 
-The parquet files sit at the repository root (one per table) so the
-Hugging Face Data Studio viewer auto-indexes them without traversal of a
-split subdirectory. Each parquet file includes a `date` column
-(UTC, `YYYY-MM-DD`) so downstream code can filter by day without
-relying on Hive-style partition segments.
+Each split uses Hive-style `date=YYYY-MM-DD` partitions under table
+directories. Parquet files also include a `date` column (UTC,
+`YYYY-MM-DD`) for downstream filtering.
 
-## Current Sample
+OpenMarket is in archival shutdown. No new snapshots will be collected;
+this repository is a fixed public research record frozen at source tag
+`v0.5.0`.
 
-The first sample export uses:
+## Published Splits
 
-```text
-polymarket_btc_data_2026-05-14_145928.db.gz
+The operator archive contains 202 SQLite snapshot files from
+`2026-03-14T19:32:15Z` through `2026-07-01T02:56:54Z`. The inventory
+is in `metadata/snapshot_manifest.{json,tsv}` (CDN hostname redacted to
+`cdn.example.com`).
+
+| Split | Version | Description |
+|---|---|---|
+| `unified/` | v0.4.2-unified | **Recommended.** Deduped timeline (~722M rows, 499 parquet files) |
+| `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files) |
+| (repo root) | v0.1-sample | Tiny demo split for CI and quickstarts (12 flat parquet, 9,352 rows) |
+| `features/` | v0.4-features | **Optional.** Step2/step3 demo (one snapshot on HF); full features reproducible from `unified/` |
+
+### Features split (`v0.4-features`) — optional
+
+A full-archive `features/` upload is **not required** for the public research
+record. The recommended path is to export step2/step3 features from `unified/`
+Parquet using the published Rust and Python tooling (same pipeline that produced
+the `v0.2/` model). Hugging Face currently hosts a **one-snapshot demo** (2
+parquet files) for schema reference.
+
+Reproduce from `unified/`:
+
+```bash
+cargo build -p step3-parquet-export -p binary-outcome-trainer --release
+./target/release/export_step3_from_parquet \
+  --parquet-root data/hf_release/unified_parquet \
+  --out-dir data/hf_release/features_exports
 ```
 
-SQLite integrity check: `ok`.
+Per-snapshot step2/step3 via SQLite (legacy path):
 
-Rows exported per table:
+```bash
+.venv/bin/python scripts/datasets/export_ml_features.py \
+  --snapshot polymarket_btc_data_2026-03-14_193215.db.gz
+```
+
+See `scripts/ml/README.md` in the source repo.
+
+Load the unified split:
+
+```python
+from huggingface_hub import snapshot_download
+root = snapshot_download(
+    "gregyoung14/openmarket-btc-polymarket",
+    repo_type="dataset",
+    allow_patterns=["unified/**", "metadata/**", "README.md"],
+)
+```
+
+### Sample split (`v0.1-sample`)
+
+Published as **12 flat `*.parquet` files at the repository root** (not under
+`sample/`) so the Hugging Face Data Studio viewer can index them without
+traversing a split subdirectory. Download with `allow_patterns=["*.parquet",
+"metadata/**"]` or use `datasets/download.py --split sample`.
+
+Source snapshot: `polymarket_btc_data_2026-05-14_145928.db.gz` (SQLite
+integrity check: `ok`).
 
 | Table | Rows |
 |---|---:|
@@ -85,35 +135,6 @@ Rows exported per table:
 | `market_meta` | 146 |
 | `crossover_alerts` | 0 |
 | **Total** | **9,352** |
-
-## Full Snapshot Inventory
-
-The operator archive currently contains 202 SQLite snapshot files from
-`2026-03-14T19:32:15Z` through `2026-07-01T02:56:54Z`, totaling
-46,205,325,113 compressed bytes across 5 large snapshots (≥1 GB each)
-and 192 smaller post-prune residue snapshots. The full inventory is
-published in `metadata/snapshot_manifest.{json,tsv}` with the
-operator's storage hostname redacted to `cdn.example.com`.
-
-Three splits are published:
-
-| Split | Version | Description |
-|---|---|---|
-| `unified/` | v0.4.2-unified | Deduped research timeline from full archive (recommended) |
-| `features/` | v0.4-features | ML feature exports (step2 100ms/1s, step3 calibration) |
-| `full/` | v0.2-full | Complete 202-snapshot per-export archive |
-| `sample/` | v0.1-sample | Tiny demo split for CI and quickstarts |
-
-Load the unified split:
-
-```python
-from huggingface_hub import snapshot_download
-root = snapshot_download(
-    "gregyoung14/openmarket-btc-polymarket",
-    repo_type="dataset",
-    allow_patterns=["unified/**", "metadata/**", "README.md"],
-)
-```
 
 ## Schema
 
@@ -241,11 +262,13 @@ timestamp follows the Binance event timestamp.
 ## Release artifacts
 
 ```text
+Source tag:      v0.5.0
 Source repo:     github.com/gregyoung14/openmarket
 Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 Dataset version: v0.4.2-unified
 Models:          huggingface.co/gregyoung14/openmarket-models
-Model version:   v0.1 (calibrated binary-outcome scorer)
+Model version:   v0.2 (recommended; walk-forward logistic on unified step3)
+                 v0.1 (historical)
 ```
 
 ## Citation

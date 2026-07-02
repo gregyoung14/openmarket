@@ -1,0 +1,72 @@
+\section{Dataset}
+\label{sec:dataset}
+
+The public dataset is hosted on Hugging Face:
+\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}.
+
+\subsection{Release Status}
+\label{sec:dataset-status}
+
+\begin{table}[t]
+  \centering
+  \caption{Hugging Face dataset splits (frozen at source tag \OpenMarketReleaseTag{}).}
+  \label{tab:dataset-splits}
+  \small
+  \begin{tabular}{@{}llcp{3.8cm}@{}}
+    \toprule
+    Split & Version & Status & Purpose \\
+    \midrule
+    Unified  & \texttt{v0.4.2-unified} & Live &
+      Deduped timeline (\OpenMarketTotalRows{} rows, \OpenMarketUnifiedGiB{}~GiB) \\
+    Full     & \texttt{v0.2-full}        & Live &
+      202-snapshot per-export archive \\
+    Sample   & \texttt{v0.1-sample}      & Live &
+      Schema validation, quickstart \\
+    Features & \texttt{v0.4-features}    & Optional &
+      One-snapshot demo; reproducible from \texttt{unified/} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The operator archive inventories \OpenMarketSnapshots{} CDN SQLite snapshots
+(\OpenMarketCollectionStart{}--\OpenMarketCollectionEnd{}). Five formerly-partial
+exports were recovered with \texttt{sqlite3 .recover} and re-exported before
+the final unified rebuild; queue metadata reports 202~\texttt{published-clean},
+0~\texttt{published-partial}, and 0~\texttt{corrupt}.
+
+The unified split merges overlapping \texttt{full/} exports with
+\path{scripts/datasets/merge_partitions.py}, removing ${\sim}$21\% duplicate
+rows. All splits are validated with
+\path{scripts/hf/validate_sample_split.py}. Empirical statistics are regenerated
+from on-disk Parquet via \path{paper/scripts/paper/analyze_unified.py}.
+
+\subsection{Target Layout}
+\label{sec:dataset-layout}
+
+\begin{itemize}
+  \item \texttt{raw/}: \texttt{binance\_ticks/}, \texttt{polymarket\_books/}
+  \item \texttt{processed/}: \texttt{aligned/}, \texttt{features/}, \texttt{labels/}
+  \item \texttt{metadata/}: \texttt{markets/}, \texttt{schemas/}, \texttt{checksums/}
+\end{itemize}
+
+Raw data supports independent research into synchronization and feature
+construction. Processed step3 features for ML are exported from unified Parquet
+(\path{step3-parquet-export}) rather than shipped as a full Hugging Face split.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.55cm and 0.4cm,
+      every node/.style={narrowbox, minimum width=2.35cm}
+    ]
+    \node (bin) {binance\_ticks\_ms};
+    \node[right=of bin] (poly) {polymarket\_ticks\_ms};
+    \node[right=of poly] (meta) {market\_meta};
+    \node[below=1.0cm of poly] (lag) {lag\_pairs\_ms};
+    \draw[flowarr] (bin.south east) -- (lag.north west);
+    \draw[flowarr] (poly) -- (lag);
+    \draw[flowarr] (meta.south west) -- (lag.north east);
+  \end{tikzpicture}
+  \caption{Core dataset tables and relationships.}
+  \label{fig:schema}
+\end{figure}

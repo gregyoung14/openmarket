@@ -15,13 +15,14 @@ split.
 
 - Source code and documentation: `github.com/gregyoung14/openmarket`
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
-  - `sample/` (`v0.1-sample`)
-  - `full/` (`v0.2-full`) — complete 202-snapshot CDN archive (3258 parquet
-    files as of 2026-07-01)
+  - `v0.1-sample` — 12 flat parquet at repo root (9,352 rows)
+  - `full/` (`v0.2-full`) — complete 202-snapshot CDN archive (3,312 parquet
+    files; re-uploaded 2026-07-01 after sqlite3 recovery)
   - `unified/` (`v0.4.2-unified`) deduped from the complete 202-snapshot archive
-    (722M rows; refreshed on HF 2026-07-01 after all partial recoveries)
+    (~722M rows, 499 parquet files; refreshed on HF 2026-07-01)
 - Hugging Face models: `gregyoung14/openmarket-models`
-  - `v0.1/` calibrated binary-outcome model payload and metrics
+  - `v0.2/` calibrated binary-outcome model (354k rows, unified Parquet step3)
+  - `v0.1/` earlier release (historical)
 
 ## Archive Coverage
 
@@ -37,10 +38,15 @@ The public `full/` split now matches the complete fixed CDN inventory.
 
 ## Remaining Archive-Closeout Work
 
-1. Optional: refresh LaTeX/arXiv bundle if the paper is submitted externally.
-2. Optional: tag `v0.5.1` on `main` if you want the post-recovery commits
-   (`d45dda0`) captured in a release pointer; `v0.5.0` remains the archival
-   milestone tag.
+1. ~~Documentation polish on GitHub and Hugging Face~~ (done 2026-07-01).
+2. **Optional (not required):** full-archive `features/` HF upload. The archive
+   is complete without it — step2/step3 features are reproducible from `unified/`
+   via `scripts/ml/` and the Rust exporters (`step3-parquet-export`,
+   `binary-outcome-trainer`). HF currently ships a one-snapshot `features/`
+   demo (`v0.4-features`, 2 parquet files) for schema reference only.
+3. Optional: compile and submit arXiv bundle (\texttt{paper/scripts/export-arxiv.sh}).
+4. Optional: tag `v0.5.1` on `main` for post-recovery doc commits; `v0.5.0`
+   remains the archival milestone tag.
 
 ## What This Project Is Not Doing Anymore
 

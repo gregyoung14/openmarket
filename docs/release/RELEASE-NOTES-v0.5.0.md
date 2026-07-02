@@ -52,9 +52,9 @@ the full archive.
 Source tag:        v0.5.0
 Source repo:       github.com/gregyoung14/openmarket
 Dataset:           huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-Dataset versions:  v0.2-full (202 snapshots), v0.4-unified (deduped), v0.4-features
+Dataset versions:  v0.2-full (202 snapshots, 3312 parquet), v0.4.2-unified (deduped), v0.4-features
 Models:            huggingface.co/gregyoung14/openmarket-models
-Model version:     v0.1
+Model version:     v0.2 (recommended; post-release), v0.1 (historical)
 Paper:             paper/paper.md
 ```
 

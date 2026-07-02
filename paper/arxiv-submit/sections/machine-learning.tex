@@ -1,0 +1,37 @@
+\section{Machine Learning}
+\label{sec:ml}
+
+The project includes historical Python prototypes and Rust signal code. The
+legacy ML archive includes XGBoost, LightGBM, logistic meta-classifiers, SHAP
+feature analysis, and stacked ensembles. Model inputs are aligned feature
+vectors; model outputs are probability estimates for UP or DOWN market
+resolution.
+
+For public releases, model binaries are uploaded to Hugging Face Models rather
+than committed to Git. The recommended \texttt{v0.2/} release trains a
+walk-forward logistic binary-outcome scorer (Platt scaling) on step3 features
+exported from \texttt{v0.4.2-unified} Parquet (354k rows, 555 windows). An
+earlier \texttt{v0.1/} artifact remains for comparison. Git contains Rust
+trainers (\texttt{binary-outcome-trainer}, \texttt{step3-parquet-export}),
+feature schemas, and reproducibility manifests.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.4cm,
+      every node/.style={flowbox, minimum width=2.9cm}
+    ]
+    \node (mat) {Feature matrix};
+    \node[below=of mat] (split) {Time-based split};
+    \node[below=of split] (fit) {Model fit};
+    \node[below=of fit] (cal) {Calibration check};
+    \node[below=of cal] (exp) {HF artifact export};
+    \draw[flowarr] (mat) -- (split);
+    \draw[flowarr] (split) -- (fit);
+    \draw[flowarr] (fit) -- (cal);
+    \draw[flowarr] (cal) -- (exp);
+  \end{tikzpicture}
+  \caption{Training workflow with time-based splits, calibration checks, and
+    external artifact storage.}
+  \label{fig:training}
+\end{figure}
