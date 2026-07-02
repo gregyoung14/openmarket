@@ -1,0 +1,12 @@
+\section{Performance Engineering}
+\label{sec:performance}
+
+OpenMarket is implemented primarily in Rust to minimize latency and maximize
+throughput during concurrent market-data collection and processing. Benchmark
+categories (WebSocket ingest, tick normalization, lag pairing, feature
+generation, backtesting, inference) are documented in \texttt{benchmarks/README.md}.
+
+Published empirical measurements for the archival corpus appear in
+Section~\ref{sec:experiments}. Live micro-benchmark harnesses remain extension
+points for future work; any new results must report hardware, OS, Rust version,
+dataset revision, and exact commands.

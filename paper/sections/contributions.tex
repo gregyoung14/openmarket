@@ -1,0 +1,25 @@
+\section{Contributions}
+\label{sec:contributions}
+
+OpenMarket contributes:
+\begin{itemize}
+  \item A Rust implementation of Binance and Polymarket WebSocket collectors
+  \item A market data recorder for millisecond tick storage and market metadata
+  \item A synchronization layer that pairs Binance and Polymarket events and
+        measures lead-lag relationships
+  \item A feature-generation path for order book, price, technical, and custom
+        signal features
+  \item Rust ML tooling: \texttt{step3-parquet-export} and
+        \texttt{binary-outcome-trainer} for reproducible walk-forward models
+  \item A backtesting framework for BTC 15-minute binary markets
+  \item A strategy evolution archive covering drift, order-flow imbalance,
+        scoreboard, whipsaw, volume gates, calibration, and Brier monitoring
+  \item A legacy ML archive containing Python prototypes for XGBoost, LightGBM,
+        SHAP, and stacked classifiers
+  \item Public Hugging Face releases: \texttt{v0.1-sample},
+        \texttt{v0.2-full} (202 snapshots), \texttt{v0.4.3-unified}
+        (\OpenMarketTotalRows{} rows), sample \texttt{features/}, and model
+        artifacts (\texttt{v0.2.1/} recommended)
+  \item Reproducibility commands, Docker scaffolding, documentation, and
+        benchmarks
+\end{itemize}

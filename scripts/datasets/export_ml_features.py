@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Export ML feature CSVs from an archived SQLite snapshot and write Parquet.
+"""Export ML feature CSVs from SQLite snapshots or unified Parquet.
 
-Runs the Rust `ml_export` binary (step2_hf + step3) against a snapshot DB,
-then converts the emitted CSVs into `data/hf_release/features_parquet/`.
+Preferred for step3 at scale (unified Parquet, no SQLite):
 
-Usage:
+    cargo build -p step3-parquet-export --release
+    .venv/bin/python scripts/ml/export_step3_from_parquet.py
+
+Legacy per-snapshot path (step2_hf + step3 via SQLite):
+
     .venv/bin/python scripts/datasets/export_ml_features.py \
         --snapshot polymarket_btc_data_2026-03-14_193215.db.gz
 """

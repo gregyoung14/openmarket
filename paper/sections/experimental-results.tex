@@ -1,0 +1,161 @@
+\section{Experimental Characterization}
+\label{sec:experiments}
+
+We characterize the published \texttt{v0.4.3-unified} Hugging Face split using
+\texttt{scripts/paper/analyze\_unified.py} and
+\texttt{scripts/paper/generate\_ml\_figures.py} on local Parquet and model
+artifacts. Statistics below are computed from
+on-disk Parquet metadata and a full scan of \texttt{lag\_pairs\_ms} (release tag
+\OpenMarketReleaseTag{}). These results describe \textbf{what the archival corpus
+contains}; microstructure findings and forecast benchmarks are in
+Section~\ref{sec:insights}.
+
+\subsection{Dataset Scale}
+\label{sec:exp-scale}
+
+The unified split contains \OpenMarketTotalRows{} rows across core tables,
+occupying \OpenMarketUnifiedGiB{}~GiB on disk. The operator archive spans
+\OpenMarketSnapshots{} SQLite snapshots collected from
+\OpenMarketCollectionStart{} to \OpenMarketCollectionEnd{} (109 days). After
+deduplication across overlapping snapshot exports, the unified timeline removes
+${\sim}$21\% duplicate rows relative to the raw \texttt{full/} union (916M
+input rows $\rightarrow$ \OpenMarketTotalRows{} output rows).
+
+\begin{table}[t]
+  \centering
+  \caption{Unified split: core table row counts (from Parquet metadata).}
+  \label{tab:unified-rows}
+  \small
+  \begin{tabular}{@{}lrr@{}}
+    \toprule
+    Table & Rows & Parts \\
+    \midrule
+    \texttt{polymarket\_ticks\_ms} & 605,599,870 & 53 \\
+    \texttt{binance\_trades}        & 62,066,729  & 55 \\
+    \texttt{binance\_ticks\_ms}    & 55,791,665  & 54 \\
+    \texttt{lag\_pairs\_ms}         & 2,931,191   & 7  \\
+    \texttt{market\_meta}           & 4,450       & 1  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{dataset-scale.pdf}
+  \caption{Core table row counts in the unified split (log scale).}
+  \label{fig:dataset-scale}
+\end{figure}
+
+Export quality: all \OpenMarketSnapshots{} snapshots are \texttt{published-clean}
+after sqlite3 recovery of formerly-partial exports; per-snapshot export reports
+document any table-level gaps.
+
+\subsection{Synchronization Empirics}
+\label{sec:exp-sync}
+
+Lead--lag pairing produces \OpenMarketLagPairs{} matched event pairs in the
+unified split. Figure~\ref{fig:lead-lag-hist-unified} shows the full distribution;
+summary statistics are:
+
+\begin{itemize}
+  \item median lead--lag: \OpenMarketLagMedian{}~ms
+  \item 5th / 95th percentiles: \OpenMarketLagPFive{} / \OpenMarketLagPNinetyFive{}~ms
+\end{itemize}
+
+Positive values indicate Polymarket source timestamps following Binance source
+timestamps (Equation~\ref{eq:lead-lag}). The long tails motivate treating
+alignment-window sensitivity and clock drift as first-class quality metrics.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.88\linewidth]{lead-lag-hist.pdf}
+  \caption{Empirical \texttt{lead\_lag\_ms} distribution from the unified
+    \texttt{lag\_pairs\_ms} table ($n=\OpenMarketLagPairs{}$).}
+  \label{fig:lead-lag-hist-unified}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{daily-volume.pdf}
+  \caption{Daily event volume (last 30 days with data) for Polymarket ticks and
+    Binance trades in the unified split.}
+  \label{fig:daily-volume}
+\end{figure}
+
+\subsection{Reproducibility Benchmarks}
+\label{sec:exp-bench}
+
+Table~\ref{tab:repro-bench} and Figure~\ref{fig:throughput-bench} report
+environment-specific measurements on the publication workstation
+(\OpenMarketHardware{}; \OpenMarketRustVersion{}). No \texttt{cargo bench}
+targets ship in the workspace yet; we time end-to-end I/O and the release
+backtester binary instead.
+
+\begin{table}[t]
+  \centering
+  \caption{Reproducibility benchmarks (environment-specific).}
+  \label{tab:repro-bench}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Metric & Value \\
+    \midrule
+    Hardware & \OpenMarketHardware{} \\
+    HF sample download + scan & 1.55\,s / 9,352 rows \\
+    HF sample Parquet load & \OpenMarketBenchHfLoad{}~s \\
+    Unified Parquet metadata scan & \OpenMarketUnifiedGiB{}~GiB, 0.54\,s \\
+    Unified \texttt{lag\_pairs\_ms} load & 2,931,191 rows, 0.12\,s \\
+    Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (245 rows) \\
+    \texttt{v15\_brier\_calibration} (staging DB) & \OpenMarketBenchBacktest{}~s / \OpenMarketBenchBacktestMarkets{} markets \\
+    Rust workspace (crates/) & \OpenMarketRustLoc{} non-blank lines \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{throughput-bench.pdf}
+  \caption{Throughput benchmarks on the publication workstation (see
+    Table~\ref{tab:repro-bench}).}
+  \label{fig:throughput-bench}
+\end{figure}
+
+\subsection{Feature Correlation (Step-2)}
+\label{sec:exp-features}
+
+Figure~\ref{fig:feature-corr} summarizes pairwise Pearson correlations among
+100\,ms step-2 features exported from a staging snapshot
+(\texttt{features\_parquet/step2\_100ms/}, 245 rows, 44 numeric columns).
+Highly correlated blocks (returns, realized vol, volume) motivate regularized
+training and ablation in downstream ML work.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{feature-correlation.pdf}
+  \caption{Feature correlation heatmap (step-2, 100\,ms buckets).}
+  \label{fig:feature-corr}
+\end{figure}
+
+\subsection{Temporal Heatmaps}
+\label{sec:exp-heatmaps}
+
+Figure~\ref{fig:lag-hour} summarizes median lead--lag by hour-of-day (UTC) on a
+500k-pair subsample of the unified \texttt{lag\_pairs\_ms} table.
+Figure~\ref{fig:ledger-hour-dow} maps live ledger trades (legacy v9 regime
+strategy) to hour $\times$ day-of-week win rate and count---illustrating how
+archival analysis scripts and production logs complement the HF release.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{lag-hour-heatmap.pdf}
+  \caption{Median \texttt{lead\_lag\_ms} by hour (unified split subsample).}
+  \label{fig:lag-hour}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{ledger-hour-dow.pdf}
+  \caption{Hour $\times$ day-of-week heatmaps from the live trade ledger
+    (\texttt{research/legacy-ml/}).}
+  \label{fig:ledger-hour-dow}
+\end{figure}

@@ -18,8 +18,8 @@ from huggingface_hub import HfApi
 
 
 DEFAULT_REPO = "gregyoung14/openmarket-models"
-DEFAULT_SOURCE = Path("<LOCAL_OPENMARKET_PREDECESSOR>/data/ml_artifacts")
-DEFAULT_STAGING = Path("models/hf_staging/v0.1")
+DEFAULT_SOURCE = Path("data/ml_artifacts")
+DEFAULT_STAGING = Path("models/hf_staging/v0.2.1")
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,8 +27,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repo-id", default=DEFAULT_REPO)
     parser.add_argument("--source-dir", default=DEFAULT_SOURCE, type=Path)
     parser.add_argument("--staging-dir", default=DEFAULT_STAGING, type=Path)
-    parser.add_argument("--version", default="v0.1")
-    parser.add_argument("--dataset-version", default="v0.3-unified")
+    parser.add_argument("--version", default="v0.2.1")
+    parser.add_argument("--dataset-version", default="v0.4.3-unified")
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -60,12 +60,25 @@ def stage_artifacts(args: argparse.Namespace) -> Path:
         ))
         card.write_text(text, encoding="utf-8")
 
+    metrics_files = sorted(src.glob("binary_outcome_metrics_*.json"))
+    metrics_doc = {}
+    if metrics_files:
+        metrics_doc = json.loads(metrics_files[-1].read_text(encoding="utf-8"))
+
     manifest = {
         "model_version": args.version,
         "dataset_version": args.dataset_version,
+        "dataset_repo": "gregyoung14/openmarket-btc-polymarket",
         "artifact": "binary_outcome_model.json",
         "staged_at": datetime.now(timezone.utc).isoformat(),
-        "source_dir": str(src),
+        "source_dir": str(src.resolve()),
+        "rows_total": metrics_doc.get("rows_total"),
+        "markets_total": metrics_doc.get("markets_total"),
+        "export_path": metrics_doc.get("export_path"),
+        "trainer": "binary-outcome-trainer (walk-forward logistic + Platt)",
+        "feature_export": "export_step3_from_parquet (unified Parquet)",
+        "notes": metrics_doc.get("notes")
+        or "Trained on locally backfilled unified Parquet (sqlite-fill partitions).",
     }
     (stage / "model_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return stage

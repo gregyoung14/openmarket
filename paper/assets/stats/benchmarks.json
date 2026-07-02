@@ -1,0 +1,57 @@
+{
+  "figures": {
+    "feature_correlation": {
+      "rows": 33084,
+      "features": 18
+    },
+    "calibration": {
+      "source": "<OPENMARKET_REPO>/data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv",
+      "rows": 357390,
+      "ece": 0.026787855377206925,
+      "auc_roc": 0.8395324686931153
+    },
+    "walk_forward": {
+      "windows": 555,
+      "auc_min": 0.20521874139183133,
+      "auc_median": 0.879601284252968,
+      "auc_max": 1.0,
+      "brier_min": 0.021222488846792148,
+      "brier_median": 0.14951350767690236,
+      "brier_max": 0.47104924714388485
+    },
+    "ledger_heatmap": {
+      "trades": 305
+    },
+    "lag_hour": {
+      "pairs": 1620579
+    }
+  },
+  "benchmarks": {
+    "generated_at": "2026-07-02T06:19:32.144416+00:00",
+    "hardware": {
+      "cpu": "Apple M5 Max",
+      "ram_gb": 64,
+      "os": "Darwin 26.3.1",
+      "rust": "rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)"
+    },
+    "hf_sample_download_s": 1.551,
+    "hf_sample_load_s": 0.002,
+    "hf_sample_rows": 9352,
+    "unified_metadata_scan_s": 0.058,
+    "unified_lag_load_s": 0.012,
+    "unified_total_rows": 727098247,
+    "unified_gib": 8.69,
+    "feature_parquet_load": {
+      "rows": 33349,
+      "seconds": 0.005,
+      "parts": 3
+    },
+    "backtest_staging_db": {
+      "status": "ok",
+      "seconds": 0.08,
+      "markets": 89,
+      "trades": 0,
+      "db_mib": 37.1
+    }
+  }
+}

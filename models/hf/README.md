@@ -15,13 +15,27 @@ tags:
 Pretrained model artifacts for the OpenMarket research archive. Model binaries
 are published here rather than committed to the OpenMarket GitHub repository.
 
+## How to Cite
+
+```bibtex
+@misc{openmarket_models_v02_2026,
+  title        = {{OpenMarket} Binary-Outcome Calibration Model},
+  author       = {{OpenMarket Contributors}},
+  year         = {2026},
+  howpublished = {\url{https://huggingface.co/gregyoung14/openmarket-models}},
+  note         = {Release v0.2.1}
+}
+```
+
 ## Repository Layout
 
 ```text
-v0.2/                              # current recommended release
+v0.2.1/                            # current recommended release
   binary_outcome_model.json        # walk-forward logistic scorer (Platt scaling)
   binary_outcome_metrics_*.json    # training metrics + walk-forward windows
   model_manifest.json              # provenance manifest
+v0.2/                              # prior full-unified training run
+  ...
 v0.1/                              # earlier release (smaller training set)
   binary_outcome_model.json
   binary_outcome_metrics_*.json
@@ -29,27 +43,28 @@ v0.1/                              # earlier release (smaller training set)
 README.md
 ```
 
-## Current Release (v0.2)
+## Current Release (v0.2.1)
 
 | Artifact | Description |
 |---|---|
-| `v0.2/binary_outcome_model.json` | Calibrated logistic binary-outcome scorer |
-| `v0.2/binary_outcome_metrics_*.json` | Walk-forward metrics (555 windows) |
-| `v0.2/model_manifest.json` | Provenance manifest |
+| `v0.2.1/binary_outcome_model.json` | Calibrated logistic binary-outcome scorer |
+| `v0.2.1/binary_outcome_metrics_*.json` | Walk-forward metrics (559 windows) |
+| `v0.2.1/model_manifest.json` | Provenance manifest |
 
 **Training pipeline (Rust):**
 
-1. `export_step3_from_parquet` on `unified/` Parquet (`v0.4.2-unified`)
+1. `export_step3_from_parquet` on `unified/` Parquet (`v0.4.3-unified`)
 2. `train_binary_outcome_model` — walk-forward logistic regression + Platt scaling
 
 **Training data:**
 
 | Field | Value |
 |---|---:|
-| Dataset | `gregyoung14/openmarket-btc-polymarket` (`v0.4.2-unified`) |
+| Dataset | `gregyoung14/openmarket-btc-polymarket` (`v0.4.3-unified`) |
 | Feature export | `step3_binary_calibration` CSV from unified Parquet |
-| Rows | 354,684 |
-| Markets | 2,234 / 4,450 in `market_meta` (50% write rate) |
+| Rows | 357,390 |
+| Markets | 2,251 / 4,450 in `market_meta` (51% write rate) |
+| Notes | Backfilled `unified/` synced to HF in `v0.4.3-unified` |
 | Date range | 2026-02-12 → 2026-05-14 |
 | Features | 43 |
 
@@ -57,13 +72,13 @@ README.md
 
 | Metric | Value |
 |---|---:|
-| AUC-ROC | 0.840 |
-| Brier | 0.164 |
+| AUC-ROC | 0.838 |
+| Brier | 0.165 |
 | ECE | 0.025 |
-| Log loss | 0.492 |
+| Log loss | 0.495 |
 
-**Simulated +EV trading (fee 1%, slippage 0.5%):** 260,622 trades, 50.1% hit
-rate, **-0.123 PnL/trade**. Not deployable alpha — research artifact only.
+**Simulated +EV trading (fee 1%, slippage 0.5%):** 260,617 trades, 49.4% hit
+rate, **-0.117 PnL/trade**. Not deployable alpha — research artifact only.
 
 **Known limitations:**
 
@@ -86,7 +101,13 @@ cargo build -p step3-parquet-export -p binary-outcome-trainer --release
 
 See `scripts/ml/README.md` in the source repo.
 
-## Previous Release (v0.1)
+## Previous Releases
+
+### v0.2
+
+Same pipeline on pre-backfill unified Parquet (354,684 rows, 2,234 markets).
+
+### v0.1
 
 | Artifact | Description |
 |---|---|
@@ -94,7 +115,7 @@ See `scripts/ml/README.md` in the source repo.
 | `v0.1/binary_outcome_metrics_*.json` | Metrics snapshots |
 | `v0.1/model_manifest.json` | Provenance manifest |
 
-Trained on a smaller step3 export. Superseded by `v0.2/` for research use.
+Trained on a smaller step3 export. Superseded by `v0.2.1/` for research use.
 
 ## Required Metadata Per Model
 

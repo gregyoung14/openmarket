@@ -1,0 +1,122 @@
+\section{Microstructure Findings}
+\label{sec:insights}
+
+This section reports \textbf{what we learn from the corpus}, not only what we
+built. Regenerate via \texttt{analyze\_research.py} and
+\texttt{analyze\_unified.py} (Section~\ref{sec:reproducibility}).
+
+\subsection{Scale and Coverage}
+\label{sec:insights-scale}
+
+The unified archive spans 109 days and \OpenMarketTotalRows{} rows
+(Table~\ref{tab:unified-rows}). Polymarket ticks dominate volume
+(605.6M rows), enabling event studies at scales impractical with sample-only
+public drops. After deduplicating overlapping snapshot exports, ${\sim}$21\% of
+raw \texttt{full/} rows collapse---a methodological point for anyone merging
+recorder archives without explicit keys.
+
+\subsection{Lead--Lag and Cross-Venue Disagreement}
+\label{sec:insights-leadlag}
+
+Lead--lag pairs exhibit a compact median (\OpenMarketLagMedian{}~ms) but heavy
+tails (5th/95th: \OpenMarketLagPFive{} / \OpenMarketLagPNinetyFive{}~ms;
+Figure~\ref{fig:lead-lag-hist-unified}). Stratifying by $|$\texttt{price\_delta\_bps}$|$
+quintiles shows \textbf{stable} median lead--lag (16--19~ms) across disagreement
+levels (Figure~\ref{fig:lead-lag-disagreement}): cross-venue \emph{timing} does
+not materially shift with contemporaneous basis-point divergence.
+Disagreement regimes show the same pattern (Figure~\ref{fig:lead-lag-regime}).
+
+Hour-of-day medians (Figure~\ref{fig:lag-hour}) and daily event volumes
+(Figure~\ref{fig:daily-volume}) show modest intra-day variation without a
+simple ``high volume $\Rightarrow$ faster cross-venue adjustment'' rule.
+Lead--lag magnitude is uncorrelated with $|$\texttt{price\_delta\_bps}$|$
+(Pearson $r \approx \OpenMarketLagPriceCorr{}$ on 500k pairs), so lag delay alone does not predict
+contemporaneous mispricing magnitude.
+
+\subsection{Polymarket Spread Stylized Facts}
+\label{sec:insights-spread}
+
+Top-of-book spreads on UP/DOWN tokens concentrate at one tick wide
+(median $\approx 0.01$ probability points; 95th percentile $\approx 0.02$;
+Figure~\ref{fig:spread-distribution}). Tight spreads imply that naive backtests
+using mid prices can overstate executable edge---consistent with negative
+simulated PnL under fees and slippage (Section~\ref{sec:ml}).
+
+\subsection{Forecast Benchmarks and Ablations}
+\label{sec:insights-forecast}
+
+On 354{,}684 step3 rows exported from unified Parquet, we compare forecast
+baselines (Table~\ref{tab:forecast-benchmarks}, Figure~\ref{fig:forecast-benchmarks}).
+All metrics are computed by \texttt{analyze\_research.py}; expected calibration
+error (ECE) uses 10 equal-width probability bins.
+
+\begin{table}[t]
+  \centering
+  \caption{Forecast benchmarks on step3 rows (full timeline). Lower is better
+    for Brier, ECE, and log loss.}
+  \label{tab:forecast-benchmarks}
+  \small
+  \begin{tabular}{@{}lrrrrr@{}}
+    \toprule
+    Model & AUC & Brier & ECE & Log loss & $\mu$s/row \\
+    \midrule
+    Naive \texttt{market\_mid\_prior\_up} & 0.842 & 0.162 & 0.015 & 0.484 & -- \\
+    Logistic + Platt (\texttt{v0.2})      & 0.843 & 0.162 & \OpenMarketLogisticEce{} & 0.487 & \OpenMarketLogisticScoreUs{} \\
+    \texttt{drift\_prob\_up} only         & 0.773 & 0.218 & 0.144 & 0.790 & -- \\
+    \texttt{imbalance\_60s} (sigmoid)     & 0.586 & 0.246 & 0.031 & 0.685 & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textbf{Effect size.} Logistic \texttt{v0.2} beats the naive mid prior by
+$\Delta$AUC $= \OpenMarketAucDiff{}$ (paired bootstrap 95\% CI
+$[\OpenMarketAucDiffLow{}, \OpenMarketAucDiffHigh{}]$; one-sided
+$p < 0.001$, $n=354{,}684$). The lift is statistically
+detectable but \emph{economically} tiny relative to fees and spread---hence
+negative simulated PnL. The market prior is also better calibrated
+(ECE \OpenMarketNaiveEce{} vs.\ \OpenMarketLogisticEce{}), so the logistic
+model should be read as a marginal ranking improvement, not a replacement for
+market-implied probability.
+
+\textbf{Spread and reliability.} At one-tick spreads ($\leq 0.011$), Brier is
+$\approx \OpenMarketBrierTight{}$; at wider quotes ($\geq 0.015$), Brier rises to
+$\approx \OpenMarketBrierWide{}$. Realized-volatility terciles show a parallel
+gradient (0.159 high-vol vs.\ 0.164 low-vol): forecasts are more reliable when
+underlying BTC activity is elevated and degrade when Polymarket quotes widen.
+
+\textbf{Takeaway.} Multivariate features add marginal ranking skill over the
+Polymarket mid; drift alone is weaker; raw order-flow imbalance fails without
+context; and the strongest published baseline remains economically dominated by
+fees, spread, and calibration error. These are diagnostic baselines the
+infrastructure enables at 357k-row scale in minutes on a laptop---not a claim
+of tradable alpha.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.88\linewidth]{lead-lag-vs-disagreement.pdf}
+  \caption{Median lead--lag by $|$\texttt{price\_delta\_bps}$|$ quintile
+    (\texttt{lag\_pairs\_ms}, 500k subsample).}
+  \label{fig:lead-lag-disagreement}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\linewidth]{lead-lag-by-regime.pdf}
+  \caption{Median lead--lag by cross-venue disagreement regime (terciles of
+    $|$\texttt{price\_delta\_bps}$|$).}
+  \label{fig:lead-lag-regime}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.88\linewidth]{spread-distribution.pdf}
+  \caption{Polymarket top-of-book spread distribution (200k tick subsample).}
+  \label{fig:spread-distribution}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{forecast-benchmarks.pdf}
+  \caption{Forecast benchmark ROC AUC on step3 rows.}
+  \label{fig:forecast-benchmarks}
+\end{figure}

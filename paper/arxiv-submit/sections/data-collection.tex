@@ -1,0 +1,33 @@
+\section{Data Collection}
+\label{sec:data-collection}
+
+\subsection{Binance}
+\label{sec:data-binance}
+
+The Binance collector records BTC/USDT trades and derives candle tables at
+multiple time resolutions. The source schema includes trade ID, trade timestamp,
+price, quantity, quote volume, maker/taker direction, and local receive time.
+Millisecond-level tick snapshots preserve both source and ingest timestamps.
+
+\subsection{Polymarket}
+\label{sec:data-polymarket}
+
+The Polymarket collector subscribes to BTC binary market order book updates,
+trades, and last-trade-price events. The recorder maps token IDs to market slugs
+and side labels using market metadata so that UP and DOWN books can be analyzed
+consistently across rolling 15-minute markets.
+
+\subsection{Storage}
+\label{sec:data-storage}
+
+The initial recorder stores data in SQLite for operational simplicity. The
+public dataset release exports raw and processed tables to partitioned Parquet.
+Key recorded tables include:
+\begin{itemize}
+  \item \texttt{binance\_trades}, \texttt{binance\_ticks\_ms}
+  \item \texttt{polymarket\_ticks\_ms}, \texttt{market\_meta}
+  \item \texttt{lag\_pairs\_ms}
+  \item \texttt{binance\_candles\_1s}, \texttt{binance\_candles\_5s},
+        \texttt{binance\_candles\_1m}, \texttt{binance\_candles\_5m},
+        \texttt{binance\_candles\_15m}, \texttt{binance\_candles\_1h}
+\end{itemize}

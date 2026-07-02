@@ -1,0 +1,21 @@
+[package]
+name = "binary-outcome-trainer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Fast walk-forward logistic regression trainer for step3 binary outcome models"
+
+[[bin]]
+name = "train_binary_outcome_model"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4.4", features = ["derive", "env"] }
+csv = "1.3"
+rayon = "1.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

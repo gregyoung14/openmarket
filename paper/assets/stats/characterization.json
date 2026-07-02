@@ -1,0 +1,168 @@
+{
+  "generated_at": "2026-07-02T06:18:06.623068+00:00",
+  "release_tag": "v0.5.0",
+  "unified_root": "<OPENMARKET_REPO>/paper/../data/hf_release/unified_parquet",
+  "scan_seconds": 0.058,
+  "lag_load_seconds": 0.012,
+  "manifest": {
+    "snapshot_count": 202,
+    "collection_start": "2026-03-14T19:32:15Z",
+    "collection_end": "2026-07-01T02:56:54Z",
+    "compressed_gb": 46.21
+  },
+  "totals": {
+    "total_rows": 727098247,
+    "total_bytes": 9330251326,
+    "total_gib": 8.689473686739802,
+    "table_count": 11
+  },
+  "per_table": {
+    "binance_candles_15m": {
+      "rows": 828,
+      "parts": 56,
+      "bytes": 143777
+    },
+    "binance_candles_1h": {
+      "rows": 315,
+      "parts": 50,
+      "bytes": 101125
+    },
+    "binance_candles_1m": {
+      "rows": 7449,
+      "parts": 56,
+      "bytes": 425991
+    },
+    "binance_candles_1s": {
+      "rows": 405704,
+      "parts": 55,
+      "bytes": 13897307
+    },
+    "binance_candles_5m": {
+      "rows": 1969,
+      "parts": 56,
+      "bytes": 204936
+    },
+    "binance_candles_5s": {
+      "rows": 82260,
+      "parts": 56,
+      "bytes": 3112862
+    },
+    "binance_ticks_ms": {
+      "rows": 55792056,
+      "parts": 55,
+      "bytes": 662830815
+    },
+    "binance_trades": {
+      "rows": 62258815,
+      "parts": 57,
+      "bytes": 1049061235
+    },
+    "lag_pairs_ms": {
+      "rows": 2936031,
+      "parts": 8,
+      "bytes": 16300457
+    },
+    "market_meta": {
+      "rows": 4450,
+      "parts": 1,
+      "bytes": 427173
+    },
+    "polymarket_ticks_ms": {
+      "rows": 605608370,
+      "parts": 54,
+      "bytes": 7583745648
+    }
+  },
+  "lead_lag": {
+    "n": 2936031,
+    "mean_ms": 36.033577302147016,
+    "std_ms": 155.92960622095742,
+    "median_ms": 16.0,
+    "p5_ms": -186.0,
+    "p25_ms": -34.0,
+    "p75_ms": 97.0,
+    "p95_ms": 316.0
+  },
+  "daily_polymarket_days": 54,
+  "daily_binance_days": 57,
+  "model_v01_metrics": {
+    "auc_roc": 0.8608286252354049,
+    "brier": 0.15472731496398393,
+    "ece": 0.12367528216020314,
+    "log_loss": 0.48658157504400407,
+    "positive_ev_hit_rate": 0.5579710144927537,
+    "positive_ev_trades": 966,
+    "up_chosen": 582,
+    "down_chosen": 384,
+    "realized_pnl_per_trade": -0.026293458194323004,
+    "realized_total_pnl": -25.399480615716023
+  },
+  "sample_baseline": {
+    "label": "v0.1-sample",
+    "repo_id": "gregyoung14/openmarket-btc-polymarket",
+    "split": "sample",
+    "snapshot": "v0.1-sample",
+    "download_seconds": 1.551,
+    "load_seconds": 0.002,
+    "total_rows": 9352,
+    "total_parquet_bytes": 204401,
+    "tables": {
+      "binance_candles_15m": {
+        "rows": 5,
+        "parts": 2,
+        "bytes": 6992
+      },
+      "binance_candles_1h": {
+        "rows": 2,
+        "parts": 1,
+        "bytes": 3457
+      },
+      "binance_candles_1m": {
+        "rows": 104,
+        "parts": 2,
+        "bytes": 13361
+      },
+      "binance_candles_1s": {
+        "rows": 9,
+        "parts": 1,
+        "bytes": 3900
+      },
+      "binance_candles_5m": {
+        "rows": 23,
+        "parts": 2,
+        "bytes": 8311
+      },
+      "binance_candles_5s": {
+        "rows": 1,
+        "parts": 1,
+        "bytes": 3377
+      },
+      "binance_ticks_ms": {
+        "rows": 1044,
+        "parts": 1,
+        "bytes": 15623
+      },
+      "binance_trades": {
+        "rows": 4249,
+        "parts": 1,
+        "bytes": 84390
+      },
+      "lag_pairs_ms": {
+        "rows": 1769,
+        "parts": 1,
+        "bytes": 24896
+      },
+      "market_meta": {
+        "rows": 146,
+        "parts": 1,
+        "bytes": 17433
+      },
+      "polymarket_ticks_ms": {
+        "rows": 2000,
+        "parts": 1,
+        "bytes": 22661
+      }
+    }
+  },
+  "rust_loc": 17823
+}

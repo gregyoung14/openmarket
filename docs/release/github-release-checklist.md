@@ -3,15 +3,17 @@
 ## v0.5.0 archive closeout (2026-07-01)
 
 - [x] Publish all 202 CDN snapshots in `full/` (3,312 parquet files)
-- [x] Rebuild `unified/` from complete `full/` tree (`v0.4.2-unified`)
+- [x] Rebuild `unified/` from complete `full/` tree (`v0.4.3-unified`)
 - [x] Recover formerly-partial snapshots via `sqlite3 .recover`
 - [x] Re-upload `full/` and remove stale partial parquet files on HF
 - [x] Reconcile queue metadata (`202 published-clean`, `0 partial`, `0 corrupt`)
 - [x] Update GitHub docs for archival shutdown state
 - [x] Sync Hugging Face dataset and model cards
-- [x] Upload `v0.2/` model (walk-forward logistic on unified step3, 354k rows)
+- [x] Upload `v0.2.1/` model (walk-forward logistic on unified step3, 357k rows)
 - [ ] Optional: upload full-archive `features/` split (not required — reproducible from `unified/`)
-- [ ] Optional: tag `v0.5.1` for post-closeout doc commits
+- [x] Unified backfill sync to HF (`v0.4.3-unified`, five partitions)
+- [x] Rust ML pipeline (`step3-parquet-export`, `binary-outcome-trainer`, `unified-backfill`)
+- [x] Tag `v0.5.1` for post-closeout commits (private GitHub)
 
 ## v0.1.0
 

@@ -20,12 +20,15 @@ The JSON policy tracks three recovery categories:
 2. `duckdb_unopenable_sqlite`
 3. `post_prune_residue`
 
-Seeded quarantine set from the current release notes:
+Formerly quarantined snapshots (all recovered 2026-07-01 via `sqlite3 .recover`):
 
-- `polymarket_btc_data_2026-03-29_215354`
-- `polymarket_btc_data_2026-03-22_215354`
-- `polymarket_btc_data_2026-05-13_183517`
-- `polymarket_btc_data_2026-04-21_211838`
+- `polymarket_btc_data_2026-03-29_215354` — recovered, 194M rows
+- `polymarket_btc_data_2026-03-22_215354` — recovered, 185M rows
+- `polymarket_btc_data_2026-05-13_183517` — recovered, 5.1M rows
+- `polymarket_btc_data_2026-04-21_211838` — recovered, 139M rows
+
+See `recovered_snapshots` in `snapshot_recovery_status.json`. The
+`quarantined_snapshots` map is now empty.
 
 ## Queues and lanes
 

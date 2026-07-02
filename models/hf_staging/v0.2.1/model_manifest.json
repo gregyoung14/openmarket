@@ -1,0 +1,14 @@
+{
+  "model_version": "v0.2.1",
+  "dataset_version": "v0.4.3-unified",
+  "dataset_repo": "gregyoung14/openmarket-btc-polymarket",
+  "artifact": "binary_outcome_model.json",
+  "staged_at": "2026-07-02T00:32:42.093202+00:00",
+  "source_dir": "<OPENMARKET_REPO>/data/ml_artifacts",
+  "rows_total": 357390,
+  "markets_total": 2251,
+  "export_path": "data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv",
+  "trainer": "binary-outcome-trainer (walk-forward logistic + Platt)",
+  "feature_export": "export_step3_from_parquet (unified Parquet)",
+  "notes": "Trained on locally backfilled unified Parquet (sqlite-fill partitions)."
+}

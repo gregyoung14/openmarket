@@ -24,6 +24,10 @@ datasets/cache/
 *.pkl
 *.log
 
+# Agent / temp scratch
+.grok/
+.tmp/
+
 # Secrets and local config
 .env
 .env.*

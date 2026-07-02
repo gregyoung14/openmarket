@@ -1,0 +1,30 @@
+\section{Backtesting}
+\label{sec:backtesting}
+
+Backtesting processes market windows independently and evaluates entry signals
+against settled outcomes under documented simulation assumptions. Preferred
+validation methods include walk-forward validation, rolling-window evaluation,
+strict out-of-sample splits, sensitivity analysis over entry windows and
+thresholds, and Monte Carlo resampling of fill and slippage assumptions. Random
+row splits are discouraged because adjacent high-frequency observations are
+highly autocorrelated.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.4cm,
+      every node/.style={flowbox, minimum width=2.9cm}
+    ]
+    \node (win) {Market window};
+    \node[below=of win] (gate) {Signal gate};
+    \node[below=of gate] (fill) {Simulated fill};
+    \node[below=of fill] (settle) {Settlement};
+    \node[below=of settle] (agg) {Metric aggregation};
+    \draw[flowarr] (win) -- (gate);
+    \draw[flowarr] (gate) -- (fill);
+    \draw[flowarr] (fill) -- (settle);
+    \draw[flowarr] (settle) -- (agg);
+  \end{tikzpicture}
+  \caption{Backtesting engine with simulated fills (not live PnL).}
+  \label{fig:backtest}
+\end{figure}

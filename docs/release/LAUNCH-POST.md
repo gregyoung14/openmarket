@@ -24,10 +24,10 @@ What's in the release:
 - Hugging Face dataset with four public splits:
   - `v0.1-sample` (~204 KB, 12 flat parquet at repo root) for CI and quickstarts
   - `full/` — complete 202-snapshot CDN archive (3,312 parquet files)
-  - `unified/` — deduped research timeline (**722M rows**, recommended)
+  - `unified/` — deduped research timeline (**727M rows**, recommended)
   - `features/` — optional step2/step3 demo on HF; full features reproducible
     from `unified/` via `scripts/ml/`
-- Public pretrained model artifacts at `gregyoung14/openmarket-models` (`v0.2/`
+- Public pretrained model artifacts at `gregyoung14/openmarket-models` (`v0.2.1/`
   walk-forward logistic on unified step3; `v0.1/` historical)
 - Quickstart notebook that loads the sample, walks table schemas, and
   joins Binance trades with Polymarket ticks
@@ -87,7 +87,7 @@ millisecond-resolution tick and the on-chain settlement event.
   `features/` demo (reproduce from `unified/` with `scripts/ml/`)
 - A systems paper covering sync, feature engineering, calibration,
   and limitations
-- Public `v0.2/` model weights on Hugging Face Models (354k rows, 555 walk-forward windows)
+- Public `v0.2.1/` model weights on Hugging Face Models (357k rows, 559 walk-forward windows)
 
 ### 3. What's deliberately not in the box
 

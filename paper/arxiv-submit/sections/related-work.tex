@@ -1,0 +1,49 @@
+\section{Related Work}
+\label{sec:related-work}
+
+Prediction markets aggregate dispersed information into tradable prices
+\cite{wolfers2004prediction,hanson2003combinatorial,berg2008prediction}.
+High-frequency microstructure methods emphasize order-book dynamics, latency,
+and price impact \cite{ohara2015high,cont2014price}. Multi-venue studies
+measure which market contributes to price discovery \cite{hasbrouck1995one}.
+
+\textbf{Polymarket microstructure.}
+Dubach~\cite{dubach2026anatomy} analyzes tick-level Polymarket order-book
+evidence and releases analysis code, but does not ship a synchronized Binance
+reference stream or a Hugging Face archival corpus. Saguillo et al.~\cite{saguillo2025arbitrage}
+document combinatorial arbitrage and market replications using proprietary-scale
+scrapes; reproduction requires re-implementing data collection. Rahman et al.~\cite{rahman2025sok}
+survey DePM design trade-offs without a cross-venue BTC 15-minute benchmark.
+
+\textbf{Crypto spot data.}
+Public Binance kline and aggTrade products are widely used, but they do not
+include Polymarket CLOB state, settlement labels, or pairing metadata needed for
+prediction-market forecasting studies.
+
+\textbf{Open infrastructure.}
+Most open-source trading repositories mix notebooks, private snapshots, and
+undocumented assumptions. OpenMarket differs by publishing (i) raw and deduped
+Parquet splits, (ii) explicit \texttt{lag\_pairs\_ms} with quality flags, (iii)
+Rust exporters/trainers with pinned commands, and (iv) empirical baselines on the
+released corpus.
+
+Table~\ref{tab:related-work} summarizes positioning. We claim infrastructure
+and reproducible characterization, not superior live trading performance.
+
+\begin{table}[t]
+  \centering
+  \caption{Comparison with adjacent artifacts (tick-level PM focus).}
+  \label{tab:related-work}
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}lccccc@{}}
+    \toprule
+    Artifact & PM ticks & Binance ref. & HF corpus & Cross-venue pairs & OSS repro \\
+    \midrule
+    Dubach (2026)~\cite{dubach2026anatomy} & \checkmark & -- & partial & -- & \checkmark \\
+    Saguillo (2025)~\cite{saguillo2025arbitrage} & \checkmark & -- & -- & -- & partial \\
+    Public Binance dumps & -- & \checkmark & \checkmark & -- & \checkmark \\
+    OpenMarket (this work) & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+    \bottomrule
+  \end{tabular}
+\end{table}

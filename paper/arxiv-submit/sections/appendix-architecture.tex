@@ -1,0 +1,19 @@
+\section{Workspace Crate Index}
+\label{app:crates}
+
+The Rust workspace comprises:
+\begin{itemize}
+  \item \texttt{common}: shared constants and cross-service types
+  \item \texttt{exchange-binance}: BTC/USDT trade stream collector and candle
+        persistence
+  \item \texttt{exchange-polymarket}: Polymarket CLOB stream collector
+  \item \texttt{recorder}: multi-market recorder, normalizer, lag-pairing engine,
+        and export API
+  \item \texttt{step3-parquet-export}: step3 features from unified Parquet
+  \item \texttt{binary-outcome-trainer}: walk-forward logistic + Platt export
+  \item \texttt{signal-engine}: real-time signal generation
+  \item \texttt{execution-engine}: optional paper/live order execution
+  \item \texttt{paper-executor}: paper execution harness
+  \item \texttt{backtester}: historical backtesting and strategy evaluation
+  \item \texttt{data-prep}, \texttt{dataset-downloader}: conversion utilities
+\end{itemize}

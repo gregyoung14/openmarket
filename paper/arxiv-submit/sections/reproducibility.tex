@@ -1,0 +1,93 @@
+\section{Reproducibility}
+\label{sec:reproducibility}
+
+OpenMarket treats reproducibility as a first-class systems requirement. Any
+benchmark, backtest, or paper result should be reconstructible from: source
+commit (Git SHA), dataset version (HF revision or snapshot manifest hash), model
+version (or \texttt{none}), config file, exact command line, and random seed.
+
+\subsection{Build Verification}
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/gregyoung14/openmarket.git
+cd openmarket
+cargo check --workspace
+\end{lstlisting}
+
+\subsection{Fast Path (Hugging Face Sample Split)}
+
+\begin{lstlisting}[language=bash]
+python3 -m venv .venv
+.venv/bin/pip install -r scripts/datasets/requirements.txt \
+                     -r scripts/hf/requirements.txt
+.venv/bin/python scripts/hf/validate_sample_split.py
+.venv/bin/python scripts/hf/benchmark_baseline.py
+\end{lstlisting}
+
+\subsection{Full Reproduction (Unified HF Split)}
+
+\begin{lstlisting}[language=bash]
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
+\end{lstlisting}
+
+\subsection{ML Model Reproduction (Rust)}
+
+\begin{lstlisting}[language=bash]
+cargo build -p step3-parquet-export -p binary-outcome-trainer --release
+./target/release/export_step3_from_parquet \
+  --parquet-root data/hf_release/unified_parquet \
+  --out-dir data/hf_release/features_exports
+./target/release/train_binary_outcome_model \
+  --input data/hf_release/features_exports/step3_binary_calibration_<ts>.csv \
+  --artifact-dir data/ml_artifacts
+\end{lstlisting}
+
+Regenerate paper statistics and figures:
+
+\begin{lstlisting}[language=bash]
+cd paper
+./scripts/compile.sh
+# or individually:
+.venv/bin/python scripts/paper/analyze_unified.py \
+  --root ../data/hf_release/unified_parquet
+.venv/bin/python scripts/paper/analyze_research.py
+.venv/bin/python scripts/paper/generate_ml_figures.py
+\end{lstlisting}
+
+Legacy operator SQLite snapshots remain available for migration only.
+
+\subsection{Docker Reproduction}
+
+\begin{lstlisting}[language=bash]
+cp configs/openmarket.example.env .env
+docker compose -f docker/docker-compose.yml up
+\end{lstlisting}
+
+\subsection{Required Reporting Metadata}
+
+Each published result should report CPU model, RAM, storage type, OS, Rust and
+Python versions, dataset version, model version, config file, command, and random
+seed.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.45cm and 0.9cm,
+      every node/.style={narrowbox}
+    ]
+    \node (clone) {git clone};
+    \node[below=of clone] (check) {cargo check};
+    \node[below=of check] (valid) {HF validate};
+    \node[below left=0.9cm and 0.2cm of valid] (nb) {notebook};
+    \node[below=of valid] (uni) {unified split};
+    \node[below right=0.9cm and 0.2cm of valid] (dock) {Docker};
+    \draw[flowarr] (clone) -- (check);
+    \draw[flowarr] (check) -- (valid);
+    \draw[flowarr] (valid) -- (nb);
+    \draw[flowarr] (valid) -- (uni);
+    \draw[flowarr] (valid) -- (dock);
+  \end{tikzpicture}
+  \caption{Reproducibility flow: clone, validate, then optional notebook, full
+    split, or Docker stack.}
+  \label{fig:repro}
+\end{figure}

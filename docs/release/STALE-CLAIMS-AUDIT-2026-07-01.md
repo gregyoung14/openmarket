@@ -1,6 +1,6 @@
 # Stale Claims Audit — 2026-07-01 (resolved, re-checked)
 
-Re-checked after v0.2 model upload and additional doc edits.
+Re-checked after v0.2.1 model upload, unified backfill (`v0.4.3-unified`), and doc sync.
 
 ## Ground Truth (2026-07-02)
 
@@ -10,7 +10,7 @@ Re-checked after v0.2 model upload and additional doc edits.
 |---|---|
 | `v0.1-sample` | 12 flat `*.parquet` at **repo root** (not `sample/`) |
 | `full/` | 3,312 parquet, 202 snapshots (`v0.2-full`) |
-| `unified/` | 499 parquet, ~722M rows (`v0.4.2-unified`) |
+| `unified/` | 504 parquet, ~727M rows (`v0.4.3-unified`) |
 | `features/` | 2 parquet (`v0.4-features`, optional demo; reproducible from `unified/`) |
 | `metadata/` | manifest + export reports |
 
@@ -18,7 +18,8 @@ Re-checked after v0.2 model upload and additional doc edits.
 
 | Version | Status |
 |---|---|
-| `v0.2/` | **Recommended.** 354k rows, 555 walk-forward windows, unified step3 |
+| `v0.2.1/` | **Recommended.** 357k rows, 559 walk-forward windows, unified step3 |
+| `v0.2/` | Prior release. 354k rows, 555 windows |
 | `v0.1/` | Historical comparison artifact |
 
 ### Project status
@@ -35,7 +36,7 @@ Re-checked after v0.2 model upload and additional doc edits.
 | `datasets/hf/README.md` | Model v0.1 only | v0.2 recommended |
 | `paper/paper.md`, tex | v0.1 only | v0.2 + Rust trainer crates |
 | `LAUNCH-POST.md` | v0.1 models | v0.2 metrics |
-| `PROJECT-STATUS.md` | Missing unified parquet count | 499 parquet files |
+| `PROJECT-STATUS.md` | Missing unified parquet count | 504 parquet files |
 
 ## Still optional (not stale — genuinely pending)
 
