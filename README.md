@@ -160,7 +160,7 @@ Archival status:
 
 - 202 SQLite snapshots inventoried in the redacted manifest; all 202 published
   in `full/` (`202 clean`, `0 partial` table exports).
-- `unified/` (`v0.4.3-unified`) deduped from the complete `full/` tree — 722M
+- `unified/` (`v0.4.3-unified`) deduped from the complete `full/` tree — 727M
   rows (all partials recovered).
 - See `docs/release/PROJECT-STATUS.md` for queue metadata and closeout notes.
 

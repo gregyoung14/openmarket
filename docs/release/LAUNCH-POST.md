@@ -95,7 +95,7 @@ millisecond-resolution tick and the on-chain settlement event.
   execution engine is documented and the SDK calls are real, but I am
   not shipping a "run this and you will make money" configuration.
 - Ongoing data collection or model maintenance. The archive is frozen
-  at source tag `v0.5.0`.
+  at source tag `v0.5.1`.
 - A claim of deployable production trading alpha.
 
 ### 4. How to use it

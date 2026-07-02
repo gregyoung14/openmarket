@@ -12,11 +12,11 @@ and calibration analysis reproducible at archival scale.
 
 We release OpenMarket to close that gap. The contribution is threefold:
 \begin{enumerate}
-  \item \textbf{Corpus.} The largest public synchronized Polymarket--Binance
-        dataset we are aware of: \OpenMarketTotalRows{} deduplicated events across
-        \OpenMarketSnapshots{} archival snapshots (\OpenMarketCollectionStart{}--
-        \OpenMarketCollectionEnd{}), including \OpenMarketLagPairs{} explicit
-        lead--lag pairs.
+  \item \textbf{Corpus.} To our knowledge, the first public synchronized
+        Polymarket--Binance dataset: \OpenMarketTotalRows{} deduplicated
+        events across \OpenMarketSnapshots{} archival snapshots
+        (\OpenMarketCollectionStart{}--\OpenMarketCollectionEnd{}), including
+        \OpenMarketLagPairs{} explicit lead--lag pairs.
   \item \textbf{Methods.} Documented source-vs.-ingest synchronization,
         Parquet-native export, walk-forward calibration training, and validation
         harnesses that treat clock drift and pairing-window sensitivity as

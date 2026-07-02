@@ -46,7 +46,7 @@
   linkcolor=blue,
   citecolor=blue,
   urlcolor=blue,
-  pdftitle={OpenMarket: High-Frequency Polymarket Research Framework},
+  pdftitle={OpenMarket: The First Public Synchronized Polymarket--Binance Dataset for High-Frequency Prediction Market Research},
   pdfauthor={OpenMarket Contributors}
 }
 
@@ -60,8 +60,8 @@
 }
 
 \title{%
-  An Open-Source High-Frequency Data Pipeline and Machine Learning\\
-  Research Framework for Polymarket Prediction Markets
+  OpenMarket: The First Public Synchronized Polymarket--Binance\\
+  Dataset for High-Frequency Prediction Market Research
 }
 
 \author{%
@@ -101,25 +101,26 @@
   \newcommand{\OpenMarketLagPriceCorr}{0.00}
   \newcommand{\OpenMarketLogisticEce}{0.027}
   \newcommand{\OpenMarketNaiveEce}{0.015}
-  \newcommand{\OpenMarketLogisticScoreUs}{0.084}
+  \newcommand{\OpenMarketLogisticScoreUs}{0.102}
 }
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We release OpenMarket, the largest public synchronized high-frequency corpus
-pairing Polymarket BTC 15-minute binary markets with Binance BTC/USDT, together
-with a reproducible Rust pipeline for collection, millisecond pairing, Parquet
-export, and walk-forward calibration. The frozen Hugging Face archive (tag
-\OpenMarketReleaseTag{}) spans 109 days, \OpenMarketTotalRows{} deduplicated
-events across \OpenMarketSnapshots{} snapshots, and \OpenMarketLagPairs{}
-explicit lead--lag pairs. Initial analyses establish Polymarket stylized facts
-(median one-tick spreads), characterize heavy-tailed cross-venue timing with a
-compact \OpenMarketLagMedian{}~ms median lag, and benchmark forecasts against
-naive mid priors---multivariate logistic models yield modest AUC gains without
-tradable simulated edge. We position this work as a data-and-methods release
-enabling microstructure and forecasting research, not a trading-alpha claim.
+We release OpenMarket, to our knowledge the first public synchronized
+high-frequency corpus pairing Polymarket BTC 15-minute binary markets with
+Binance BTC/USDT. The release combines a frozen Hugging Face archive with a
+reproducible Rust pipeline for collection, millisecond pairing, Parquet export,
+and walk-forward calibration. The archive (tag \OpenMarketReleaseTag{}) spans
+109 days, \OpenMarketTotalRows{} deduplicated events across
+\OpenMarketSnapshots{} snapshots, and \OpenMarketLagPairs{} explicit lead--lag
+pairs. Initial analyses establish Polymarket stylized facts (median one-tick
+spreads), characterize heavy-tailed cross-venue timing with a compact
+\OpenMarketLagMedian{}~ms median lag, and benchmark forecasts against naive mid
+priors---multivariate logistic models yield modest AUC gains without tradable
+simulated edge. We position this work as a data-and-methods release enabling
+microstructure and forecasting research, not a trading-alpha claim.
 \end{abstract}
 
 \input{sections/introduction}
@@ -144,6 +145,10 @@ enabling microstructure and forecasting research, not a trading-alpha claim.
 \input{sections/future-work}
 \input{sections/conclusion}
 \input{sections/open-source-release}
+
+\section*{Funding and Competing Interests}
+This project was produced as an independent open-source release. The authors
+declare no external funding and no competing interests.
 
 \bibliography{bibliography}
 

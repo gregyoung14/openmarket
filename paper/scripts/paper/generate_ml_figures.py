@@ -38,8 +38,8 @@ FEATURES_PARQUET = REPO / "data/hf_release/features_parquet/step2_100ms"
 FEATURES_CSV = REPO / "data/hf_release/features_exports"
 STEP3_GLOB = "step3_binary_calibration_*.csv"
 STAGING_DB = REPO / "data/hf_release/staging/polymarket_btc_data_2026-05-14_003913.recovered.db"
-MODEL_JSON = REPO / "models/hf_staging/v0.2/binary_outcome_model.json"
-METRICS_JSON = REPO / "models/hf_staging/v0.2/binary_outcome_metrics_1782949633193.json"
+MODEL_JSON = REPO / "models/hf_staging/v0.2.1/binary_outcome_model.json"
+METRICS_JSON = REPO / "models/hf_staging/v0.2.1/binary_outcome_metrics_1782951964345.json"
 LEDGER_JSON = REPO / "research/legacy-ml/strategies/v9_regime_filter/ledger.json"
 UNIFIED_LAG = REPO / "data/hf_release/unified_parquet/lag_pairs_ms"
 BASELINE_JSON = REPO / "benchmarks/baselines/v0.1-sample.json"
@@ -235,7 +235,7 @@ def plot_calibration_curve(out: Path) -> dict:
         vals = [m.get("auc_roc", 0), m.get("brier", 0), m.get("ece", 0), m.get("log_loss", 0)]
         bars = ax.bar(labels, vals, color=["#4f46e5", "#ea580c", "#0d9488", "#64748b"])
         ax.set_ylim(0, 1.05)
-        ax.set_title("v0.2 Binary Scorer (aggregated metrics)")
+        ax.set_title("v0.2.1 Binary Scorer (aggregated metrics)")
         ax.bar_label(bars, fmt="%.3f", fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
         fig.tight_layout()
@@ -311,7 +311,7 @@ def plot_walk_forward(out: Path) -> dict:
                         label=f"pooled={agg['auc_roc']:.3f}")
     axes[0].set_ylabel("AUC")
     axes[0].set_ylim(0.0, 1.05)
-    axes[0].set_title(f"v0.2 walk-forward stability ({len(windows)} windows)")
+    axes[0].set_title(f"v0.2.1 walk-forward stability ({len(windows)} windows)")
     axes[0].legend(fontsize=7, frameon=False, loc="lower right", ncol=2)
     axes[0].spines[["top", "right"]].set_visible(False)
 

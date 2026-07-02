@@ -36,7 +36,11 @@ the final unified rebuild; queue metadata reports 202~\texttt{published-clean},
 
 The unified split merges overlapping \texttt{full/} exports with
 \path{scripts/datasets/merge_partitions.py}, removing ${\sim}$21\% duplicate
-rows. All splits are validated with
+rows. This duplicate rate is expected: each \texttt{full/} snapshot is a
+point-in-time export of recorder state, so adjacent snapshots intentionally
+overlap in historical rows. The unified split deduplicates those overlapping
+exports by table-specific keys and timestamps rather than treating them as new
+events. All splits are validated with
 \path{scripts/hf/validate_sample_split.py}. Empirical statistics are regenerated
 from on-disk Parquet via \texttt{analyze\_unified.py} (Section~\ref{sec:reproducibility}).
 

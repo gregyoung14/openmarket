@@ -22,8 +22,8 @@ import pyarrow.parquet as pq
 REPO = Path(__file__).resolve().parents[3]
 ROOT = REPO / "paper"
 UNIFIED = REPO / "data/hf_release/unified_parquet"
-STEP3 = REPO / "data/hf_release/features_exports/step3_binary_calibration_1782947915589.csv"
-MODEL = REPO / "models/hf_staging/v0.2/binary_outcome_model.json"
+STEP3 = REPO / "data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv"
+MODEL = REPO / "models/hf_staging/v0.2.1/binary_outcome_model.json"
 FIG = ROOT / "assets/figures"
 STATS = ROOT / "assets/stats"
 
@@ -104,7 +104,7 @@ def bootstrap_auc_diff(
 
 BENCHMARK_LABELS = {
     "naive_mid_prior": "Naive mid prior",
-    "logistic_v02_full": "Logistic v0.2",
+    "logistic_v02_full": "Logistic v0.2.1",
     "drift_only": "Drift only",
     "ofi_60s_sigmoid": "OFI (sigmoid)",
 }
@@ -246,7 +246,7 @@ def plot_model_benchmarks(results: dict, out: Path) -> None:
     bars = ax.barh(labels, aucs, color=colors)
     ax.set_xlim(0.5, 1.0)
     ax.set_xlabel("ROC AUC")
-    ax.set_title("Forecast Benchmarks (354k step3 rows)")
+    ax.set_title("Forecast Benchmarks (357k step3 rows)")
     ax.bar_label(bars, labels=[f"{v:.3f}" for v in aucs], padding=4, fontsize=8)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()

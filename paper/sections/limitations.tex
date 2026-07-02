@@ -4,13 +4,20 @@
 \textbf{Domain scope.} BTC 15-minute Polymarket binaries are a niche but liquid
 regime: high tick rate, tight spreads, and volatile underlying spot. Stylized
 facts and benchmarks here may not transfer to election markets, long-dated
-events, or illiquid books without re-collection and re-calibration.
+events, or illiquid books without re-collection and re-calibration. In
+particular, political and macro markets often have lower tick rates, wider and
+more intermittent books, discrete news shocks, ambiguous or delayed settlement
+mechanics, and no single liquid external reference stream analogous to
+BTC/USDT. Those differences can break both the synchronization assumptions
+(dense cross-venue observations inside millisecond windows) and the forecasting
+features calibrated for short-horizon crypto price discovery.
 
 \textbf{Data and methods.} WebSocket outages can create gaps; collector clocks
 can drift; top-of-book backtests may overstate execution quality; mishandled
-settlement labels can leak information; step3 export covers ${\sim}$50\% of
-\texttt{market\_meta} markets; full-archive \texttt{features/} Parquet is not
-on Hugging Face (run \path{export_step3_from_parquet} locally).
+settlement labels can leak information; and step3 export covers 2{,}251 of
+4{,}450 \texttt{market\_meta} markets for the reasons audited in
+Section~\ref{sec:ml}. Full-archive \texttt{features/} Parquet is not on
+Hugging Face (run \path{export_step3_from_parquet} locally).
 
 \textbf{Model comparisons.} The repository contains legacy XGBoost, LightGBM,
 stacking, and SHAP prototypes, but these were exploratory strategy artifacts,

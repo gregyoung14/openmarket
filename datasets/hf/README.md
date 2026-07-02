@@ -33,7 +33,7 @@ backtesting.
   author       = {{OpenMarket Contributors}},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}},
-  note         = {Version v0.4.3-unified; source tag v0.5.0}
+  note         = {Version v0.4.3-unified; source tag v0.5.1}
 }
 ```
 
@@ -71,7 +71,7 @@ directories. Parquet files also include a `date` column (UTC,
 
 OpenMarket is in archival shutdown. No new snapshots will be collected;
 this repository is a fixed public research record frozen at source tag
-`v0.5.0`.
+`v0.5.1`.
 
 ## Published Splits
 
@@ -290,13 +290,13 @@ timestamp follows the Binance event timestamp.
 ## Release artifacts
 
 ```text
-Source tag:      v0.5.0
+Source tag:      v0.5.1
 Source repo:     github.com/gregyoung14/openmarket
 Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 Dataset version: v0.4.3-unified
 Models:          huggingface.co/gregyoung14/openmarket-models
-Model version:   v0.2 (recommended; walk-forward logistic on unified step3)
-                 v0.1 (historical)
+Model version:   v0.2.1 (recommended; walk-forward logistic on unified step3)
+                 v0.2 / v0.1 (historical)
 ```
 
 ## Citation

@@ -10,7 +10,7 @@ Use the versioned dataset and source tag in every derivative publication.
   author       = {{OpenMarket Contributors}},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}},
-  note         = {Version v0.4.3-unified; source tag v0.5.0; 726M+ deduplicated rows}
+  note         = {Version v0.4.3-unified; source tag v0.5.1; 727M+ deduplicated rows}
 }
 ```
 

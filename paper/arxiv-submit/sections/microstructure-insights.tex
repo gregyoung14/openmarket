@@ -45,8 +45,9 @@ simulated PnL under fees and slippage (Section~\ref{sec:ml}).
 \subsection{Forecast Benchmarks and Ablations}
 \label{sec:insights-forecast}
 
-On 354{,}684 step3 rows exported from unified Parquet, we compare forecast
-baselines (Table~\ref{tab:forecast-benchmarks}, Figure~\ref{fig:forecast-benchmarks}).
+On 357{,}390 step3 rows exported from unified Parquet, we score the frozen
+\texttt{v0.2.1} artifact and simple forecast baselines
+(Table~\ref{tab:forecast-benchmarks}, Figure~\ref{fig:forecast-benchmarks}).
 All metrics are computed by \texttt{analyze\_research.py}; expected calibration
 error (ECE) uses 10 equal-width probability bins.
 
@@ -60,18 +61,18 @@ error (ECE) uses 10 equal-width probability bins.
     \toprule
     Model & AUC & Brier & ECE & Log loss & $\mu$s/row \\
     \midrule
-    Naive \texttt{market\_mid\_prior\_up} & 0.842 & 0.162 & 0.015 & 0.484 & -- \\
-    Logistic + Platt (\texttt{v0.2})      & 0.843 & 0.162 & \OpenMarketLogisticEce{} & 0.487 & \OpenMarketLogisticScoreUs{} \\
-    \texttt{drift\_prob\_up} only         & 0.773 & 0.218 & 0.144 & 0.790 & -- \\
+    Naive \texttt{market\_mid\_prior\_up} & 0.840 & 0.163 & 0.014 & 0.486 & -- \\
+    Logistic + Platt (\texttt{v0.2.1})    & 0.841 & 0.163 & \OpenMarketLogisticEce{} & 0.489 & \OpenMarketLogisticScoreUs{} \\
+    \texttt{drift\_prob\_up} only         & 0.773 & 0.218 & 0.145 & 0.792 & -- \\
     \texttt{imbalance\_60s} (sigmoid)     & 0.586 & 0.246 & 0.031 & 0.685 & -- \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\textbf{Effect size.} Logistic \texttt{v0.2} beats the naive mid prior by
+\textbf{Effect size.} Logistic \texttt{v0.2.1} beats the naive mid prior by
 $\Delta$AUC $= \OpenMarketAucDiff{}$ (paired bootstrap 95\% CI
 $[\OpenMarketAucDiffLow{}, \OpenMarketAucDiffHigh{}]$; one-sided
-$p < 0.001$, $n=354{,}684$). The lift is statistically
+$p < 0.001$, $n=357{,}390$). The lift is statistically
 detectable but \emph{economically} tiny relative to fees and spread---hence
 negative simulated PnL. The market prior is also better calibrated
 (ECE \OpenMarketNaiveEce{} vs.\ \OpenMarketLogisticEce{}), so the logistic

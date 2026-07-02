@@ -1,4 +1,4 @@
-# An Open-Source High-Frequency Data Pipeline and Machine Learning Research Framework for Polymarket Prediction Markets
+# OpenMarket: The First Public Synchronized Polymarket-Binance Dataset for High-Frequency Prediction Market Research
 
 > **LaTeX build:** `paper/scripts/compile.sh` → `paper/main.pdf`.
 > **Empirical stats:** `analyze_unified.py` + `analyze_research.py` → `assets/stats/`
@@ -6,17 +6,18 @@
 
 ## Abstract
 
-We release OpenMarket, the largest public synchronized high-frequency corpus
-pairing Polymarket BTC 15-minute binary markets with Binance BTC/USDT, together
-with a reproducible Rust pipeline for collection, millisecond pairing, Parquet
-export, and walk-forward calibration. The frozen Hugging Face archive (tag
-`v0.5.0`) spans 109 days, 726.9M deduplicated events across 202 snapshots, and
-2.93M explicit lead–lag pairs. Initial analyses establish Polymarket stylized
-facts (median one-tick spreads), characterize heavy-tailed cross-venue timing
-with a compact 14 ms median lag, and benchmark forecasts against naive mid
-priors—multivariate logistic models yield modest AUC gains without tradable
-simulated edge. We position this work as a data-and-methods release enabling
-microstructure and forecasting research, not a trading-alpha claim.
+We release OpenMarket, to our knowledge the first public synchronized
+high-frequency corpus pairing Polymarket BTC 15-minute binary markets with
+Binance BTC/USDT. The release combines a frozen Hugging Face archive with a
+reproducible Rust pipeline for collection, millisecond pairing, Parquet export,
+and walk-forward calibration. The archive (tag `v0.5.1`) spans 109 days, 727.1M
+deduplicated events across 202 snapshots, and 2.94M explicit lead–lag pairs.
+Initial analyses establish Polymarket stylized facts (median one-tick spreads),
+characterize heavy-tailed cross-venue timing with a compact 16 ms median lag,
+and benchmark forecasts against naive mid priors—multivariate logistic models
+yield modest AUC gains without tradable simulated edge. We position this work as
+a data-and-methods release enabling microstructure and forecasting research, not
+a trading-alpha claim.
 
 ## 1. Introduction
 
@@ -30,9 +31,9 @@ lead–lag, and calibration analysis reproducible at archival scale.
 
 We release OpenMarket to close that gap. The contribution is threefold:
 
-1. **Corpus.** The largest public synchronized Polymarket–Binance dataset we are
-   aware of: 726.9M deduplicated events across 202 snapshots (2026-03-14–2026-07-01),
-   including 2.93M explicit lead–lag pairs.
+1. **Corpus.** To our knowledge, the first public synchronized Polymarket–Binance
+   dataset: 727.1M deduplicated events across 202 snapshots (2026-03-14–2026-07-01),
+   including 2.94M explicit lead–lag pairs.
 2. **Methods.** Documented source-vs.-ingest synchronization, Parquet-native
    export, walk-forward calibration training, and validation harnesses that treat
    clock drift and pairing-window sensitivity as measurable objects.
@@ -44,7 +45,7 @@ We do **not** claim persistent trading profitability. Simulated economics under
 stated fees and slippage are negative for the published scorer. The goal is to
 enable the community to study *how* external spot prices and Polymarket books
 interact at high frequency. OpenMarket is frozen as a public research archive
-(source tag `v0.5.0`); active collection has ended.
+(source tag `v0.5.1`); active collection has ended.
 
 ## 2. Related Work
 
@@ -541,9 +542,13 @@ OpenMarket has several limitations:
 - Simulated strategy outcomes may be sensitive to a small number of market regimes.
 - Historical Polymarket liquidity may not match future liquidity.
 - Live execution has additional latency, queue position, and partial-fill risks.
-- BTC 15-minute markets are only one prediction-market domain.
-- Step3 feature export skips ~50% of `market_meta` markets (missing ticks or
-  insufficient Binance trades).
+- BTC 15-minute markets are only one prediction-market domain; lower tick rates,
+  wider books, ambiguous settlement, and missing external reference streams can
+  break the assumptions used here.
+- Step3 feature export writes 2,251 of 4,450 `market_meta` markets; skipped
+  markets are mostly no Polymarket ticks (1,241), insufficient Binance trades
+  (922), missing Binance partitions (21), no valid book snapshots (14), and one
+  tied close.
 - Full-archive `features/` Parquet is not published on Hugging Face; researchers
   should use `export_step3_from_parquet` on `unified/` instead.
 
@@ -556,12 +561,13 @@ Regenerate stats: `paper/scripts/paper/analyze_unified.py` →
 
 | Table | Rows |
 |---|---:|
-| `polymarket_ticks_ms` | 605,599,870 |
-| `binance_trades` | 62,066,729 |
-| `binance_ticks_ms` | 55,791,665 |
-| `lag_pairs_ms` | 2,931,191 |
+| `polymarket_ticks_ms` | 605,608,370 |
+| `binance_trades` | 62,258,815 |
+| `binance_ticks_ms` | 55,792,056 |
+| `lag_pairs_ms` | 2,936,031 |
 | `market_meta` | 4,450 |
-| **Total (11 tables)** | **726,892,430** |
+| derived candle tables | 498,525 |
+| **Total (11 tables)** | **727,098,247** |
 
 On-disk size: 8.7 GiB. Collection span: 109 days (202 snapshots).
 
@@ -589,15 +595,15 @@ overstate executable edge.
 
 | Model | AUC | Brier |
 |---|---:|---:|
-| Naive `market_mid_prior_up` | 0.842 | 0.162 |
-| Logistic + Platt (`v0.2.1`) | 0.843 | 0.162 |
+| Naive `market_mid_prior_up` | 0.840 | 0.163 |
+| Logistic + Platt (`v0.2.1`) | 0.841 | 0.163 |
 | `drift_prob_up` only | 0.773 | 0.218 |
 | `imbalance_60s` (sigmoid) | 0.586 | 0.246 |
 
 ΔAUC ≈ 0.0014 vs. naive mid (bootstrap 95% CI [0.0013, 0.0015], p < 0.001):
-statistically detectable, economically tiny. Brier rises from ~0.135 at one-tick
-spreads to ~0.168 when spread ≥ 0.015; high-vol terciles also calibrate better
-(0.159 vs. 0.164 low-vol).
+statistically detectable, economically tiny. Brier rises from ~0.162 at one-tick
+spreads to ~0.185 when spread ≥ 0.015; high-vol terciles also calibrate better
+(0.160 vs. 0.164 low-vol).
 
 ## 19. Discussion
 
@@ -610,8 +616,11 @@ walk-forward calibration baselines.
 baselines—appropriate for arXiv, ML-for-finance workshops, or data-descriptor
 journals.
 
-**Domain scope.** BTC 15m markets are liquid and volatile but niche; results may
-not transfer to election or long-dated markets without re-collection.
+**Domain scope.** BTC 15m markets are liquid and volatile but niche. Election,
+macro, or long-dated markets can have lower tick rates, wider/intermittent
+books, discrete news shocks, ambiguous settlement mechanics, and no single
+external reference stream like BTC/USDT; those differences require
+re-collection, re-synchronization, and re-calibration.
 
 **Operational context.** Polygon settlement latency, oracle definition risk, and
 regulatory uncertainty affect economic interpretation. Collector-host clock drift
@@ -619,13 +628,16 @@ and WebSocket gaps are documented; top-of-book backtests are not executable PnL
 without explicit queue and fee models.
 
 **Ethics / availability.** Public market data only (no user identities). Apache
-2.0 code; cite dataset version and tag `v0.5.0` (see `CITATION.md`).
+2.0 code; cite dataset version and tag `v0.5.1` (see `CITATION.md`).
+
+**Funding / competing interests.** Independent open-source release; no external
+funding or competing interests are declared.
 
 ## 20. Conclusion
 
 We presented OpenMarket, an open-source pipeline and public archive for
 high-frequency Polymarket BTC 15-minute markets synchronized with Binance
-BTC/USDT. The release includes 726.9M deduplicated events, 2.93M lead–lag pairs,
+BTC/USDT. The release includes 727.1M deduplicated events, 2.94M lead–lag pairs,
 reproducible Rust exporters and trainers, and Hugging Face artifacts
 (`v0.4.3-unified`, `v0.2.1/` model).
 
