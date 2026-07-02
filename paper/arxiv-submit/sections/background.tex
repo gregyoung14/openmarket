@@ -1,0 +1,20 @@
+\section{Background}
+\label{sec:background}
+
+Prediction markets aggregate information through prices of contracts tied to
+future outcomes~\cite{wolfers2004prediction,hanson2003combinatorial}. Polymarket
+lists binary outcome markets where contracts settle to 1 if an event occurs and 0
+otherwise. BTC 15-minute markets ask whether Bitcoin will be above or below a
+reference price at the end of a short window. These markets combine elements of
+options, sports-style binary markets, and crypto exchange microstructure.
+Recent Polymarket microstructure and DePM surveys are summarized in
+Section~\ref{sec:related-work}. Reproducible public infrastructure for
+high-frequency cross-venue work remains scarce.
+
+Binance BTC/USDT serves as the reference stream because it is liquid,
+high frequency, and tied to the Polymarket BTC settlement window. Following
+multi-venue price-discovery practice~\cite{hasbrouck1995one}, we align Binance
+trades with Polymarket book updates, derive features, generate labels, and
+evaluate models without leaking future information. Millisecond-resolution
+storage and pairing follow standard high-frequency microstructure
+practice~\cite{ohara2015high,cont2014price}.

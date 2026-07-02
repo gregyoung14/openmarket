@@ -25,6 +25,20 @@ The dataset is released to support reproducible prediction-market
 research, feature engineering, market microstructure analysis, and
 backtesting.
 
+## How to Cite
+
+```bibtex
+@misc{openmarket_dataset_2026,
+  title        = {{OpenMarket BTC Polymarket}: Synchronized High-Frequency Corpus},
+  author       = {{OpenMarket Contributors}},
+  year         = {2026},
+  howpublished = {\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}},
+  note         = {Version v0.4.3-unified; source tag v0.5.0}
+}
+```
+
+Full entries: [CITATION.md](https://github.com/gregyoung14/openmarket/blob/main/CITATION.md).
+
 ## Repository Layout
 
 ```text
@@ -38,7 +52,7 @@ crossover_alerts.parquet
 full/                          # complete 202-snapshot archive (v0.2-full)
   <table>/date=YYYY-MM-DD/*.parquet
   metadata/<snapshot>.export_report.json
-unified/                       # deduped research timeline (v0.4.2-unified)
+unified/                       # deduped research timeline (v0.4.3-unified)
   <table>/date=YYYY-MM-DD/*.parquet
   metadata/merge_quality_report.json
 features/                      # optional ML exports (v0.4-features; sample demo on HF)
@@ -68,17 +82,31 @@ is in `metadata/snapshot_manifest.{json,tsv}` (CDN hostname redacted to
 
 | Split | Version | Description |
 |---|---|---|
-| `unified/` | v0.4.2-unified | **Recommended.** Deduped timeline (~722M rows, 499 parquet files) |
+| `unified/` | v0.4.3-unified | **Recommended.** Deduped timeline (~727M rows, 504 parquet files) |
 | `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files) |
 | (repo root) | v0.1-sample | Tiny demo split for CI and quickstarts (12 flat parquet, 9,352 rows) |
 | `features/` | v0.4-features | **Optional.** Step2/step3 demo (one snapshot on HF); full features reproducible from `unified/` |
+
+### `unified/` backfill (`v0.4.3-unified`)
+
+Adds five date partitions missing from `v0.4.2-unified`, sourced from staging
+SQLite via `unified-backfill sqlite-fill`:
+
+- `binance_trades/date=2026-03-23` (~191k rows)
+- `binance_trades/date=2026-05-15`
+- `binance_ticks_ms/date=2026-05-15`
+- `polymarket_ticks_ms/date=2026-05-15`
+- `lag_pairs_ms/date=2026-05-15`
+
+Provenance: `unified/metadata/sqlite_fill.json`. April 22–May 12 remains a
+collection gap with no recoverable archive data.
 
 ### Features split (`v0.4-features`) — optional
 
 A full-archive `features/` upload is **not required** for the public research
 record. The recommended path is to export step2/step3 features from `unified/`
 Parquet using the published Rust and Python tooling (same pipeline that produced
-the `v0.2/` model). Hugging Face currently hosts a **one-snapshot demo** (2
+the `v0.2.1/` model). Hugging Face currently hosts a **one-snapshot demo** (2
 parquet files) for schema reference.
 
 Reproduce from `unified/`:
@@ -265,7 +293,7 @@ timestamp follows the Binance event timestamp.
 Source tag:      v0.5.0
 Source repo:     github.com/gregyoung14/openmarket
 Dataset:         huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-Dataset version: v0.4.2-unified
+Dataset version: v0.4.3-unified
 Models:          huggingface.co/gregyoung14/openmarket-models
 Model version:   v0.2 (recommended; walk-forward logistic on unified step3)
                  v0.1 (historical)

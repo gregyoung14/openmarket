@@ -1556,6 +1556,29 @@ struct PolyBookTick {
     best_ask: Option<f64>,
 }
 
+/// Archive exports span tick and trade tables; ticks alone can be a narrow slice.
+fn archive_export_end_ms(conn: &rusqlite::Connection) -> Result<i64> {
+    Ok(conn.query_row(
+        "SELECT MAX(v) FROM (
+            SELECT MAX(source_ts_ms) AS v FROM binance_ticks_ms
+            UNION ALL SELECT MAX(trade_time) AS v FROM binance_trades
+         )",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?)
+}
+
+fn archive_export_start_ms(conn: &rusqlite::Connection) -> Result<i64> {
+    Ok(conn.query_row(
+        "SELECT MIN(v) FROM (
+            SELECT MIN(source_ts_ms) AS v FROM binance_ticks_ms
+            UNION ALL SELECT MIN(trade_time) AS v FROM binance_trades
+         )",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?)
+}
+
 pub fn export_step3_binary_calibration_csv(
     options: Step3ExportOptions,
 ) -> Result<Step3ExportSummary> {
@@ -1566,24 +1589,14 @@ pub fn export_step3_binary_calibration_csv(
     let archive = std::env::var("ARCHIVE_EXPORT").ok().as_deref() == Some("1");
     let end_ts_ms = options.end_ts_ms.unwrap_or_else(|| {
         if archive {
-            conn.query_row(
-                "SELECT MAX(source_ts_ms) FROM binance_ticks_ms",
-                [],
-                |row| row.get::<_, i64>(0),
-            )
-            .unwrap_or_else(|_| now_ms())
+            archive_export_end_ms(&conn).unwrap_or_else(|_| now_ms())
         } else {
             now_ms()
         }
     });
     let start_ts_ms = options.start_ts_ms.unwrap_or_else(|| {
         if archive {
-            conn.query_row(
-                "SELECT MIN(source_ts_ms) FROM binance_ticks_ms",
-                [],
-                |row| row.get::<_, i64>(0),
-            )
-            .unwrap_or(0)
+            archive_export_start_ms(&conn).unwrap_or(0)
         } else {
             end_ts_ms.saturating_sub((options.lookback_hours as i64) * 60 * 60 * 1000)
         }

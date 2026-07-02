@@ -8,7 +8,7 @@ The HF repo holds four public splits:
 
 | Split | Version | Contents |
 |---|---|---|
-| `unified/` | v0.4.2-unified | **Recommended.** Deduped timeline (~722M rows) from complete 202-snapshot `full/` archive. |
+| `unified/` | v0.4.3-unified | **Recommended.** Deduped timeline (~727M rows) from complete 202-snapshot `full/` archive. |
 | `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files). |
 | `features/` | v0.4-features | Optional — one-snapshot demo on HF; full features reproducible from `unified/`. |
 | (repo root) | v0.1-sample | Smallest snapshot. 12 flat parquet at repo root, 9,352 rows. CI and quickstarts. |

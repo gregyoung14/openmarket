@@ -1,0 +1,153 @@
+% OpenMarket systems paper — LaTeX entry point
+% Build:  ./scripts/compile.sh   (generates figures, then latexmk)
+% Clean:  latexmk -C
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{url}
+\setlength{\emergencystretch}{2em}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+
+% Shared flowchart styles (TikZ replaces matplotlib pipeline diagrams)
+\tikzset{
+  flowbox/.style={
+    rectangle, rounded corners=2pt, draw=blue!45!black,
+    fill=blue!6, align=center, inner sep=4pt,
+    minimum width=2.55cm, minimum height=0.72cm, font=\small
+  },
+  narrowbox/.style={
+    flowbox, minimum width=2.05cm, minimum height=0.62cm, font=\footnotesize
+  },
+  widebox/.style={
+    flowbox, minimum width=2.15cm
+  },
+  flowarr/.style={
+    -{Stealth[length=2.2mm]}, semithick, draw=black!70
+  }
+}
+
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{plainnat}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={OpenMarket: High-Frequency Polymarket Research Framework},
+  pdfauthor={OpenMarket Contributors}
+}
+
+\graphicspath{{assets/figures/}}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!8}
+}
+
+\title{%
+  An Open-Source High-Frequency Data Pipeline and Machine Learning\\
+  Research Framework for Polymarket Prediction Markets
+}
+
+\author{%
+  OpenMarket Contributors\\
+  \texttt{https://github.com/gregyoung14/openmarket}
+}
+
+\date{\today}
+
+% Auto-generated stats (scripts/paper/analyze_unified.py)
+\IfFileExists{assets/stats/characterization.tex}{
+  \input{assets/stats/characterization.tex}
+}{
+  \newcommand{\OpenMarketReleaseTag}{v0.5.0}
+  \newcommand{\OpenMarketTotalRows}{727,098,247}
+  \newcommand{\OpenMarketUnifiedGiB}{8.69}
+  \newcommand{\OpenMarketSnapshots}{202}
+  \newcommand{\OpenMarketLagPairs}{2,936,031}
+  \newcommand{\OpenMarketLagMedian}{16}
+  \newcommand{\OpenMarketLagPFive}{-186}
+  \newcommand{\OpenMarketLagPNinetyFive}{316}
+  \newcommand{\OpenMarketCollectionStart}{2026-03-14}
+  \newcommand{\OpenMarketCollectionEnd}{2026-07-01}
+  \newcommand{\OpenMarketRustLoc}{17,823}
+}
+
+% Auto-generated research macros (scripts/paper/analyze_research.py)
+\IfFileExists{assets/stats/research_stats.tex}{
+  \input{assets/stats/research_stats.tex}
+}{
+  \newcommand{\OpenMarketAucDiff}{0.0014}
+  \newcommand{\OpenMarketAucDiffLow}{0.0013}
+  \newcommand{\OpenMarketAucDiffHigh}{0.0015}
+  \newcommand{\OpenMarketAucPvalue}{<0.001}
+  \newcommand{\OpenMarketBrierTight}{0.161}
+  \newcommand{\OpenMarketBrierWide}{0.184}
+  \newcommand{\OpenMarketLagPriceCorr}{0.00}
+  \newcommand{\OpenMarketLogisticEce}{0.027}
+  \newcommand{\OpenMarketNaiveEce}{0.015}
+  \newcommand{\OpenMarketLogisticScoreUs}{0.084}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We release OpenMarket, the largest public synchronized high-frequency corpus
+pairing Polymarket BTC 15-minute binary markets with Binance BTC/USDT, together
+with a reproducible Rust pipeline for collection, millisecond pairing, Parquet
+export, and walk-forward calibration. The frozen Hugging Face archive (tag
+\OpenMarketReleaseTag{}) spans 109 days, \OpenMarketTotalRows{} deduplicated
+events across \OpenMarketSnapshots{} snapshots, and \OpenMarketLagPairs{}
+explicit lead--lag pairs. Initial analyses establish Polymarket stylized facts
+(median one-tick spreads), characterize heavy-tailed cross-venue timing with a
+compact \OpenMarketLagMedian{}~ms median lag, and benchmark forecasts against
+naive mid priors---multivariate logistic models yield modest AUC gains without
+tradable simulated edge. We position this work as a data-and-methods release
+enabling microstructure and forecasting research, not a trading-alpha claim.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/background}
+\input{sections/related-work}
+\input{sections/contributions}
+\input{sections/architecture}
+\input{sections/data-collection}
+\input{sections/synchronization}
+\input{sections/feature-engineering}
+\input{sections/machine-learning}
+\input{sections/strategy-framework}
+\input{sections/backtesting}
+\input{sections/evaluation}
+\input{sections/dataset}
+\input{sections/experimental-results}
+\input{sections/microstructure-insights}
+\input{sections/performance}
+\input{sections/reproducibility}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/future-work}
+\input{sections/conclusion}
+\input{sections/open-source-release}
+
+\bibliography{bibliography}
+
+\input{sections/appendix-schema}
+\input{sections/appendix-architecture}
+
+\end{document}

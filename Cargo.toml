@@ -10,6 +10,9 @@ members = [
   "crates/paper-executor",
   "crates/recorder",
   "crates/signal-engine",
+  "crates/step3-parquet-export",
+  "crates/binary-outcome-trainer",
+  "crates/unified-backfill",
 ]
 resolver = "2"
 

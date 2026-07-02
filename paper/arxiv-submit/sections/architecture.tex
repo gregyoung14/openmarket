@@ -1,0 +1,40 @@
+\section{System Architecture}
+\label{sec:architecture}
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.42cm,
+      every node/.style={flowbox}
+    ]
+    \node (bws) {Binance WS};
+    \node[below=of bws] (tick) {Tick Stream\\Collector};
+    \node[below=of tick] (sync) {Timestamp\\Synchronizer};
+    \node[below=of sync] (feat) {Feature Generator};
+    \node[below=of feat] (ml) {ML / Signal Engine};
+    \node[below=of ml] (bt) {Backtester};
+    \node[below=of bt] (eval) {Evaluation};
+
+    \node[right=2.4cm of sync, minimum width=2.2cm] (pws) {Polymarket WS};
+    \node[below=of pws] (book) {Order Book\\Collector};
+
+    \draw[flowarr] (bws) -- (tick);
+    \draw[flowarr] (tick) -- (sync);
+    \draw[flowarr] (sync) -- (feat);
+    \draw[flowarr] (feat) -- (ml);
+    \draw[flowarr] (ml) -- (bt);
+    \draw[flowarr] (bt) -- (eval);
+    \draw[flowarr] (pws) -- (book);
+    \draw[flowarr] (book.west) -- (sync.east);
+  \end{tikzpicture}
+  \caption{OpenMarket pipeline. Binance and Polymarket WebSocket streams feed
+    collectors; the recorder synchronizes events and exports aligned tables for
+    feature generation, signals, and backtesting.}
+  \label{fig:architecture}
+\end{figure}
+
+The codebase is a Rust workspace spanning exchange collectors, a multi-market
+recorder with lag-pairing export, signal and execution engines, backtesting, and
+Parquet-native ML crates (\texttt{step3-parquet-export},
+\texttt{binary-outcome-trainer}). Crate-level detail is in
+Appendix~\ref{app:crates}.

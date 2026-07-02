@@ -137,7 +137,7 @@ Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingfac
 
 | Split | Version | Use |
 |---|---|---|
-| `unified/` | v0.4.2-unified | **Recommended** — deduped timeline from complete archive |
+| `unified/` | v0.4.3-unified | **Recommended** — deduped timeline from complete archive |
 | `features/` | v0.4-features | Optional demo on HF; reproduce step2/step3 from `unified/` via `scripts/ml/` |
 | `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files) |
 | (repo root) | v0.1-sample | CI, quickstarts — 12 flat parquet, 9,352 rows |
@@ -160,7 +160,7 @@ Archival status:
 
 - 202 SQLite snapshots inventoried in the redacted manifest; all 202 published
   in `full/` (`202 clean`, `0 partial` table exports).
-- `unified/` (`v0.4.2-unified`) deduped from the complete `full/` tree — 722M
+- `unified/` (`v0.4.3-unified`) deduped from the complete `full/` tree — 722M
   rows (all partials recovered).
 - See `docs/release/PROJECT-STATUS.md` for queue metadata and closeout notes.
 
@@ -169,7 +169,7 @@ Archival status:
 Pretrained model artifacts are not committed to Git. They live in:
 
 - [gregyoung14/openmarket-models](https://huggingface.co/gregyoung14/openmarket-models)
-  — public `v0.2/` model artifacts (recommended; trained on unified Parquet
+  — public `v0.2.1/` model artifacts (recommended; trained on unified Parquet
   step3 features). `v0.1/` remains for historical comparison.
 
 The repository keeps model metadata, feature schemas, training code, and release
@@ -198,6 +198,14 @@ See [benchmarks/README.md](benchmarks/README.md).
 - [Reproducibility](docs/reproducibility.md)
 - [Release process](docs/release/releases.md)
 - [Systems paper](paper/paper.md)
+
+## How to Cite
+
+See [CITATION.md](CITATION.md) for BibTeX entries (dataset, software, models).
+Cite **dataset version** (`v0.4.3-unified`) and **source tag** (`v0.5.1`) in papers.
+
+**Repository visibility:** GitHub source is **private** during pre-launch. Hugging
+Face dataset and model repos are public.
 
 ## License
 

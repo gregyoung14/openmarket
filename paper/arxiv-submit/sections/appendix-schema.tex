@@ -1,0 +1,25 @@
+\appendix
+\section{Schema Summary}
+\label{app:schema}
+
+\paragraph{\texttt{binance\_trades}.}
+Raw BTC/USDT trade stream: trade ID, trade timestamp, price, quantity, quote
+volume, taker direction, receive timestamp.
+
+\paragraph{\texttt{binance\_ticks\_ms}.}
+Millisecond Binance tick snapshots: source timestamp, ingest timestamp, trade
+timestamp, price, volume, raw JSON.
+
+\paragraph{\texttt{polymarket\_ticks\_ms}.}
+Polymarket CLOB events: source timestamp, ingest timestamp, market slug, asset
+ID, side label, event type, price, best bid, best ask, size, paired flag, raw
+JSON.
+
+\paragraph{\texttt{market\_meta}.}
+Market registry: market slug, question, UP and DOWN token IDs, prices, first
+seen timestamp, last seen timestamp.
+
+\paragraph{\texttt{lag\_pairs\_ms}.}
+Matched Binance/Polymarket event pairs: pair timestamp, market, side, tick IDs,
+source timestamps, lead-lag, Binance price, Polymarket bid, price delta, quality
+flag.

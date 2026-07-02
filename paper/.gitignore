@@ -1,0 +1,20 @@
+# Build outputs not checked in
+main.pdf
+openmarket-paper-arxiv-*.tar.gz
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# Local venv for figure generation
+.venv/
+
+# Tectonic cache (if using --keep-intermediates)
+tectonic-cache/

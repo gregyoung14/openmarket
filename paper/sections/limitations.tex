@@ -1,0 +1,24 @@
+\section{Limitations}
+\label{sec:limitations}
+
+\textbf{Domain scope.} BTC 15-minute Polymarket binaries are a niche but liquid
+regime: high tick rate, tight spreads, and volatile underlying spot. Stylized
+facts and benchmarks here may not transfer to election markets, long-dated
+events, or illiquid books without re-collection and re-calibration.
+
+\textbf{Data and methods.} WebSocket outages can create gaps; collector clocks
+can drift; top-of-book backtests may overstate execution quality; mishandled
+settlement labels can leak information; step3 export covers ${\sim}$50\% of
+\texttt{market\_meta} markets; full-archive \texttt{features/} Parquet is not
+on Hugging Face (run \path{export_step3_from_parquet} locally).
+
+\textbf{Model comparisons.} The repository contains legacy XGBoost, LightGBM,
+stacking, and SHAP prototypes, but these were exploratory strategy artifacts,
+not frozen benchmarks on the unified \texttt{v0.4.3} step3 export. The main
+paper therefore reports only baselines regenerated from the archived release.
+Direct tree-model, neural sequence, and market-by-market benchmark suites remain
+future work.
+
+\textbf{Live trading.} Simulated outcomes are sensitive to regime and fee
+assumptions; live execution adds latency, queue position, partial fills, and
+regulatory uncertainty not modeled in this artifact.

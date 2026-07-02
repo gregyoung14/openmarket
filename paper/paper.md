@@ -1,48 +1,77 @@
 # An Open-Source High-Frequency Data Pipeline and Machine Learning Research Framework for Polymarket Prediction Markets
 
 > **LaTeX build:** `paper/scripts/compile.sh` → `paper/main.pdf`.
-> **Empirical stats:** `paper/scripts/paper/analyze_unified.py` → `assets/stats/characterization.tex`
+> **Empirical stats:** `analyze_unified.py` + `analyze_research.py` → `assets/stats/`
 > **arXiv bundle:** `paper/scripts/export-arxiv.sh` → `openmarket-paper-arxiv-*.tar.gz`.
 
 ## Abstract
 
-Prediction markets have become increasingly important for forecasting real-world
-events, yet publicly available high-frequency datasets and reproducible research
-infrastructure remain limited. We present OpenMarket, an open-source Rust
-framework for collecting, synchronizing, and analyzing Polymarket order book data
-alongside real-time Bitcoin market data from Binance. The framework includes
-WebSocket collectors, a millisecond-resolution storage layer, timestamp
-synchronization and lead-lag pairing, feature generation, technical indicators,
-machine learning research utilities, a strategy framework, and reproducible
-backtesting. The primary contribution is not a claim of persistent trading
-profitability, but a research platform: source code, dataset schemas,
-reproducibility commands, model release conventions, and a staged dataset
-release. The public Hugging Face archive ships `v0.1-sample`, `v0.2-full`
-(202 snapshots), and `v0.4.2-unified` (727M deduped rows), plus a sample
-`features/` split and a published `v0.2/` binary-outcome model trained on
-unified Parquet step3 features. Active data collection ended 2026-07-01; source
-tag `v0.5.0` freezes the research record. OpenMarket enables
-research into prediction-market microstructure, forecasting, and execution
-rather than claiming persistent trading alpha.
+We release OpenMarket, the largest public synchronized high-frequency corpus
+pairing Polymarket BTC 15-minute binary markets with Binance BTC/USDT, together
+with a reproducible Rust pipeline for collection, millisecond pairing, Parquet
+export, and walk-forward calibration. The frozen Hugging Face archive (tag
+`v0.5.0`) spans 109 days, 726.9M deduplicated events across 202 snapshots, and
+2.93M explicit lead–lag pairs. Initial analyses establish Polymarket stylized
+facts (median one-tick spreads), characterize heavy-tailed cross-venue timing
+with a compact 14 ms median lag, and benchmark forecasts against naive mid
+priors—multivariate logistic models yield modest AUC gains without tradable
+simulated edge. We position this work as a data-and-methods release enabling
+microstructure and forecasting research, not a trading-alpha claim.
 
 ## 1. Introduction
 
-Prediction markets aggregate information through prices of contracts tied to
-future outcomes. Polymarket extends this idea through a crypto-native central
-limit order book for binary outcome markets. These markets are useful for
-forecasting and microstructure research, but reproducible public infrastructure
-is scarce. Most available trading repositories mix private scripts, generated
-outputs, model binaries, and undocumented assumptions, making it difficult to
-reproduce results or contribute improvements.
+Polymarket's short-horizon BTC binary markets combine prediction-market
+forecasting with crypto-native CLOB microstructure. Empirical work now documents
+tick-level Polymarket dynamics, DePM design trade-offs, and combinatorial
+arbitrage [Dubach, 2026; Saguillo et al., 2025; Rahman et al., 2025]. What
+remains missing is a **public, cross-venue, millisecond-resolution corpus**
+paired with Binance BTC/USDT and tooling that makes synchronization quality,
+lead–lag, and calibration analysis reproducible at archival scale.
 
-OpenMarket addresses this gap by treating prediction-market research as a
-systems and data-engineering problem. The objective is to provide an extensible
-research platform that enables reproducible experimentation on high-frequency
-prediction-market data. The initial domain is BTC 15-minute Polymarket binary
-markets paired with Binance BTC/USDT market data, but the architecture is
-intended to generalize to additional markets and exchanges.
+We release OpenMarket to close that gap. The contribution is threefold:
 
-## 2. Background
+1. **Corpus.** The largest public synchronized Polymarket–Binance dataset we are
+   aware of: 726.9M deduplicated events across 202 snapshots (2026-03-14–2026-07-01),
+   including 2.93M explicit lead–lag pairs.
+2. **Methods.** Documented source-vs.-ingest synchronization, Parquet-native
+   export, walk-forward calibration training, and validation harnesses that treat
+   clock drift and pairing-window sensitivity as measurable objects.
+3. **Empirical baselines.** Stylized facts and forecast benchmarks on the
+   released corpus—top-of-book spreads, lead–lag distributions, and ablations
+   showing when multivariate models outperform naive order-book mid priors.
+
+We do **not** claim persistent trading profitability. Simulated economics under
+stated fees and slippage are negative for the published scorer. The goal is to
+enable the community to study *how* external spot prices and Polymarket books
+interact at high frequency. OpenMarket is frozen as a public research archive
+(source tag `v0.5.0`); active collection has ended.
+
+## 2. Related Work
+
+Prediction markets aggregate dispersed information [Wolfers and Zitzewitz, 2004;
+Hanson, 2003]. High-frequency microstructure methods emphasize order-book
+dynamics and latency [O'Hara, 2015; Cont et al., 2014]. Multi-venue studies
+measure price discovery contributions [Hasbrouck, 1995].
+
+**Polymarket microstructure.** Dubach [2026] analyzes tick-level Polymarket
+order-book evidence but does not ship a synchronized Binance reference stream or
+Hugging Face archival corpus. Saguillo et al. [2025] document combinatorial
+arbitrage using proprietary-scale scrapes. Rahman et al. [2025] survey DePM
+design trade-offs without a cross-venue BTC 15-minute benchmark.
+
+**Open infrastructure.** OpenMarket differs by publishing (i) raw and deduped
+Parquet splits, (ii) explicit `lag_pairs_ms` with quality flags, (iii) Rust
+exporters/trainers with pinned commands, and (iv) empirical baselines on the
+released corpus.
+
+| Artifact | PM ticks | Binance ref. | HF corpus | Cross-venue pairs | OSS repro |
+|---|---|---|---|---|---|
+| Dubach (2026) | ✓ | — | partial | — | ✓ |
+| Saguillo (2025) | ✓ | — | — | — | partial |
+| Public Binance dumps | — | ✓ | ✓ | — | ✓ |
+| OpenMarket (this work) | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+## 3. Background
 
 Prediction markets aggregate information through prices of contracts tied to
 future outcomes [Wolfers and Zitzewitz, 2004; Hanson, 2003]. Polymarket lists
@@ -63,7 +92,7 @@ generate labels, and evaluate models or strategies without leaking future
 information. High-frequency order-book dynamics motivate millisecond-resolution
 storage and pairing [O'Hara, 2015; Cont et al., 2014].
 
-## 3. Contributions
+## 4. Contributions
 
 OpenMarket contributes:
 
@@ -80,10 +109,10 @@ OpenMarket contributes:
   and stacked classifiers
 - Public dataset releases on Hugging Face (`v0.1-sample` at repo root, `full/`,
   `unified/`, and a sample `features/` split) plus published model artifacts on
-  Hugging Face Models (`v0.2/` recommended, `v0.1/` historical)
+  Hugging Face Models (`v0.2.1/` recommended, `v0.1/` historical)
 - Reproducibility commands, Docker scaffolding, documentation, and benchmarks
 
-## 4. System Architecture
+## 5. System Architecture
 
 ```text
           Binance WS
@@ -109,23 +138,11 @@ OpenMarket contributes:
           Evaluation
 ```
 
-The codebase is organized as a Rust workspace:
+The codebase is a Rust workspace spanning exchange collectors, a multi-market
+recorder with lag-pairing export, signal and execution engines, backtesting, and
+Parquet-native ML crates. Crate-level detail is in Appendix B.
 
-- `common`: shared constants and cross-service types
-- `exchange-binance`: BTC/USDT trade stream collector and candle persistence
-- `exchange-polymarket`: Polymarket CLOB stream collector
-- `recorder`: multi-market recorder, normalizer, lag-pairing engine, and export
-  API (`ml_export` for legacy SQLite feature CSVs)
-- `step3-parquet-export`: step3 binary-calibration features from unified Parquet
-- `binary-outcome-trainer`: walk-forward logistic regression + Platt scaling
-- `signal-engine`: real-time signal generation
-- `execution-engine`: optional paper/live order execution and position tracking
-- `paper-executor`: paper execution harness
-- `backtester`: historical backtesting and strategy evaluation
-- `data-prep`: dataset conversion utilities
-- `dataset-downloader`: snapshot download utilities
-
-## 5. Data Collection
+## 6. Data Collection
 
 ### 5.1 Binance
 
@@ -159,7 +176,7 @@ Parquet. The key recorded tables are:
 - `binance_candles_15m`
 - `binance_candles_1h`
 
-## 6. Synchronization
+## 7. Synchronization
 
 Synchronization is the most important technical component. For each event, the
 system distinguishes between source time and ingest time:
@@ -189,7 +206,7 @@ A LaTeX version of this section with a lead-lag timeline figure specification
 is provided in `paper/sections/synchronization.tex` (TikZ Figure 1: source vs.
 ingest timestamps, alignment window `W`, and `lead_lag_ms = t_P - t_B`).
 
-## 7. Feature Engineering
+## 8. Feature Engineering
 
 Feature families include:
 
@@ -230,7 +247,7 @@ Custom signals:
 - Brier calibration monitor
 - confidence-bin empirical edge
 
-## 8. Machine Learning
+## 9. Machine Learning
 
 The project includes historical Python prototypes (XGBoost, LightGBM, SHAP,
 stacked ensembles in `research/legacy-ml/`) and a **Rust training path** for the
@@ -242,25 +259,25 @@ unified/ Parquet  →  export_step3_from_parquet  →  step3 CSV
 ```
 
 **Feature export (`step3-parquet-export`).** Reads `market_meta`, Binance trades,
-and Polymarket ticks from `v0.4.2-unified` Parquet, emits step3 binary
+and Polymarket ticks from `v0.4.3-unified` Parquet, emits step3 binary
 calibration rows (43 features per snapshot). On the publication workstation this
-export completes in ~78s for 354,684 rows across 2,234 markets (50% of 4,450
+export completes in ~63s for 357,390 rows across 2,251 markets (51% of 4,450
 `market_meta` entries; remaining markets lack sufficient ticks or trades).
 
 **Training (`binary-outcome-trainer`).** Walk-forward logistic regression by
-market (555 windows, expanding train horizon), Platt scaling, and simulated +EV
+market (559 windows, expanding train horizon), Platt scaling, and simulated +EV
 evaluation under stated fee (1%) and slippage (0.5%) assumptions. Training on
-354k rows completes in ~67s (Rayon-parallel on Apple M5 Max).
+357k rows completes in ~67s (Rayon-parallel on Apple M5 Max).
 
-**Published model (`v0.2/` on Hugging Face Models):**
+**Published model (`v0.2.1/` on Hugging Face Models):**
 
 | Metric | Value |
 |---|---:|
-| AUC-ROC (calibrated OOS) | 0.840 |
-| Brier | 0.164 |
+| AUC-ROC (calibrated OOS) | 0.838 |
+| Brier | 0.165 |
 | ECE | 0.025 |
-| Simulated +EV trades | 260,622 |
-| Sim PnL / trade | -0.123 |
+| Simulated +EV trades | 260,617 |
+| Sim PnL / trade | -0.117 |
 
 The negative simulated PnL is intentional transparency: the artifact demonstrates
 calibration and ranking skill, not deployable trading alpha. An earlier `v0.1/`
@@ -269,7 +286,7 @@ pilot model (smaller training set) remains for comparison.
 Model binaries live on Hugging Face Models; Git ships trainers, feature schemas,
 and `scripts/ml/README.md` reproduction commands.
 
-## 9. Strategy Framework
+## 10. Strategy Framework
 
 The strategy modules document a research archive (v1–v15 iterations), not a
 single validated production system. Strategies combine model confidence, market
@@ -290,7 +307,7 @@ from directional accuracy. Backtests should report slippage, fees, assumed fill
 prices, and market impact assumptions explicitly; reported outcomes are
 counterfactual simulations, not live trading results.
 
-## 10. Backtesting
+## 11. Backtesting
 
 Backtesting processes market windows independently and evaluates entry signals
 against settled outcomes under documented simulation assumptions. Preferred
@@ -305,7 +322,7 @@ validation methods include:
 Random row splits are discouraged because adjacent high-frequency observations
 are highly autocorrelated.
 
-## 11. Evaluation
+## 12. Evaluation
 
 Evaluation should include both predictive and simulated-economic metrics.
 Economic metrics are counterfactual diagnostics under explicit fill, fee, and
@@ -328,7 +345,7 @@ Calibration is especially important because binary market strategies are
 sensitive to the difference between predicted probability and market-implied
 price.
 
-## 12. Performance
+## 13. Performance
 
 Rust enables high-throughput collection and backtesting. Benchmark categories and
 harnesses are documented in the repository; published tables should report:
@@ -345,7 +362,7 @@ harnesses are documented in the repository; published tables should report:
 Every benchmark should include hardware, OS, Rust version, dataset version,
 command, and configuration.
 
-## 13. Dataset
+## 14. Dataset
 
 The public dataset lives at:
 
@@ -357,7 +374,7 @@ huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 
 | Split | Version | Status | Purpose |
 |-------|---------|--------|---------|
-| Unified | `v0.4.2-unified` | **Live** | Deduped research timeline — **727M rows**, 8.7 GiB (recommended) |
+| Unified | `v0.4.3-unified` | **Live** | Deduped research timeline — **727M rows**, 8.7 GiB (recommended) |
 | Full | `v0.2-full` | **Live** | Complete 202-snapshot per-export archive (3,312 parquet files) |
 | Features | `v0.4-features` | **Optional** | One-snapshot demo on HF; full step2/step3 reproducible from `unified/` |
 | Sample | `v0.1-sample` | **Live** | 12 flat parquet at repo root; quickstart and CI |
@@ -395,7 +412,7 @@ Raw data supports independent research into synchronization and feature
 construction. Processed data supports faster model experiments and reproducible
 baselines.
 
-## 14. Reproducibility
+## 15. Reproducibility
 
 OpenMarket treats reproducibility as a first-class systems requirement. Any
 benchmark, backtest, or paper result should be reconstructible from six
@@ -513,7 +530,7 @@ git clone → cargo check → HF sample validate → (optional) notebook
 
 See `docs/reproducibility.md` for the canonical reproduction guide.
 
-## 15. Limitations
+## 16. Limitations
 
 OpenMarket has several limitations:
 
@@ -530,12 +547,12 @@ OpenMarket has several limitations:
 - Full-archive `features/` Parquet is not published on Hugging Face; researchers
   should use `export_step3_from_parquet` on `unified/` instead.
 
-## 16. Empirical Characterization
+## 17. Empirical Characterization
 
 Regenerate stats: `paper/scripts/paper/analyze_unified.py` →
 `paper/assets/stats/characterization.tex`.
 
-**Scale (unified split, v0.4.2-unified):**
+**Scale (unified split, v0.4.3-unified):**
 
 | Table | Rows |
 |---|---:|
@@ -551,17 +568,83 @@ On-disk size: 8.7 GiB. Collection span: 109 days (202 snapshots).
 **Lead–lag (`lag_pairs_ms`):** median 16 ms; 5th/95th percentiles -185 / +315 ms.
 
 These statistics describe archival corpus content, not trading profitability.
+Microstructure findings and forecast benchmarks are in Section 18.
 
-## 17. Archive Closeout and Research Extensions
+## 18. Microstructure Findings
+
+Regenerate: `paper/scripts/paper/analyze_research.py` →
+`paper/assets/stats/research_findings.json` and figures under
+`paper/assets/figures/`.
+
+**Lead–lag vs. disagreement.** Median lead–lag is stable (16–19 ms) across
+`|price_delta_bps|` quintiles—a null result. Daily pairing activity and median
+lead–lag are weakly correlated; lead–lag magnitude does not predict contemporaneous
+`|price_delta_bps|` (Pearson r ≈ 0 on 500k pairs).
+
+**Spread stylized facts.** Top-of-book spreads concentrate at one tick wide
+(median ≈ 0.01; 95th ≈ 0.02). Tight spreads imply mid-price backtests can
+overstate executable edge.
+
+**Forecast benchmarks (357,390 step3 rows):**
+
+| Model | AUC | Brier |
+|---|---:|---:|
+| Naive `market_mid_prior_up` | 0.842 | 0.162 |
+| Logistic + Platt (`v0.2.1`) | 0.843 | 0.162 |
+| `drift_prob_up` only | 0.773 | 0.218 |
+| `imbalance_60s` (sigmoid) | 0.586 | 0.246 |
+
+ΔAUC ≈ 0.0014 vs. naive mid (bootstrap 95% CI [0.0013, 0.0015], p < 0.001):
+statistically detectable, economically tiny. Brier rises from ~0.135 at one-tick
+spreads to ~0.168 when spread ≥ 0.015; high-vol terciles also calibrate better
+(0.159 vs. 0.164 low-vol).
+
+## 19. Discussion
+
+**What this enables.** Dubach [2026] establishes Polymarket microstructure stylized
+facts; Saguillo et al. [2025] quantify arbitrage gaps. Neither provides a
+reproducible Binance–Polymarket timeline with published pairing metadata and
+walk-forward calibration baselines.
+
+**Venue positioning.** Best read as a data-and-methods release with empirical
+baselines—appropriate for arXiv, ML-for-finance workshops, or data-descriptor
+journals.
+
+**Domain scope.** BTC 15m markets are liquid and volatile but niche; results may
+not transfer to election or long-dated markets without re-collection.
+
+**Operational context.** Polygon settlement latency, oracle definition risk, and
+regulatory uncertainty affect economic interpretation. Collector-host clock drift
+and WebSocket gaps are documented; top-of-book backtests are not executable PnL
+without explicit queue and fee models.
+
+**Ethics / availability.** Public market data only (no user identities). Apache
+2.0 code; cite dataset version and tag `v0.5.0` (see `CITATION.md`).
+
+## 20. Conclusion
+
+We presented OpenMarket, an open-source pipeline and public archive for
+high-frequency Polymarket BTC 15-minute markets synchronized with Binance
+BTC/USDT. The release includes 726.9M deduplicated events, 2.93M lead–lag pairs,
+reproducible Rust exporters and trainers, and Hugging Face artifacts
+(`v0.4.3-unified`, `v0.2.1/` model).
+
+Initial analyses show tight Polymarket spreads, heavy-tailed lead–lag with a
+compact median, and forecast benchmarks where multivariate logistic models offer
+only modest gains over naive mid priors. We invite researchers to use the corpus
+for microstructure and forecasting studies and cite the dataset version used in
+each experiment.
+
+## 21. Archive Closeout and Research Extensions
 
 OpenMarket is no longer an active data-collection project. Archival closeout
 completed on 2026-07-01:
 
 - all 202 CDN manifest snapshots published in `full/` (`202 clean`, `0 partial`)
 - five formerly-partial snapshots recovered via `sqlite3 .recover` and re-exported
-- `unified/` rebuilt (`v0.4.2-unified`, 727M rows)
-- `v0.2/` binary-outcome model published on Hugging Face Models
-- queue metadata reconciled; source tag `v0.5.0` freezes the public record
+- `unified/` rebuilt (`v0.4.3-unified`, 727M rows)
+- `v0.2.1/` binary-outcome model published on Hugging Face Models
+- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.1` on private GitHub
 
 Optional research extensions, if anyone in the open-source community chooses to
 continue from this base, include:
@@ -579,22 +662,24 @@ continue from this base, include:
 - improved execution simulation
 - public benchmark leaderboard
 
-## 18. Open Source Release
+## 22. Open Source Release
 
 The public release includes:
 
-- GitHub repository: `github.com/gregyoung14/openmarket`
+- GitHub repository: `github.com/gregyoung14/openmarket` (private during pre-launch)
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
-- Hugging Face models: `gregyoung14/openmarket-models` (`v0.2/` walk-forward
-  logistic on unified step3; `v0.1/` historical)
+- Hugging Face models: `gregyoung14/openmarket-models` (`v0.2.1/` walk-forward
+  logistic on unified step3; `v0.2/`, `v0.1/` historical)
 - mdBook documentation
 - Rust API documentation
 - Docker reproducibility
 - benchmark tables
+- Apache License 2.0 (code) and documented HF dataset license
+- Jupyter quickstart: `notebooks/quickstart.ipynb`
 - contribution guide
-- GitHub issues labeled by contribution area
+- GitHub issues labeled by contribution area (assets, exchanges, models)
 
-## 19. References
+## 23. References
 
 Bibliography source: `paper/bibliography.bib` (BibTeX). Key references:
 
@@ -638,10 +723,14 @@ Matched Binance/Polymarket event pairs: pair timestamp, market, side, tick IDs,
 source timestamps, lead-lag, Binance price, Polymarket bid, price delta, quality
 flag.
 
-## Appendix B. Figure Specifications
+## Appendix B. Workspace Crate Index
 
-Each figure below is specified for LaTeX/TikZ or matplotlib generation. Asset
-paths are placeholders under `paper/assets/figures/`.
+See `paper/sections/appendix-architecture.tex` for the full Rust workspace crate
+list including `step3-parquet-export` and `binary-outcome-trainer`.
+
+## Appendix C. Figure Specifications
+
+Figures are generated by `paper/scripts/compile.sh` into `paper/assets/figures/`.
 
 ### B.1 Architecture Diagram (`fig:architecture`)
 

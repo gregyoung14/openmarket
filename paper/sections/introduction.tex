@@ -1,0 +1,38 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Polymarket's short-horizon BTC binary markets combine prediction-market
+forecasting with crypto-native central-limit-order-book (CLOB) microstructure.
+Empirical work now documents tick-level Polymarket dynamics, decentralized
+prediction-market (DePM) design trade-offs, and combinatorial arbitrage
+\cite{dubach2026anatomy,saguillo2025arbitrage,rahman2025sok}. What remains
+missing is a \textbf{public, cross-venue, millisecond-resolution corpus} paired
+with Binance BTC/USDT and tooling that makes synchronization quality, lead--lag,
+and calibration analysis reproducible at archival scale.
+
+We release OpenMarket to close that gap. The contribution is threefold:
+\begin{enumerate}
+  \item \textbf{Corpus.} The largest public synchronized Polymarket--Binance
+        dataset we are aware of: \OpenMarketTotalRows{} deduplicated events across
+        \OpenMarketSnapshots{} archival snapshots (\OpenMarketCollectionStart{}--
+        \OpenMarketCollectionEnd{}), including \OpenMarketLagPairs{} explicit
+        lead--lag pairs.
+  \item \textbf{Methods.} Documented source-vs.-ingest synchronization,
+        Parquet-native export, walk-forward calibration training, and validation
+        harnesses that treat clock drift and pairing-window sensitivity as
+        measurable objects rather than implementation details.
+  \item \textbf{Empirical baselines.} Stylized facts and forecast benchmarks on
+        the released corpus---e.g., top-of-book spreads, lead--lag distributions,
+        and ablations showing when multivariate models outperform naive
+        order-book mid priors.
+\end{enumerate}
+
+We do \textbf{not} claim persistent trading profitability. Simulated economics
+under stated fees and slippage are negative for the published scorer. The goal is
+to enable the community to study \emph{how} external spot prices and Polymarket
+books interact at high frequency, not to ship a production bot.
+
+OpenMarket is frozen as a public research archive (source tag
+\OpenMarketReleaseTag{}); active collection has ended. The remainder of the
+paper describes the system, the released artifacts, and initial microstructure
+findings that prior single-venue or closed pipelines cannot support.

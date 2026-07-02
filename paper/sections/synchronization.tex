@@ -1,0 +1,91 @@
+% Included from main.tex via \input{sections/synchronization}
+
+\section{Synchronization}
+\label{sec:synchronization}
+
+Synchronization is the central technical component of OpenMarket.
+For each event the recorder stores both a source timestamp (exchange-emitted)
+and an ingest timestamp (collector-observed):
+\begin{align}
+  \texttt{source\_ts\_ms} &= \text{timestamp from the exchange or event source}, \\
+  \texttt{ingest\_ts\_ms}  &= \text{timestamp when the collector received the event}.
+\end{align}
+Following multi-venue price-discovery practice~\cite{hasbrouck1995one},
+we pair Binance and Polymarket observations inside a bounded millisecond
+window and compute lead-lag as
+\begin{equation}
+  \texttt{lead\_lag\_ms}
+    = \texttt{polymarket\_source\_ts\_ms} - \texttt{binance\_source\_ts\_ms}.
+  \label{eq:lead-lag}
+\end{equation}
+Positive values indicate that the Polymarket event timestamp follows the
+Binance event timestamp; negative values indicate the opposite.
+Each pair is stored with a quality flag, Binance price, Polymarket bid,
+market slug, side label, and price delta in basis points.
+
+\subsection{Pairing and Quality Metrics}
+
+The recorder pairs events when their source timestamps fall within a
+configurable alignment window~$W$ (milliseconds).
+OpenMarket treats the following as first-class dataset quality metrics,
+consistent with microstructure guidance for decentralized prediction
+markets~\cite{dubach2026anatomy,rahman2025sok}:
+clock drift, dropped WebSocket messages, duplicate payloads, reconnect gaps,
+stale order-book state, out-of-order events, and sensitivity to~$W$.
+
+\subsection{Lead--Lag Timeline (Figure~\ref{fig:lead-lag-timeline})}
+
+Figure~\ref{fig:lead-lag-timeline} illustrates a single matched pair.
+A Binance trade arrives at source time~$t_B$; a Polymarket book update
+follows at~$t_P$. Ingest times ($t_B^{\mathrm{ing}}$, $t_P^{\mathrm{ing}}$)
+are shown above the axis to separate network delay from exchange-reported
+ordering. The shaded interval is the alignment window~$W$.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      >=Stealth,
+      font=\footnotesize,
+      ts/.style={thick},
+      ingest/.style={dashed, gray},
+      evlabel/.style={align=center, font=\scriptsize}
+    ]
+    \draw[->] (0,0) -- (11.2,0) node[right] {time (ms)};
+
+    \draw[ts, blue] (2.2,0) -- (2.2,0.6);
+    \node[blue] at (2.2,0.78) {$t_B$};
+    \node[blue, evlabel] at (2.2,-0.55) {Binance\\trade};
+    \draw[ingest] (2.7,1.05) -- (2.7,0);
+    \node[gray] at (2.7,1.22) {$t_B^{\mathrm{ing}}$};
+
+    \draw[ts, orange] (7.0,0) -- (7.0,0.6);
+    \node[orange] at (7.0,0.78) {$t_P$};
+    \node[orange, evlabel] at (7.0,-0.55) {Polymarket\\book};
+    \draw[ingest] (7.6,1.05) -- (7.6,0);
+    \node[gray] at (7.6,1.22) {$t_P^{\mathrm{ing}}$};
+
+    \draw[fill=blue!10, draw=blue!40] (1.4,-0.38) rectangle (7.8,-0.18);
+    \node at (4.6,-0.28) {alignment window $W$};
+
+    \draw[<->, thick] (2.2,-0.88) -- (7.0,-0.88)
+      node[midway, below=4pt] {$\texttt{lead\_lag\_ms}=t_P-t_B$};
+  \end{tikzpicture}
+  \caption{Lead--lag pairing timeline. Source timestamps determine
+    Equation~\eqref{eq:lead-lag}; ingest timestamps diagnose collector
+    delay separately from cross-venue ordering.}
+  \label{fig:lead-lag-timeline}
+\end{figure}
+
+Empirical lead--lag distributions on the unified split ($n=\OpenMarketLagPairs{}$;
+median \OpenMarketLagMedian{}~ms) are reported in
+Section~\ref{sec:exp-sync} and Figure~\ref{fig:lead-lag-hist-unified}.
+
+\subsection{Validation Checklist}
+
+Researchers reproducing synchronization results should:
+\begin{enumerate}
+  \item verify monotonicity of \texttt{source\_ts\_ms} within each stream;
+  \item count duplicate payloads and reconnect gaps;
+  \item plot lead--lag histograms stratified by day and market;
+  \item rebuild \texttt{lag\_pairs\_ms} from raw partitions and compare checksums.
+\end{enumerate}

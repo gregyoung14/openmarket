@@ -1,0 +1,23 @@
+[package]
+name = "unified-backfill"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Fast incremental repair of unified Parquet partitions from full_parquet"
+
+[[bin]]
+name = "unified-backfill"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.4", features = ["derive"] }
+chrono = "0.4"
+duckdb = { version = "1.2", features = ["bundled"] }
+glob = "0.3"
+rayon = "1.8"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

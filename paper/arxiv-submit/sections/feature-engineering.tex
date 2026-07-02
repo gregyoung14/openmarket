@@ -1,0 +1,27 @@
+\section{Feature Engineering}
+\label{sec:features}
+
+Feature families include order-book metrics (spread, best bid/ask, microprice,
+imbalance, depth, book update velocity), price metrics (returns, realized
+volatility, momentum, VWAP deviation, candle shape), technical indicators (RSI,
+EMA, VWAP, ATR, Bollinger Bands, MACD, ADX), and custom signals (drift score,
+order-flow acceleration, scoreboard signal, whipsaw/chop detector, volume gate,
+Brier calibration monitor, confidence-bin empirical edge).
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.55cm and 0.35cm,
+      every node/.style={widebox}
+    ]
+    \node (raw) {Raw ticks};
+    \node[right=of raw] (align) {Alignment};
+    \node[right=of align] (feat) {Feature families};
+    \node[right=of feat] (label) {Label generation};
+    \draw[flowarr] (raw) -- (align);
+    \draw[flowarr] (align) -- (feat);
+    \draw[flowarr] (feat) -- (label);
+  \end{tikzpicture}
+  \caption{Feature engineering pipeline.}
+  \label{fig:features}
+\end{figure}
