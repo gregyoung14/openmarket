@@ -138,14 +138,14 @@ Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingfac
 | Split | Version | Use |
 |---|---|---|
 | `unified/` | v0.4.2-unified | **Recommended** — deduped timeline from complete archive |
-| `features/` | v0.4-features | ML features — step2 (100ms/1s) + step3 binary calibration |
-| `full/` | v0.2-full | Complete 202-snapshot per-export archive |
-| `sample/` | v0.1-sample | CI, quickstarts — 12 tables, 9,352 rows, ~204 KB |
+| `features/` | v0.4-features | Optional demo on HF; reproduce step2/step3 from `unified/` via `scripts/ml/` |
+| `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files) |
+| (repo root) | v0.1-sample | CI, quickstarts — 12 flat parquet, 9,352 rows |
 
 ```text
+*.parquet                    # v0.1-sample (flat at repo root)
 unified/                     # deduped research timeline (v0.4+)
 full/                        # per-snapshot exports, 202 snapshots (v0.2+)
-sample/                      # tiny demo split (v0.1)
 metadata/
   snapshot_manifest.json     # full archive inventory (CDN URLs redacted)
   merge_quality_report.json  # unified dedupe stats
@@ -169,8 +169,8 @@ Archival status:
 Pretrained model artifacts are not committed to Git. They live in:
 
 - [gregyoung14/openmarket-models](https://huggingface.co/gregyoung14/openmarket-models)
-  — public `v0.1/` artifacts are available, including a calibrated
-  binary-outcome scorer and metrics snapshots.
+  — public `v0.2/` model artifacts (recommended; trained on unified Parquet
+  step3 features). `v0.1/` remains for historical comparison.
 
 The repository keeps model metadata, feature schemas, training code, and release
 manifests.

@@ -4,14 +4,14 @@ Large datasets are released outside Git on Hugging Face:
 
 - [`gregyoung14/openmarket-btc-polymarket`](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
 
-The HF repo holds three splits:
+The HF repo holds four public splits:
 
 | Split | Version | Contents |
 |---|---|---|
-| `unified/` | v0.4.2-unified | **Recommended.** Deduped timeline from complete 202-snapshot `full/` archive. |
-| `full/` | v0.2-full | Complete 202-snapshot per-export archive (~598M rows before dedupe). |
-| `features/` | v0.4-features | ML feature exports (step2 100ms/1s, step3 calibration). |
-| `sample/` | v0.1-sample | Smallest snapshot. 12 tables, 9,352 rows. CI and quickstarts. |
+| `unified/` | v0.4.2-unified | **Recommended.** Deduped timeline (~722M rows) from complete 202-snapshot `full/` archive. |
+| `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files). |
+| `features/` | v0.4-features | Optional — one-snapshot demo on HF; full features reproducible from `unified/`. |
+| (repo root) | v0.1-sample | Smallest snapshot. 12 flat parquet at repo root, 9,352 rows. CI and quickstarts. |
 
 Per-snapshot metadata (`export_report.json`) and the master
 `snapshot_manifest.{json,tsv}` (all 202 snapshots in the operator archive)
@@ -20,7 +20,8 @@ live under `metadata/` in the HF repo.
 ## Layout on the HF repo
 
 ```text
-sample/
+binance_trades.parquet       # v0.1-sample (flat at repo root on HF)
+sample/                      # partitioned layout (local export only)
   binance_trades/date=YYYY-MM-DD/*.parquet
   binance_ticks_ms/date=YYYY-MM-DD/*.parquet
   polymarket_ticks_ms/date=YYYY-MM-DD/*.parquet
@@ -53,7 +54,7 @@ import pyarrow.parquet as pq
 root = Path(snapshot_download(
     "gregyoung14/openmarket-btc-polymarket",
     repo_type="dataset",
-    allow_patterns=["sample/**", "metadata/**", "README.md"],
+    allow_patterns=["*.parquet", "metadata/**", "README.md"],
 ))
 table = pq.read_table(next(root.rglob("binance_trades/*.parquet")))
 print(table.num_rows, "rows; columns:", table.schema.names)

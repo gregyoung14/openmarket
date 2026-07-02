@@ -1,0 +1,48 @@
+\section{Machine Learning}
+\label{sec:ml}
+
+The project includes historical Python prototypes and Rust signal code. The
+legacy ML archive includes XGBoost, LightGBM, logistic meta-classifiers, SHAP
+feature analysis, and stacked ensembles. The \textbf{published} binary-outcome
+model uses a Rust pipeline on unified Parquet:
+
+\begin{enumerate}
+  \item \texttt{export\_step3\_from\_parquet} reads \texttt{v0.4.2-unified}
+        tables and emits step3 calibration CSVs (43 features).
+  \item \texttt{train\_binary\_outcome\_model} performs walk-forward logistic
+        regression by market, applies Platt scaling, and writes JSON artifacts.
+\end{enumerate}
+
+On the publication workstation (Apple M5 Max), step3 export of 354{,}684 rows
+across 2{,}234 markets completes in ${\sim}$78\,s; training (555 walk-forward
+windows) completes in ${\sim}$67\,s. Step3 export writes 50\% of
+\texttt{market\_meta} markets; the remainder lack sufficient Polymarket ticks
+or Binance trades.
+
+For public releases, model binaries are uploaded to Hugging Face Models rather
+than committed to Git. The recommended \texttt{v0.2/} release achieves
+calibrated walk-forward AUC 0.840, Brier 0.164, and ECE 0.025 on 354k step3
+rows. Simulated positive-EV trading under 1\% fees and 0.5\% slippage yields
+$-0.123$ PnL per trade---reported as a reproducibility baseline, not deployable
+alpha. An earlier \texttt{v0.1/} pilot artifact remains for comparison.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.4cm,
+      every node/.style={flowbox, minimum width=2.9cm}
+    ]
+    \node (pq) {Unified Parquet};
+    \node[below=of pq] (s3) {Step3 export};
+    \node[below=of s3] (split) {Walk-forward split};
+    \node[below=of split] (fit) {Logistic + Platt};
+    \node[below=of fit] (exp) {HF artifact};
+    \draw[flowarr] (pq) -- (s3);
+    \draw[flowarr] (s3) -- (split);
+    \draw[flowarr] (split) -- (fit);
+    \draw[flowarr] (fit) -- (exp);
+  \end{tikzpicture}
+  \caption{Published ML pipeline: Parquet-native step3 export, walk-forward
+    training, external artifact storage.}
+  \label{fig:training}
+\end{figure}

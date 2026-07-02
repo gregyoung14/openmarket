@@ -1,87 +1,44 @@
-# Stale Claims Audit — 2026-07-01
+# Stale Claims Audit — 2026-07-01 (resolved, re-checked)
 
-This audit lists public-facing statements that no longer match the actual
-OpenMarket release state as of 2026-07-01.
+Re-checked after v0.2 model upload and additional doc edits.
 
-## Ground Truth
+## Ground Truth (2026-07-02)
 
-- Hugging Face dataset repo contains:
-  - `sample/` (`v0.1-sample`)
-  - `full/` (`v0.2-full`) based on 10 published snapshots
-  - `unified/` (`v0.3-unified`) derived from those 10 snapshots
-- Hugging Face model repo contains a public `v0.1/` artifact set:
-  - `binary_outcome_model.json`
-  - `binary_outcome_metrics_*.json`
-  - `model_manifest.json`
-- Archive manifest inventory contains 202 CDN snapshots total.
-- Local export reports currently cover 20 snapshots.
-- Public queue metadata still classifies only the first 10 snapshots as
-  published (`5 published-clean`, `5 published-partial`).
+### Hugging Face dataset `gregyoung14/openmarket-btc-polymarket`
 
-## Files With Stale or Misleading Release Language
+| Artifact | Count / version |
+|---|---|
+| `v0.1-sample` | 12 flat `*.parquet` at **repo root** (not `sample/`) |
+| `full/` | 3,312 parquet, 202 snapshots (`v0.2-full`) |
+| `unified/` | 499 parquet, ~722M rows (`v0.4.2-unified`) |
+| `features/` | 2 parquet (`v0.4-features`, optional demo; reproducible from `unified/`) |
+| `metadata/` | manifest + export reports |
 
-### README and top-level docs
+### Hugging Face models `gregyoung14/openmarket-models`
 
-- `README.md`
-  - Says pretrained model artifacts "will live in" Hugging Face Models.
-    This is stale; a public `v0.1/` model payload now exists.
-  - Says the first `v0.1.0` model is deferred to a future release.
-    This is stale.
-  - Does not clearly state that active data collection is over and the
-    remaining task is publication of the existing archived CDN inventory.
+| Version | Status |
+|---|---|
+| `v0.2/` | **Recommended.** 354k rows, 555 walk-forward windows, unified step3 |
+| `v0.1/` | Historical comparison artifact |
 
-### Model card
+### Project status
 
-- `models/hf/README.md`
-  - The "Planned Artifacts" heading is stale now that a `v0.1/` artifact set
-    exists publicly.
-  - The card should distinguish between published artifacts and still-missing
-    provenance fields or limitations.
+- Archival shutdown; 202 snapshots published-clean
+- Full-archive `features/` HF upload is optional (not required; reproducible from `unified/`)
 
-### Paper
+## Doc fixes in this pass
 
-- `paper/paper.md`
-  - Abstract says `v0.2-full` is planned. Stale.
-  - Contributions section says "sample live; full split planned". Stale.
-  - ML section says the model repo is scaffolded and the first model artifact
-    is deferred. Stale.
-  - "Future Work" mixes genuine research extensions with archive-closeout tasks.
-    That is misleading now that the project is being shut down.
-  - "Open Source Release" section still describes the model repo as scaffolded.
-    Stale.
+| Location | Issue | Fix |
+|---|---|---|
+| `datasets/hf/README.md` | Said `sample/` subdirectory | Root flat parquet layout |
+| `README.md`, `datasets/README.md` | Same | Root flat + download patterns |
+| `datasets/hf/README.md` | Model v0.1 only | v0.2 recommended |
+| `paper/paper.md`, tex | v0.1 only | v0.2 + Rust trainer crates |
+| `LAUNCH-POST.md` | v0.1 models | v0.2 metrics |
+| `PROJECT-STATUS.md` | Missing unified parquet count | 499 parquet files |
 
-### Release notes and release-adjacent docs
+## Still optional (not stale — genuinely pending)
 
-- `docs/release/RELEASE-NOTES-v0.1.0.md`
-  - Correct as a historical document, but its "future releases" language should
-    not be treated as the current project plan.
-- `docs/release/RELEASE-NOTES-v0.2.0.md`
-  - "Model version: deferred" is stale relative to the live HF model repo.
-  - Follow-ups about rolling forward to later releases are stale as the project
-    is shutting down.
-- `docs/release/RELEASE-NOTES-v0.3.0.md`
-  - "Model version: deferred" is stale.
-  - Follow-ups describe an ongoing roadmap rather than a finite archive-closeout.
-- `docs/release/LAUNCH-POST.md`
-  - Refers to `full/` as planned and models as follow-up. Stale draft.
-- `docs/release/github-release-checklist.md`
-  - Historical checklist still says models were deferred.
-
-## Not Stale But Easy To Misread
-
-- `docs/release/RELEASE-NOTES-v0.4.0.md`
-  - This reads like a completed release but is currently only a local draft.
-  - It should not be treated as published truth until the associated dataset and
-    provenance artifacts are verified and tagged.
-
-## Archival Gap That Still Remains
-
-These are not stale statements; they are the actual remaining closure tasks:
-
-- Publish the remaining CDN archive snapshots beyond the 10 already live in
-  `full/`.
-- Reconcile the local 20 exported snapshots with HF publication state.
-- Update queue metadata so published coverage matches reality.
-- Decide whether to publish additional feature splits beyond the current
-  datasets, or freeze the archive at `sample/`, `full/`, `unified/`, and the
-  current model artifacts.
+- Optional: upload full-archive `features/` to HF (convenience only)
+- Optional: migrate `v0.1-sample` from flat root to `sample/` subdirectory
+- Tag `v0.5.1` for post-closeout commits

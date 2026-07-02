@@ -17,8 +17,11 @@ machine learning research utilities, a strategy framework, and reproducible
 backtesting. The primary contribution is not a claim of persistent trading
 profitability, but a research platform: source code, dataset schemas,
 reproducibility commands, model release conventions, and a staged dataset
-release. The `v0.1-sample`, `v0.2-full` (202 snapshots), and `v0.4-unified`
-splits are live on Hugging Face as a complete fixed archive. OpenMarket enables
+release. The public Hugging Face archive ships `v0.1-sample`, `v0.2-full`
+(202 snapshots), and `v0.4.2-unified` (727M deduped rows), plus a sample
+`features/` split and a published `v0.2/` binary-outcome model trained on
+unified Parquet step3 features. Active data collection ended 2026-07-01; source
+tag `v0.5.0` freezes the research record. OpenMarket enables
 research into prediction-market microstructure, forecasting, and execution
 rather than claiming persistent trading alpha.
 
@@ -75,8 +78,9 @@ OpenMarket contributes:
   whipsaw, volume gates, calibration, and Brier monitoring
 - A legacy ML archive containing Python prototypes for XGBoost, LightGBM, SHAP,
   and stacked classifiers
-- Public dataset releases on Hugging Face (`sample/`, `full/`, `unified/`) and
-  a model release convention (artifacts external to Git)
+- Public dataset releases on Hugging Face (`v0.1-sample` at repo root, `full/`,
+  `unified/`, and a sample `features/` split) plus published model artifacts on
+  Hugging Face Models (`v0.2/` recommended, `v0.1/` historical)
 - Reproducibility commands, Docker scaffolding, documentation, and benchmarks
 
 ## 4. System Architecture
@@ -111,7 +115,9 @@ The codebase is organized as a Rust workspace:
 - `exchange-binance`: BTC/USDT trade stream collector and candle persistence
 - `exchange-polymarket`: Polymarket CLOB stream collector
 - `recorder`: multi-market recorder, normalizer, lag-pairing engine, and export
-  API
+  API (`ml_export` for legacy SQLite feature CSVs)
+- `step3-parquet-export`: step3 binary-calibration features from unified Parquet
+- `binary-outcome-trainer`: walk-forward logistic regression + Platt scaling
 - `signal-engine`: real-time signal generation
 - `execution-engine`: optional paper/live order execution and position tracking
 - `paper-executor`: paper execution harness
@@ -226,17 +232,42 @@ Custom signals:
 
 ## 8. Machine Learning
 
-The project includes historical Python prototypes and Rust signal code. The
-legacy ML archive includes XGBoost, LightGBM, logistic meta-classifiers, SHAP
-feature analysis, and stacked ensembles. Model inputs are aligned feature
-vectors; model outputs are probability estimates for UP or DOWN market
-resolution.
+The project includes historical Python prototypes (XGBoost, LightGBM, SHAP,
+stacked ensembles in `research/legacy-ml/`) and a **Rust training path** for the
+published binary-outcome model:
 
-For public releases, model binaries are uploaded to Hugging Face Models rather
-than committed to Git. The current public model repo includes a `v0.1`
-calibrated binary-outcome scorer, metrics snapshots, and a provenance manifest;
-Git retains model metadata, feature schemas, training code, hyperparameters, and
-reproducibility manifests.
+```text
+unified/ Parquet  →  export_step3_from_parquet  →  step3 CSV
+                 →  train_binary_outcome_model   →  HF model artifact
+```
+
+**Feature export (`step3-parquet-export`).** Reads `market_meta`, Binance trades,
+and Polymarket ticks from `v0.4.2-unified` Parquet, emits step3 binary
+calibration rows (43 features per snapshot). On the publication workstation this
+export completes in ~78s for 354,684 rows across 2,234 markets (50% of 4,450
+`market_meta` entries; remaining markets lack sufficient ticks or trades).
+
+**Training (`binary-outcome-trainer`).** Walk-forward logistic regression by
+market (555 windows, expanding train horizon), Platt scaling, and simulated +EV
+evaluation under stated fee (1%) and slippage (0.5%) assumptions. Training on
+354k rows completes in ~67s (Rayon-parallel on Apple M5 Max).
+
+**Published model (`v0.2/` on Hugging Face Models):**
+
+| Metric | Value |
+|---|---:|
+| AUC-ROC (calibrated OOS) | 0.840 |
+| Brier | 0.164 |
+| ECE | 0.025 |
+| Simulated +EV trades | 260,622 |
+| Sim PnL / trade | -0.123 |
+
+The negative simulated PnL is intentional transparency: the artifact demonstrates
+calibration and ranking skill, not deployable trading alpha. An earlier `v0.1/`
+pilot model (smaller training set) remains for comparison.
+
+Model binaries live on Hugging Face Models; Git ships trainers, feature schemas,
+and `scripts/ml/README.md` reproduction commands.
 
 ## 9. Strategy Framework
 
@@ -326,14 +357,23 @@ huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 
 | Split | Version | Status | Purpose |
 |-------|---------|--------|---------|
-| Unified | `v0.4-unified` | **Live** | Deduped research timeline from 202 snapshots (recommended) |
-| Full | `v0.2-full` | **Live** | Complete 202-snapshot per-export archive |
-| Features | `v0.4-features` | **Live** | ML feature exports (step2/step3) |
-| Sample | `v0.1-sample` | **Live** | Schema validation, quickstart, baseline benchmarks |
+| Unified | `v0.4.2-unified` | **Live** | Deduped research timeline — **727M rows**, 8.7 GiB (recommended) |
+| Full | `v0.2-full` | **Live** | Complete 202-snapshot per-export archive (3,312 parquet files) |
+| Features | `v0.4-features` | **Optional** | One-snapshot demo on HF; full step2/step3 reproducible from `unified/` |
+| Sample | `v0.1-sample` | **Live** | 12 flat parquet at repo root; quickstart and CI |
 
-All splits are published on Hugging Face and validated via
-`scripts/hf/validate_sample_split.py`. The unified split is produced by
-`scripts/datasets/merge_partitions.py` from the `full/` exports.
+**Archive inventory:** 202 CDN SQLite snapshots (46 GB compressed), collected
+2026-03-14 through 2026-07-01. Five formerly-partial snapshots were recovered
+via `sqlite3 .recover` and re-exported before the final unified rebuild; queue
+metadata reports `202 published-clean`, `0 partial`, `0 corrupt`.
+
+**Unified dedupe:** 916M input rows across overlapping `full/` exports → 727M
+output rows (~21% duplicates removed). Produced by
+`scripts/datasets/merge_partitions.py`.
+
+All splits are validated via `scripts/hf/validate_sample_split.py`. Empirical
+statistics in Section 16 / `experimental-results` are regenerated from on-disk
+Parquet via `paper/scripts/paper/analyze_unified.py`.
 
 ### 13.2 Target Layout
 
@@ -413,6 +453,19 @@ Full strategy reproduction uses the unified Hugging Face Parquet split:
 .venv/bin/python datasets/download.py --split unified --out data/hf_cache
 ```
 
+### 14.3.1 ML Model Reproduction (Rust)
+
+```bash
+cargo build -p step3-parquet-export -p binary-outcome-trainer --release
+./target/release/export_step3_from_parquet \
+  --parquet-root data/hf_release/unified_parquet \
+  --out-dir data/hf_release/features_exports
+./target/release/train_binary_outcome_model \
+  --input data/hf_release/features_exports/step3_binary_calibration_<ts>.csv \
+  --artifact-dir data/ml_artifacts
+.venv/bin/python scripts/hf/upload_models.py --version v0.2
+```
+
 Legacy operator SQLite snapshots remain available for migration only:
 
 ```bash
@@ -472,17 +525,43 @@ OpenMarket has several limitations:
 - Historical Polymarket liquidity may not match future liquidity.
 - Live execution has additional latency, queue position, and partial-fill risks.
 - BTC 15-minute markets are only one prediction-market domain.
+- Step3 feature export skips ~50% of `market_meta` markets (missing ticks or
+  insufficient Binance trades).
+- Full-archive `features/` Parquet is not published on Hugging Face; researchers
+  should use `export_step3_from_parquet` on `unified/` instead.
 
-## 16. Archive Closeout and Research Extensions
+## 16. Empirical Characterization
+
+Regenerate stats: `paper/scripts/paper/analyze_unified.py` →
+`paper/assets/stats/characterization.tex`.
+
+**Scale (unified split, v0.4.2-unified):**
+
+| Table | Rows |
+|---|---:|
+| `polymarket_ticks_ms` | 605,599,870 |
+| `binance_trades` | 62,066,729 |
+| `binance_ticks_ms` | 55,791,665 |
+| `lag_pairs_ms` | 2,931,191 |
+| `market_meta` | 4,450 |
+| **Total (11 tables)** | **726,892,430** |
+
+On-disk size: 8.7 GiB. Collection span: 109 days (202 snapshots).
+
+**Lead–lag (`lag_pairs_ms`):** median 16 ms; 5th/95th percentiles -185 / +315 ms.
+
+These statistics describe archival corpus content, not trading profitability.
+
+## 17. Archive Closeout and Research Extensions
 
 OpenMarket is no longer an active data-collection project. Archival closeout
 completed on 2026-07-01:
 
-- all 202 CDN manifest snapshots published in `full/` (`202 clean`, `0 partial`;
-  five formerly-partial snapshots recovered via sqlite3 `.recover`)
-- `unified/` rebuilt from the complete archive (`v0.4.2-unified`, 722M rows)
-- queue metadata reconciled in `docs/release/full-snapshot-publish-status.json`
-- final source tag `v0.5.0` marks the frozen public research record
+- all 202 CDN manifest snapshots published in `full/` (`202 clean`, `0 partial`)
+- five formerly-partial snapshots recovered via `sqlite3 .recover` and re-exported
+- `unified/` rebuilt (`v0.4.2-unified`, 727M rows)
+- `v0.2/` binary-outcome model published on Hugging Face Models
+- queue metadata reconciled; source tag `v0.5.0` freezes the public record
 
 Optional research extensions, if anyone in the open-source community chooses to
 continue from this base, include:
@@ -500,14 +579,14 @@ continue from this base, include:
 - improved execution simulation
 - public benchmark leaderboard
 
-## 17. Open Source Release
+## 18. Open Source Release
 
 The public release includes:
 
 - GitHub repository: `github.com/gregyoung14/openmarket`
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
-- Hugging Face models: `gregyoung14/openmarket-models` (`v0.1/` public model
-  artifacts)
+- Hugging Face models: `gregyoung14/openmarket-models` (`v0.2/` walk-forward
+  logistic on unified step3; `v0.1/` historical)
 - mdBook documentation
 - Rust API documentation
 - Docker reproducibility
@@ -515,7 +594,7 @@ The public release includes:
 - contribution guide
 - GitHub issues labeled by contribution area
 
-## 18. References
+## 19. References
 
 Bibliography source: `paper/bibliography.bib` (BibTeX). Key references:
 

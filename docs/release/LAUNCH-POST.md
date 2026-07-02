@@ -5,7 +5,7 @@
 
 ## Show HN
 
-**Title:** Show HN: OpenMarket – high-frequency Binance/Polymarket data + Rust backtester (Apache 2.0)
+**Title:** Show HN: OpenMarket – high-frequency Binance/Polymarket archive + Rust backtester (Apache 2.0)
 
 **Body:**
 
@@ -14,13 +14,21 @@ I built and open-sourced a research platform for studying Polymarket's
 is reproducible prediction-market research — code, schemas, datasets,
 notebooks, and a systems paper all under Apache 2.0.
 
+Active data collection is over. The project is now a frozen public archive.
+
 What's in the release:
 
 - Rust workspace (10 crates) for Binance + Polymarket WebSocket collectors,
   multi-market recorder, lag-pair export, signal engine, paper executor,
   backtester, and shared types
-- Hugging Face dataset with a small (~204 KB) `sample/` split for CI and a
-  planned `full/` split covering ~45 GB of multi-snapshot Parquet
+- Hugging Face dataset with four public splits:
+  - `v0.1-sample` (~204 KB, 12 flat parquet at repo root) for CI and quickstarts
+  - `full/` — complete 202-snapshot CDN archive (3,312 parquet files)
+  - `unified/` — deduped research timeline (**722M rows**, recommended)
+  - `features/` — optional step2/step3 demo on HF; full features reproducible
+    from `unified/` via `scripts/ml/`
+- Public pretrained model artifacts at `gregyoung14/openmarket-models` (`v0.2/`
+  walk-forward logistic on unified step3; `v0.1/` historical)
 - Quickstart notebook that loads the sample, walks table schemas, and
   joins Binance trades with Polymarket ticks
 - A reproducible release pipeline (`scripts/hf/release_split.py`) and
@@ -32,14 +40,12 @@ covers drift, order-flow imbalance, Brier-score calibration, and several
 legacy ML baselines (XGBoost, LightGBM, stacked classifiers).
 
 This is research infrastructure, not a black-box bot. The full historical
-archive is multi-gigabyte and released incrementally through Hugging
-Face. The sample split is enough to run the pipeline end-to-end without
-downloading the full archive.
+archive is on Hugging Face. The sample split is enough to run the pipeline
+end-to-end without downloading the full archive.
 
-- Code: https://github.com/gregyoung14/openmarket (private during v0.1.0
-  beta, public at GA)
+- Code: https://github.com/gregyoung14/openmarket
 - Dataset: https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
-- Models: https://huggingface.co/gregyoung14/openmarket-models (scaffold only)
+- Models: https://huggingface.co/gregyoung14/openmarket-models
 - Paper: `paper/paper.md` in the repo
 
 Happy to discuss Polymarket microstructure, Rust async collector design,
@@ -76,22 +82,21 @@ millisecond-resolution tick and the on-chain settlement event.
   "lag")
 - A signal engine that combines drift estimation with calibration
 - A reproducible backtester and a paper-trade executor
-- Hugging Face dataset release with a tiny sample for CI and a multi-GB
-  full split for real research
-- A systems paper draft covering sync, feature engineering, calibration,
+- Hugging Face dataset release: `v0.1-sample` (flat parquet at repo root),
+  `full/` (202 snapshots), `unified/` (deduped timeline), and an optional
+  `features/` demo (reproduce from `unified/` with `scripts/ml/`)
+- A systems paper covering sync, feature engineering, calibration,
   and limitations
+- Public `v0.2/` model weights on Hugging Face Models (354k rows, 555 walk-forward windows)
 
 ### 3. What's deliberately not in the box
 
 - A live trading strategy that you can point at your own money. The
   execution engine is documented and the SDK calls are real, but I am
   not shipping a "run this and you will make money" configuration.
-- Pretrained models. The model card scaffolding exists on Hugging Face
-  but no v0.1 weights ship with the release. Training and evaluating
-  pretrained models on the full dataset is a follow-up.
-- The full historical archive as a single download. The archive is
-  ~46 GB compressed across 202 snapshots. We expose the inventory and
-  ship a sample; the rest comes through Hugging Face splits.
+- Ongoing data collection or model maintenance. The archive is frozen
+  at source tag `v0.5.0`.
+- A claim of deployable production trading alpha.
 
 ### 4. How to use it
 
@@ -109,12 +114,16 @@ python3 -m venv .venv
 That's enough to load the published sample split, walk table schemas,
 and compute a 1-minute Polymarket mid-price series.
 
+For research-scale work, download the unified split:
+
+```bash
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
+```
+
 ### 5. What I'd love feedback on
 
-- Schema: are the parquet partitions in `sample/` useful as-is, or do
+- Schema: are the parquet partitions in `unified/` useful as-is, or do
   researchers want a flat layout with a manifest?
-- Release cadence: should `full/` publish one snapshot per release, or
-  batch several?
 - HF dataset card: missing fields? Better way to surface "known
   limitations"?
 - Backtester API: is the existing CLI ergonomic for researchers who
