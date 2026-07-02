@@ -32,7 +32,7 @@ tower-http = { version = "0.6", features = ["cors", "trace"] }
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 
 # Crypto / signing (re-exported by polymarket-client-sdk, but we need some direct access)
-alloy = { version = "1.6", default-features = false, features = ["signer-local", "signers"] }
+alloy = { version = "2.1", default-features = false, features = ["signer-local", "signers"] }
 secrecy = { version = "0.10", features = ["serde"] }
 
 # Utilities
