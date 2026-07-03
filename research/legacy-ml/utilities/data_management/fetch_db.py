@@ -2,14 +2,12 @@ import sqlite3
 import boto3
 import os
 
-# AWS S3 credentials and bucket name
-# Note: These were provided in the user request.
-S3_CONFIG = {
-    'aws_access_key_id': 'AKIAQLBX53LSSJANLUQE',
-    'aws_secret_access_key': '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',
-    'region_name': 'eu-west-1'
-}
-BUCKET_NAME = 'polymarket-btc-scraper-data-2026'
+# AWS S3 configuration
+# Credentials must be supplied via environment variables (AWS_ACCESS_KEY_ID,
+# AWS_SECRET_ACCESS_KEY) or the default AWS credential chain (e.g. ~/.aws/credentials,
+# IAM role, etc.). They are intentionally not hardcoded here.
+S3_REGION = os.environ.get('AWS_DEFAULT_REGION', 'eu-west-1')
+BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'polymarket-btc-scraper-data-2026')
 DB_FILE_NAME = 'polymarket_btc_data.db'
 S3_KEY = 'raw/polymarket_btc_data.db'
 
@@ -24,7 +22,7 @@ def cleanup_local_db():
 
 def download_from_s3():
     print(f"Re-downloading {DB_FILE_NAME} from S3 bucket '{BUCKET_NAME}'...")
-    s3 = boto3.client('s3', **S3_CONFIG)
+    s3 = boto3.client('s3', region_name=S3_REGION)
     try:
         s3.download_file(BUCKET_NAME, S3_KEY, DB_FILE_NAME)
         print("Download complete.")

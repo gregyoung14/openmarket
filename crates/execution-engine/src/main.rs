@@ -907,7 +907,8 @@ mod tests {
 
     fn test_state() -> Arc<AppState> {
         let executor = order_executor::OrderExecutor::new(
-            "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+            // Placeholder: use a test-only private key here (e.g., Anvil default).
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
         )
         .expect("dummy private key should parse");
 
