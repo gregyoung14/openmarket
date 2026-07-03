@@ -1,0 +1,16 @@
+[Unit]
+Description=Storage Guardrails Check
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/openmarket/research/operational
+ExecStart=%h/openmarket/research/operational/scripts/monitoring/run_storage_guardrails.sh
+Environment=MONITOR_WARN_DB_GIB=2
+Environment=MONITOR_CRIT_DB_GIB=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,23 @@
+[Unit]
+Description=DB Backup v1.1.0 — 6h SQLite→BunnyCDN backup + aggressive prune (port 8007)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/openmarket/research/operational/rust-services/db-backup
+ExecStart=%h/openmarket/research/operational/rust-services/db-backup/target/release/db-backup
+Environment=RUST_LOG=db_backup=info
+Environment=DB_BACKUP_INTERVAL_SECS=21600
+Environment=DB_PRUNE_INTERVAL_SECS=21600
+Environment=DB_PRUNE_RETENTION_DAYS=0
+Environment=DB_PRUNE_REQUIRED_RECENT_BACKUP_MAX_AGE_SECS=43200
+Environment=DB_VACUUM_TEMP_DIRS=/var/lib/polymarket/db-vacuum-staging:/var/tmp/polymarket-db-maintenance:/tmp
+# BUNNY_CDN_ACCESS_KEY must be set in the environment or via an EnvironmentFile.
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

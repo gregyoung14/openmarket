@@ -26,9 +26,8 @@ cp sections/*.tex "$OUTDIR/sections/"
 # Only LaTeX-referenced data-driven matplotlib figures (pipeline diagrams are native TikZ)
 for fig in lead-lag-hist.pdf daily-volume.pdf dataset-scale.pdf \
   feature-correlation.pdf calibration-curve.pdf walk-forward-metrics.pdf \
-  ledger-hour-dow.pdf lag-hour-heatmap.pdf throughput-bench.pdf \
-  lead-lag-vs-disagreement.pdf lead-lag-by-regime.pdf spread-distribution.pdf \
-  forecast-benchmarks.pdf; do
+  throughput-bench.pdf lead-lag-vs-disagreement.pdf lead-lag-by-regime.pdf \
+  spread-distribution.pdf forecast-benchmarks.pdf; do
   [[ -f assets/figures/$fig ]] && cp "assets/figures/$fig" "$OUTDIR/assets/figures/"
 done
 

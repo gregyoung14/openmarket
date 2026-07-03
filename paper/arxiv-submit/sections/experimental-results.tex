@@ -152,37 +152,3 @@ and ablation in downstream ML work.
   \caption{Feature correlation heatmap (step-2, 100\,ms buckets).}
   \label{fig:feature-corr}
 \end{figure}
-
-\subsection{Temporal Heatmaps}
-\label{sec:exp-heatmaps}
-
-Figure~\ref{fig:lag-hour} summarizes median lead--lag by hour-of-day (UTC) on a
-500k-pair subsample of the unified \texttt{lag\_pairs\_ms} table.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.92\linewidth]{lag-hour-heatmap.pdf}
-  \caption{Median \texttt{lead\_lag\_ms} by UTC hour (uniform 500k-pair
-    subsample from the unified \texttt{lag\_pairs\_ms} table).}
-  \label{fig:lag-hour}
-\end{figure}
-
-Figure~\ref{fig:ledger-hour-dow} audits operational trade timing using
-aggregate-only ledger fields: inferred market timestamp, win/loss outcome, and
-actual-vs-paper source class. The generator deliberately ignores wallet
-addresses, transaction hashes, IPs, and raw execution metadata. When richer
-operational ledgers are present (for example \texttt{data/trade\_ledger.json}
-or paper-trade CSV/JSON logs), they are included automatically; otherwise the
-figure falls back to the non-empty legacy ledger checked into
-\texttt{research/legacy-ml/}.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.95\linewidth]{ledger-hour-dow.pdf}
-  \caption{Sanitized trade-ledger timing by ET hour and weekday. The plot shows
-    win rate and trade count aggregates only; no wallet addresses, transaction
-    hashes, IP addresses, or raw ledger rows are exported into the paper
-    artifacts.}
-  \label{fig:ledger-hour-dow}
-\end{figure}
-\FloatBarrier

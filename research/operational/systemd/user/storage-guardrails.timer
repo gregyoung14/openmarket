@@ -1,0 +1,13 @@
+[Unit]
+Description=Run Storage Guardrails Every 15 Minutes
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=15m
+RandomizedDelaySec=60s
+AccuracySec=60s
+Persistent=true
+Unit=storage-guardrails.service
+
+[Install]
+WantedBy=timers.target

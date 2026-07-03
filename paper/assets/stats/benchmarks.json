@@ -18,22 +18,10 @@
       "brier_min": 0.021265896860302617,
       "brier_median": 0.15235138061200199,
       "brier_max": 0.4705271501287466
-    },
-    "ledger_heatmap": {
-      "trades": 305,
-      "sources": [
-        "research/legacy-ml/strategies/v9_regime_filter/ledger.json"
-      ],
-      "actual_trades": 305,
-      "actual_dates": 2,
-      "actual_top_cell": 133
-    },
-    "lag_hour": {
-      "pairs": 500000
     }
   },
   "benchmarks": {
-    "generated_at": "2026-07-03T21:48:22.089923+00:00",
+    "generated_at": "2026-07-03T21:54:10.953830+00:00",
     "hardware": {
       "cpu": "Apple M5 Max",
       "ram_gb": 64,
@@ -43,13 +31,13 @@
     "hf_sample_download_s": 1.551,
     "hf_sample_load_s": 0.002,
     "hf_sample_rows": 9352,
-    "unified_metadata_scan_s": 0.058,
+    "unified_metadata_scan_s": 0.059,
     "unified_lag_load_s": 0.013,
     "unified_total_rows": 727098247,
     "unified_gib": 8.69,
     "feature_parquet_load": {
       "rows": 33349,
-      "seconds": 0.0051,
+      "seconds": 0.0052,
       "parts": 3
     },
     "backtest_staging_db": {

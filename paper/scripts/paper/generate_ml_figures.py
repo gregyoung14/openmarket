@@ -5,8 +5,6 @@ Reads local HF release artifacts and writes:
   - assets/figures/feature-correlation.pdf
   - assets/figures/calibration-curve.pdf
   - assets/figures/walk-forward-metrics.pdf
-  - assets/figures/ledger-hour-dow.pdf
-  - assets/figures/lag-hour-heatmap.pdf
   - assets/figures/throughput-bench.pdf
   - assets/stats/benchmarks.json
   - extends assets/stats/characterization.tex with bench + hardware macros
@@ -841,8 +839,6 @@ def main() -> int:
         "feature_correlation": plot_feature_correlation(FIG_DIR / "feature-correlation.pdf"),
         "calibration": plot_calibration_curve(FIG_DIR / "calibration-curve.pdf"),
         "walk_forward": plot_walk_forward(FIG_DIR / "walk-forward-metrics.pdf"),
-        "ledger_heatmap": plot_ledger_hour_dow(FIG_DIR / "ledger-hour-dow.pdf"),
-        "lag_hour": plot_lag_hour_heatmap(FIG_DIR / "lag-hour-heatmap.pdf"),
     }
     bench = run_throughput_benchmarks()
     plot_throughput(bench, FIG_DIR / "throughput-bench.pdf")
