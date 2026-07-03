@@ -219,6 +219,8 @@ def write_tex(stats: dict, path: Path) -> None:
         f"\\newcommand{{\\OpenMarketLagMedian}}{{{ll['median_ms']:.0f}}}",
         f"\\newcommand{{\\OpenMarketLagPFive}}{{{ll['p5_ms']:.0f}}}",
         f"\\newcommand{{\\OpenMarketLagPNinetyFive}}{{{ll['p95_ms']:.0f}}}",
+        f"\\newcommand{{\\OpenMarketUnifiedMetaScanSeconds}}{{{stats['scan_seconds']:.3f}}}",
+        f"\\newcommand{{\\OpenMarketLagPairsLoadSeconds}}{{{stats['lag_load_seconds']:.3f}}}",
         f"\\newcommand{{\\OpenMarketCollectionStart}}{{{m.get('collection_start', '2026-03-14')[:10]}}}",
         f"\\newcommand{{\\OpenMarketCollectionEnd}}{{{m.get('collection_end', '2026-07-01')[:10]}}}",
         f"\\newcommand{{\\OpenMarketRustLoc}}{{{stats.get('rust_loc', 17000):,}}}",

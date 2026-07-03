@@ -27,7 +27,7 @@
     }
   },
   "benchmarks": {
-    "generated_at": "2026-07-02T07:10:16.040373+00:00",
+    "generated_at": "2026-07-03T21:08:26.003680+00:00",
     "hardware": {
       "cpu": "Apple M5 Max",
       "ram_gb": 64,
@@ -37,18 +37,18 @@
     "hf_sample_download_s": 1.551,
     "hf_sample_load_s": 0.002,
     "hf_sample_rows": 9352,
-    "unified_metadata_scan_s": 0.059,
-    "unified_lag_load_s": 0.013,
+    "unified_metadata_scan_s": 0.127,
+    "unified_lag_load_s": 0.025,
     "unified_total_rows": 727098247,
     "unified_gib": 8.69,
     "feature_parquet_load": {
       "rows": 33349,
-      "seconds": 0.0052,
+      "seconds": 0.0063,
       "parts": 3
     },
     "backtest_staging_db": {
       "status": "ok",
-      "seconds": 0.08,
+      "seconds": 0.19,
       "markets": 89,
       "trades": 0,
       "db_mib": 37.1

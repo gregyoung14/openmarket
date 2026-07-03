@@ -1,151 +1,89 @@
+<div align="center">
+
 # OpenMarket
+
+**A public, synchronized, millisecond-resolution Polymarket–Binance BTC corpus and Rust research platform.**
 
 [![CI](https://github.com/gregyoung14/openmarket/actions/workflows/ci.yml/badge.svg)](https://github.com/gregyoung14/openmarket/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/gregyoung14/openmarket)](https://github.com/gregyoung14/openmarket/releases)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![Dataset](https://img.shields.io/badge/HF-dataset-yellow.svg)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
 [![Models](https://img.shields.io/badge/HF-models-yellow.svg)](https://huggingface.co/gregyoung14/openmarket-models)
 
-OpenMarket is an open-source Rust research platform for collecting,
-synchronizing, and backtesting high-frequency Polymarket prediction-market data
-against Binance BTC market data.
+[![Rows](https://img.shields.io/badge/rows-727M-blue)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
+[![Snapshots](https://img.shields.io/badge/snapshots-202-blue)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
+[![Pairs](https://img.shields.io/badge/lead--lag_pairs-2.94M-blue)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
+[![AUC](https://img.shields.io/badge/v0.2.1_AUC-0.838-success)](https://huggingface.co/gregyoung14/openmarket-models)
 
-The goal is reproducible prediction-market research, not a black-box trading
-bot. The repository contains code, schemas, documentation, examples, and release
-scripts. Large datasets and pretrained models are released separately through
-Hugging Face and GitHub Releases.
+</div>
 
-OpenMarket is now in archival shutdown. No new live data will be collected. The
-complete 202-snapshot CDN archive is published on Hugging Face; the project is
-frozen as a public research record.
+---
 
-## What This Project Provides
+OpenMarket is an open-source Rust research platform for collecting, synchronizing, and backtesting high-frequency Polymarket prediction-market data against Binance BTC/USDT.
 
-- Rust WebSocket collectors for Binance BTC/USDT trades and Polymarket CLOB
-  order book events
-- A market data recorder that stores millisecond-resolution ticks, market
-  metadata, and Binance/Polymarket lead-lag pairs
-- A reproducible backtesting engine for BTC 15-minute binary markets
-- Strategy research modules covering drift, order-flow imbalance, scoreboard,
-  whipsaw, volume gates, calibration, and Brier-score monitoring
-- Legacy Python/ML research archive for XGBoost, LightGBM, SHAP, and stacked
-  classifiers
-- Dataset download scripts, schemas, and a Hugging Face release plan
-- A systems-paper draft describing architecture, synchronization, data quality,
-  feature engineering, reproducibility, and limitations
+The goal is **reproducible prediction-market research**, not a black-box trading bot. The repository contains collectors, a recorder, exporters, trainers, backtesters, schemas, documentation, and release scripts. Large datasets and pretrained models are released separately through Hugging Face.
 
-## Repository Layout
+> **Archive status:** OpenMarket is in archival shutdown. The complete 202-snapshot CDN archive is published on Hugging Face and the project is frozen as a public research record at source tag `v0.5.1`.
 
-```text
-openmarket/
-├── crates/
-│   ├── common/                # Shared Rust constants and types
-│   ├── exchange-binance/      # Binance BTC WebSocket collector
-│   ├── exchange-polymarket/   # Polymarket CLOB WebSocket collector
-│   ├── recorder/              # Multi-market recorder and lag-pair exporter
-│   ├── signal-engine/         # Real-time signal service
-│   ├── execution-engine/      # Optional live/paper execution service
-│   ├── paper-executor/        # Paper trading executor
-│   ├── backtester/            # Reproducible historical backtester
-│   ├── data-prep/             # Data conversion and preparation utilities
-│   └── dataset-downloader/    # Snapshot downloader utilities
-├── datasets/                  # Dataset cards, schemas, download scripts
-├── docs/                      # Architecture, data, ML, release docs
-├── examples/                  # Minimal reproducible examples
-├── configs/                   # Safe example configs
-├── docker/                    # Reproducible local runtime
-├── benchmarks/                # Benchmark plans and harnesses
-├── research/                  # Strategy evolution and legacy ML archive
-├── paper/                     # Systems-paper draft
-└── scripts/                   # Repo automation and release scripts
-```
+## At a glance
+
+| | |
+|---|---:|
+| **Collection span** | 109 days (2026-03-14 → 2026-07-01) |
+| **Operator snapshots** | 202 SQLite snapshots (46 GB compressed) |
+| **Unified corpus** | 727,098,247 rows / 8.7 GiB Parquet |
+| **Cross-venue pairs** | 2,936,031 explicit `lag_pairs_ms` |
+| **Median lead–lag** | 16 ms (5th/95th: −185 / +315 ms) |
+| **Polymarket ticks** | 605,608,370 |
+| **Binance trades** | 62,258,815 |
+| **Markets tracked** | 4,450 (2,251 with sufficient data for modeling) |
+| **Rust workspace** | 17,823 LOC |
+
+## Why this matters
+
+Polymarket's short-horizon BTC binary markets combine prediction-market forecasting with crypto-native CLOB microstructure. Empirical work documents tick-level Polymarket dynamics and combinatorial arbitrage, but a **public, cross-venue, millisecond-resolution corpus paired with Binance BTC/USDT** has been missing.
+
+OpenMarket closes that gap by publishing:
+
+1. **Corpus** — a frozen Hugging Face archive with raw per-snapshot exports and a deduped unified timeline.
+2. **Methods** — documented source-vs.-ingest synchronization, Parquet-native export, walk-forward calibration, and validation harnesses.
+3. **Baselines** — stylized facts and forecast benchmarks on the released corpus.
+
+> **Transparency:** the published `v0.2.1` model shows calibration and ranking skill, but simulated economics under stated fees and slippage are negative. This is a data-and-methods release, not a claim of deployable trading alpha.
 
 ## Architecture
 
-```text
-          Binance WS
-              |
-              v
-      Tick Stream Collector
-              |
-              v
-      Timestamp Synchronizer <----- Polymarket WS
-              |                          |
-              |                          v
-              |                  Order Book Collector
-              v
-       Feature Generator
-              |
-              v
-          ML / Signal
-              |
-              v
-          Backtester
-              |
-              v
-          Evaluation
+```mermaid
+flowchart LR
+    BW[Binance BTC/USDT<br/>WebSocket] --> BTC[Tick Stream Collector]
+    PW[Polymarket CLOB<br/>WebSocket] --> PMC[Order Book Collector]
+    BTC --> SYNC[Timestamp Synchronizer]
+    PMC --> SYNC
+    SYNC --> FEAT[Feature Generator]
+    FEAT --> ML[ML / Signal Engine]
+    ML --> BT[Backtester]
+    BT --> EVAL[Evaluation & Calibration]
 ```
 
-## Quick Start
+The codebase is a Rust workspace spanning exchange collectors, a multi-market recorder with lag-pairing export, signal and execution engines, backtesting, and Parquet-native ML crates.
 
-Clone and build the workspace:
+## Dataset
 
-```bash
-git clone https://github.com/gregyoung14/openmarket.git
-cd openmarket
-cargo check --workspace
-```
+Live on Hugging Face: [`gregyoung14/openmarket-btc-polymarket`](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
 
-Load the published HF sample split (~204 KB, no large download):
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install -r scripts/datasets/requirements.txt -r scripts/hf/requirements.txt
-.venv/bin/python scripts/hf/validate_sample_split.py      # round-trip the sample
-.venv/bin/python scripts/hf/benchmark_baseline.py         # record metrics
-.venv/bin/pip install jupyter pandas matplotlib
-.venv/bin/jupyter nbconvert --to notebook --execute notebooks/quickstart.ipynb
-```
-
-Run a backtest:
-
-```bash
-cargo run -p v15_brier_calibration --release -- --db-path data/openmarket.db
-```
-
-Run the local service stack (collector + recorder + dashboards):
-
-```bash
-cp configs/openmarket.example.env .env
-docker compose -f docker/docker-compose.yml up
-```
-
-Download the unified research dataset (recommended):
-
-```bash
-.venv/bin/python datasets/download.py --split unified --out data/hf_cache
-```
-
-Legacy operator CDN snapshots (migration only):
-
-```bash
-python3 datasets/download.py --legacy-cdn sample --out data/openmarket.db
-```
-
-## Datasets
-
-Live on Hugging Face ([gregyoung14/openmarket-btc-polymarket](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)):
-
-| Split | Version | Use |
+| Split | Version | Purpose |
 |---|---|---|
-| `unified/` | v0.4.3-unified | **Recommended** — deduped timeline from complete archive |
-| `features/` | v0.4-features | Optional demo on HF; reproduce step2/step3 from `unified/` via `scripts/ml/` |
-| `full/` | v0.2-full | Complete 202-snapshot per-export archive (3,312 parquet files) |
-| (repo root) | v0.1-sample | CI, quickstarts — 12 flat parquet, 9,352 rows |
+| `unified/` | `v0.4.3-unified` | **Recommended** — deduped research timeline (727M rows, 504 parquet files) |
+| `full/` | `v0.2-full` | Complete 202-snapshot per-export archive (3,312 parquet files) |
+| `features/` | `v0.4-features` | Optional one-snapshot demo; full step2/step3 reproducible from `unified/` |
+| (repo root) | `v0.1-sample` | CI and quickstarts — 12 flat parquet files, 9,352 rows |
 
 ```text
 *.parquet                    # v0.1-sample (flat at repo root)
-unified/                     # deduped research timeline (v0.4+)
-full/                        # per-snapshot exports, 202 snapshots (v0.2+)
+unified/                     # deduped research timeline (v0.4.3-unified)
+full/                        # per-snapshot exports, 202 snapshots (v0.2-full)
+features/                    # optional ML feature exports (v0.4-features)
 metadata/
   snapshot_manifest.json     # full archive inventory (CDN URLs redacted)
   merge_quality_report.json  # unified dedupe stats
@@ -153,41 +91,142 @@ metadata/
 README.md
 ```
 
-See [datasets/README.md](datasets/README.md) and
-[docs/data/dataset-release.md](docs/data/dataset-release.md).
+**Dedupe:** 916M input rows across overlapping `full/` exports → 727M output rows (~21% duplicates removed). Each `full/` snapshot is a point-in-time recorder checkpoint published for reproducibility and recovery, not an append-only delta.
 
-Archival status:
+See [`datasets/README.md`](datasets/README.md) and [`docs/data/dataset-release.md`](docs/data/dataset-release.md) for schema and download details.
 
-- 202 SQLite snapshots inventoried in the redacted manifest; all 202 published
-  in `full/` (`202 clean`, `0 partial` table exports).
-- `unified/` (`v0.4.3-unified`) deduped from the complete `full/` tree — 727M
-  rows (all partials recovered).
-- See `docs/release/PROJECT-STATUS.md` for queue metadata and closeout notes.
+## Microstructure findings
 
-## Models
+Key stylized facts from the released corpus:
 
-Pretrained model artifacts are not committed to Git. They live in:
+- **Compact median lag.** Polymarket order-book events trail Binance by a median of **16 ms**, with heavy tails (5th/95th: −185 / +315 ms).
+- **Lag is disagreement-invariant.** Median lead–lag is stable (16–19 ms) across `|price_delta_bps|` quintiles; magnitude does not predict contemporaneous price disagreement.
+- **Tight spreads.** Top-of-book spreads concentrate at one tick wide (median ≈ 0.01; 95th ≈ 0.02), so mid-price backtests can overstate executable edge.
 
-- [gregyoung14/openmarket-models](https://huggingface.co/gregyoung14/openmarket-models)
-  — public `v0.2.1/` model artifacts (recommended; trained on unified Parquet
-  step3 features). `v0.1/` remains for historical comparison.
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src=".github/images/readme/dataset-scale.png" width="420"/><br/><sub>Core table row counts in the unified split</sub></td>
+      <td align="center"><img src=".github/images/readme/lead-lag-hist.png" width="420"/><br/><sub>Distribution of lead–lag across all pairs</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><img src=".github/images/readme/spread-distribution.png" width="420"/><br/><sub>Top-of-book spread stylized facts</sub></td>
+      <td align="center"><img src=".github/images/readme/lag-hour-heatmap.png" width="420"/><br/><sub>Median lead–lag by hour and day of week</sub></td>
+    </tr>
+  </table>
+</div>
 
-The repository keeps model metadata, feature schemas, training code, and release
-manifests.
+## Machine learning
 
-## Benchmarks
+Live model artifacts: [`gregyoung14/openmarket-models`](https://huggingface.co/gregyoung14/openmarket-models)
 
-Planned benchmark categories:
+The recommended release is `v0.2.1/` — a calibrated binary-outcome model trained on `v0.4.3-unified` step3 features via the Rust pipeline.
 
-- WebSocket message throughput
-- Tick normalization latency
-- Lead-lag pairing throughput
-- Feature generation speed
-- Backtest wall-clock time
-- Inference latency
-- Memory and CPU usage
+| | |
+|---|---:|
+| **Rows** | 357,390 |
+| **Markets** | 2,251 / 4,450 (51%) |
+| **Features** | 43 |
+| **Walk-forward windows** | 559 |
+| **AUC-ROC (calibrated OOS)** | 0.838 |
+| **Brier** | 0.165 |
+| **ECE** | 0.025 |
+| **Simulated +EV trades** | 260,617 |
+| **Simulated PnL / trade** | −0.117 |
 
-See [benchmarks/README.md](benchmarks/README.md).
+**Training pipeline (Rust):**
+
+```text
+unified/ Parquet → export_step3_from_parquet → step3 CSV
+                → train_binary_outcome_model → HF model artifact
+```
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src=".github/images/readme/calibration-curve.png" width="420"/><br/><sub>Walk-forward calibration curve</sub></td>
+      <td align="center"><img src=".github/images/readme/forecast-benchmarks.png" width="420"/><br/><sub>Forecast benchmark comparison</sub></td>
+    </tr>
+    <tr>
+      <td align="center" colspan="2"><img src=".github/images/readme/walk-forward-metrics.png" width="860"/><br/><sub>Walk-forward window metrics across 559 expanding-horizon splits</sub></td>
+    </tr>
+  </table>
+</div>
+
+## Quick start
+
+Clone and verify the Rust workspace:
+
+```bash
+git clone https://github.com/gregyoung14/openmarket.git
+cd openmarket
+cargo check --workspace
+```
+
+Validate the published HF sample split (~204 KB, no large download):
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r scripts/datasets/requirements.txt -r scripts/hf/requirements.txt
+.venv/bin/python scripts/hf/validate_sample_split.py
+.venv/bin/python scripts/hf/benchmark_baseline.py
+```
+
+Download the unified research dataset:
+
+```bash
+.venv/bin/python datasets/download.py --split unified --out data/hf_cache
+```
+
+Reproduce the published model:
+
+```bash
+cargo build -p step3-parquet-export -p binary-outcome-trainer --release
+./target/release/export_step3_from_parquet \
+  --parquet-root data/hf_release/unified_parquet \
+  --out-dir data/hf_release/features_exports
+./target/release/train_binary_outcome_model \
+  --input data/hf_release/features_exports/step3_binary_calibration_<ts>.csv \
+  --artifact-dir data/ml_artifacts
+```
+
+Run a strategy backtest:
+
+```bash
+python3 datasets/download.py --legacy-cdn sample --out data/openmarket.db
+cargo run -p v15_brier_calibration --release -- --db-path data/openmarket.db
+```
+
+See [`docs/reproducibility.md`](docs/reproducibility.md) for the full reproduction guide.
+
+## Repository layout
+
+```text
+openmarket/
+├── crates/                  # Rust workspace
+│   ├── common/              # Shared constants and types
+│   ├── exchange-binance/    # Binance BTC/USDT WebSocket collector
+│   ├── exchange-polymarket/ # Polymarket CLOB WebSocket collector
+│   ├── recorder/            # Multi-market recorder and lag-pair exporter
+│   ├── signal-engine/       # Real-time signal service
+│   ├── execution-engine/    # Optional live/paper execution service
+│   ├── paper-executor/      # Paper trading executor
+│   ├── backtester/          # Reproducible historical backtester
+│   ├── data-prep/           # Data conversion utilities
+│   ├── dataset-downloader/  # Snapshot downloader utilities
+│   ├── step3-parquet-export/# Step3 feature exporter from unified Parquet
+│   └── binary-outcome-trainer/# Walk-forward logistic + Platt trainer
+├── datasets/                # Dataset cards, schemas, download scripts
+├── docs/                    # Architecture, data, ML, release docs
+├── examples/                # Minimal reproducible examples
+├── configs/                 # Safe example configs
+├── docker/                  # Reproducible local runtime
+├── benchmarks/              # Benchmark plans and harnesses
+├── research/                # Strategy evolution and legacy ML archive
+├── paper/                   # Systems-paper draft (LaTeX + markdown)
+├── notebooks/               # Jupyter quickstart
+└── scripts/                 # Repo automation and release scripts
+```
 
 ## Documentation
 
@@ -197,19 +236,17 @@ See [benchmarks/README.md](benchmarks/README.md).
 - [ML pipeline](docs/ml/pipeline.md)
 - [Reproducibility](docs/reproducibility.md)
 - [Release process](docs/release/releases.md)
+- [Project status](docs/release/PROJECT-STATUS.md)
 - [Systems paper](paper/paper.md)
 
-## How to Cite
+## Citation
 
-See [CITATION.md](CITATION.md) for BibTeX entries (dataset, software, models).
-Cite **dataset version** (`v0.4.3-unified`) and **source tag** (`v0.5.1`) in papers.
+See [`CITATION.md`](CITATION.md) for BibTeX entries. In text:
 
-**Repository visibility:** GitHub source is **private** during pre-launch. Hugging
-Face dataset and model repos are public.
+> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag `v0.5.1`) [OpenMarket Contributors, 2026].
+
+**Repository visibility:** GitHub source is currently **private** during pre-launch. The Hugging Face dataset and model repos are public.
 
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
-
-This license permits commercial use, modification, and redistribution while
-preserving attribution and patent protections.

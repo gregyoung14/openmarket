@@ -53,7 +53,10 @@ input rows $\rightarrow$ \OpenMarketTotalRows{} output rows).
 \end{figure}
 
 The first five rows are the core event and metadata tables; derived candle
-tables account for the remaining 498{,}525 rows in the headline total.
+tables account for the remaining 498{,}525 rows in the headline total. Counts
+and part numbers are tied to the frozen \texttt{v0.4.3-unified} manifest after
+recovery and final deduplication; earlier draft tables generated from
+pre-recovery subsets are not directly comparable.
 
 Export quality: all \OpenMarketSnapshots{} snapshots are \texttt{published-clean}
 after sqlite3 recovery of formerly-partial exports; per-snapshot export reports
@@ -98,7 +101,10 @@ Table~\ref{tab:repro-bench} and Figure~\ref{fig:throughput-bench} report
 environment-specific measurements on the publication workstation
 (\OpenMarketHardware{}; \OpenMarketRustVersion{}). No \texttt{cargo bench}
 targets ship in the workspace yet; we time end-to-end I/O and the release
-backtester binary instead.
+backtester binary instead. Unified metadata and \texttt{lag\_pairs\_ms} timings
+are local filesystem measurements from the same \texttt{analyze\_unified.py}
+run used to generate Figure~\ref{fig:throughput-bench}, not cold-download
+benchmarks.
 
 \begin{table}[t]
   \centering
@@ -112,8 +118,8 @@ backtester binary instead.
     Hardware & \OpenMarketHardware{} \\
     HF sample download + scan & 1.55\,s / 9,352 rows \\
     HF sample Parquet load & \OpenMarketBenchHfLoad{}~s \\
-    Unified Parquet metadata scan & \OpenMarketUnifiedGiB{}~GiB, 0.54\,s \\
-    Unified \texttt{lag\_pairs\_ms} load & \OpenMarketLagPairs{} rows, 0.12\,s \\
+    Unified Parquet metadata scan & \OpenMarketUnifiedGiB{}~GiB, \OpenMarketUnifiedMetaScanSeconds{}\,s \\
+    Unified \texttt{lag\_pairs\_ms} load & \OpenMarketLagPairs{} rows, \OpenMarketLagPairsLoadSeconds{}\,s \\
     Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (245 rows) \\
     \texttt{v15\_brier\_calibration} (staging DB) & \OpenMarketBenchBacktest{}~s / \OpenMarketBenchBacktestMarkets{} markets \\
     Rust workspace (crates/) & \OpenMarketRustLoc{} non-blank lines \\

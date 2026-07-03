@@ -10,7 +10,7 @@ We release OpenMarket, to our knowledge the first public synchronized
 high-frequency corpus pairing Polymarket BTC 15-minute binary markets with
 Binance BTC/USDT. The release combines a frozen Hugging Face archive with a
 reproducible Rust pipeline for collection, millisecond pairing, Parquet export,
-and walk-forward calibration. The archive (tag `v0.5.1`) spans 109 days, 727.1M
+and walk-forward calibration. The archive (tag `v0.5.0`) spans 109 days, 727.1M
 deduplicated events across 202 snapshots, and 2.94M explicit lead–lag pairs.
 Initial analyses establish Polymarket stylized facts (median one-tick spreads),
 characterize heavy-tailed cross-venue timing with a compact 16 ms median lag,
@@ -45,7 +45,7 @@ We do **not** claim persistent trading profitability. Simulated economics under
 stated fees and slippage are negative for the published scorer. The goal is to
 enable the community to study *how* external spot prices and Polymarket books
 interact at high frequency. OpenMarket is frozen as a public research archive
-(source tag `v0.5.1`); active collection has ended.
+(source tag `v0.5.0`); active collection has ended.
 
 ## 2. Related Work
 
@@ -387,7 +387,9 @@ metadata reports `202 published-clean`, `0 partial`, `0 corrupt`.
 
 **Unified dedupe:** 916M input rows across overlapping `full/` exports → 727M
 output rows (~21% duplicates removed). Produced by
-`scripts/datasets/merge_partitions.py`.
+`scripts/datasets/merge_partitions.py`. The overlap is expected: each `full/`
+snapshot is a point-in-time recorder checkpoint published for reproducibility
+and recovery, not an append-only delta.
 
 All splits are validated via `scripts/hf/validate_sample_split.py`. Empirical
 statistics in Section 16 / `experimental-results` are regenerated from on-disk
@@ -570,6 +572,9 @@ Regenerate stats: `paper/scripts/paper/analyze_unified.py` →
 | **Total (11 tables)** | **727,098,247** |
 
 On-disk size: 8.7 GiB. Collection span: 109 days (202 snapshots).
+Counts and part numbers are tied to the frozen `v0.4.3-unified` manifest after
+recovery and final deduplication; earlier draft tables generated from
+pre-recovery subsets are not directly comparable.
 
 **Lead–lag (`lag_pairs_ms`):** median 16 ms; 5th/95th percentiles -185 / +315 ms.
 
@@ -628,7 +633,7 @@ and WebSocket gaps are documented; top-of-book backtests are not executable PnL
 without explicit queue and fee models.
 
 **Ethics / availability.** Public market data only (no user identities). Apache
-2.0 code; cite dataset version and tag `v0.5.1` (see `CITATION.md`).
+2.0 code; cite dataset version and tag `v0.5.0` (see `CITATION.md`).
 
 **Funding / competing interests.** Independent open-source release; no external
 funding or competing interests are declared.
@@ -656,7 +661,7 @@ completed on 2026-07-01:
 - five formerly-partial snapshots recovered via `sqlite3 .recover` and re-exported
 - `unified/` rebuilt (`v0.4.3-unified`, 727M rows)
 - `v0.2.1/` binary-outcome model published on Hugging Face Models
-- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.1` on private GitHub
+- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.0` on private GitHub
 
 Optional research extensions, if anyone in the open-source community chooses to
 continue from this base, include:
