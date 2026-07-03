@@ -120,7 +120,7 @@ benchmarks.
     HF sample Parquet load & \OpenMarketBenchHfLoad{}~s \\
     Unified Parquet metadata scan & \OpenMarketUnifiedGiB{}~GiB, \OpenMarketUnifiedMetaScanSeconds{}\,s \\
     Unified \texttt{lag\_pairs\_ms} load & \OpenMarketLagPairs{} rows, \OpenMarketLagPairsLoadSeconds{}\,s \\
-    Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (245 rows) \\
+    Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (\OpenMarketBenchFeatRows{} rows, \OpenMarketBenchFeatParts{} parts) \\
     \texttt{v15\_brier\_calibration} (staging DB) & \OpenMarketBenchBacktest{}~s / \OpenMarketBenchBacktestMarkets{} markets \\
     Rust workspace (crates/) & \OpenMarketRustLoc{} non-blank lines \\
     \bottomrule
@@ -140,9 +140,11 @@ benchmarks.
 
 Figure~\ref{fig:feature-corr} summarizes pairwise Pearson correlations among
 100\,ms step-2 features exported from a staging snapshot
-(\texttt{features\_parquet/step2\_100ms/}, 245 rows, 44 numeric columns).
-Highly correlated blocks (returns, realized vol, volume) motivate regularized
-training and ablation in downstream ML work.
+(\texttt{features\_parquet/step2\_100ms/}). The heatmap is computed from
+\OpenMarketFeatureCorrRows{} rows after dropping near-constant columns and
+plotting \OpenMarketFeatureCorrFeatures{} selected numeric features. Highly
+correlated blocks (returns, realized vol, volume) motivate regularized training
+and ablation in downstream ML work.
 
 \begin{figure}[t]
   \centering
@@ -156,21 +158,28 @@ training and ablation in downstream ML work.
 
 Figure~\ref{fig:lag-hour} summarizes median lead--lag by hour-of-day (UTC) on a
 500k-pair subsample of the unified \texttt{lag\_pairs\_ms} table.
-Figure~\ref{fig:ledger-hour-dow} maps live ledger trades (legacy v9 regime
-strategy) to hour $\times$ day-of-week win rate and count---illustrating how
-archival analysis scripts and production logs complement the HF release.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\linewidth]{lag-hour-heatmap.pdf}
-  \caption{Median \texttt{lead\_lag\_ms} by hour (unified split subsample).}
+  \caption{Median \texttt{lead\_lag\_ms} by UTC hour (uniform 500k-pair
+    subsample from the unified \texttt{lag\_pairs\_ms} table).}
   \label{fig:lag-hour}
 \end{figure}
+
+\FloatBarrier
+Figure~\ref{fig:ledger-hour-dow} is a legacy live-ledger diagnostic, not a
+representative hour-of-week result: the available v9 regime ledger contains 305
+trades on only two inferred market dates, with 133 trades concentrated in the
+Tuesday 09:00 ET bucket. We include it only to show how production logs can be
+audited alongside the archival HF release.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.95\linewidth]{ledger-hour-dow.pdf}
-  \caption{Hour $\times$ day-of-week heatmaps from the live trade ledger
-    (\texttt{research/legacy-ml/}).}
+  \caption{Legacy live-ledger diagnostic by inferred market date and ET hour
+    (\texttt{research/legacy-ml/}). Coverage is limited to two dates and is not
+    a representative temporal microstructure sample.}
   \label{fig:ledger-hour-dow}
 \end{figure}
+\FloatBarrier

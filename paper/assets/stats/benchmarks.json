@@ -20,14 +20,16 @@
       "brier_max": 0.4705271501287466
     },
     "ledger_heatmap": {
-      "trades": 305
+      "trades": 305,
+      "dates": 2,
+      "top_cell_count": 133
     },
     "lag_hour": {
-      "pairs": 1620579
+      "pairs": 500000
     }
   },
   "benchmarks": {
-    "generated_at": "2026-07-03T21:08:26.003680+00:00",
+    "generated_at": "2026-07-03T21:31:57.009019+00:00",
     "hardware": {
       "cpu": "Apple M5 Max",
       "ram_gb": 64,
@@ -37,18 +39,18 @@
     "hf_sample_download_s": 1.551,
     "hf_sample_load_s": 0.002,
     "hf_sample_rows": 9352,
-    "unified_metadata_scan_s": 0.127,
-    "unified_lag_load_s": 0.025,
+    "unified_metadata_scan_s": 0.058,
+    "unified_lag_load_s": 0.014,
     "unified_total_rows": 727098247,
     "unified_gib": 8.69,
     "feature_parquet_load": {
       "rows": 33349,
-      "seconds": 0.0063,
+      "seconds": 0.0052,
       "parts": 3
     },
     "backtest_staging_db": {
       "status": "ok",
-      "seconds": 0.19,
+      "seconds": 0.08,
       "markets": 89,
       "trades": 0,
       "db_mib": 37.1

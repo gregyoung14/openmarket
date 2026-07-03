@@ -248,13 +248,34 @@ def plot_calibration_curve(out: Path) -> dict:
     bins, ece = calibration_bins(y, p)
 
     fig, ax = plt.subplots(figsize=(5.5, 3.8))
-    xs = [(b["bin"] + 0.5) / 10 for b in bins if b["count"] > 0]
-    pred = [b["pred_mean"] for b in bins if b["count"] > 0]
-    real = [b["realized"] for b in bins if b["count"] > 0]
-    ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="perfect calibration")
-    ax.scatter(pred, real, s=[max(20, b["count"]) for b in bins if b["count"] > 0],
-               c="#4f46e5", alpha=0.85, edgecolors="white", linewidth=0.5, zorder=3)
-    ax.plot(pred, real, color="#ea580c", linewidth=1.2, marker="o", markersize=4, label="bins")
+    nonempty = [b for b in bins if b["count"] > 0]
+    pred = [b["pred_mean"] for b in nonempty]
+    real = [b["realized"] for b in nonempty]
+    counts = [b["count"] for b in nonempty]
+    ax.plot([0, 1], [0, 1], "k--", linewidth=1.1, label="perfect calibration", zorder=1)
+    ax.plot(
+        pred,
+        real,
+        color="#ea580c",
+        linewidth=1.4,
+        marker="o",
+        markersize=5,
+        markerfacecolor="#ea580c",
+        markeredgecolor="white",
+        markeredgewidth=0.7,
+        label="bins",
+        zorder=3,
+    )
+    for x, y_obs, count in zip(pred, real, counts):
+        ax.annotate(
+            f"{count/1000:.0f}k",
+            (x, y_obs),
+            textcoords="offset points",
+            xytext=(0, 6),
+            ha="center",
+            fontsize=6,
+            color="#475569",
+        )
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_xlabel("mean predicted P(up)")
@@ -364,42 +385,61 @@ def plot_ledger_hour_dow(out: Path) -> dict:
         if not m:
             continue
         ts = datetime.fromtimestamp(int(m.group(1)), tz=timezone.utc) + et
-        records.append((ts.hour, ts.weekday(), 1 if row.get("won") else 0))
+        records.append((ts.date().isoformat(), ts.hour, 1 if row.get("won") else 0))
 
     if not records:
         return {"trades": 0}
 
-    hours = list(range(24))
-    dows = list(range(7))
-    dow_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    wr = np.full((7, 24), np.nan)
-    cnt = np.zeros((7, 24))
-    for hour, dow, won in records:
-        cnt[dow, hour] += 1
-        if math.isnan(wr[dow, hour]):
-            wr[dow, hour] = won
-        else:
-            wr[dow, hour] = (wr[dow, hour] * (cnt[dow, hour] - 1) + won) / cnt[dow, hour]
+    dates = sorted({d for d, _, _ in records})
+    date_idx = {d: i for i, d in enumerate(dates)}
+    wr = np.full((len(dates), 24), np.nan)
+    cnt = np.zeros((len(dates), 24))
+    wins = np.zeros((len(dates), 24))
+    for date, hour, won in records:
+        i = date_idx[date]
+        cnt[i, hour] += 1
+        wins[i, hour] += won
+        if cnt[i, hour]:
+            wr[i, hour] = wins[i, hour] / cnt[i, hour]
 
-    fig, axes = plt.subplots(1, 2, figsize=(10.0, 3.6))
+    top_i, top_h = np.unravel_index(np.argmax(cnt), cnt.shape)
+    top_count = int(cnt[top_i, top_h])
+    top_date = dates[top_i]
+
+    fig_h = max(2.4, 0.75 * len(dates) + 1.6)
+    fig, axes = plt.subplots(1, 2, figsize=(10.0, fig_h))
     im0 = axes[0].imshow(wr * 100, aspect="auto", cmap="RdYlGn", vmin=0, vmax=100)
-    axes[0].set_title("Live Ledger Win Rate (%)")
-    axes[0].set_yticks(range(7))
-    axes[0].set_yticklabels(dow_names, fontsize=8)
+    axes[0].set_title("Win Rate (%)")
+    axes[0].set_yticks(range(len(dates)))
+    axes[0].set_yticklabels(dates, fontsize=8)
     axes[0].set_xticks(range(0, 24, 3))
+    axes[0].set_xlabel("hour of day (ET, inferred from market slug)")
     fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
 
-    im1 = axes[1].imshow(cnt, aspect="auto", cmap="Blues")
+    im1 = axes[1].imshow(cnt, aspect="auto", cmap="Blues", vmin=0)
     axes[1].set_title("Trade Count")
-    axes[1].set_yticks(range(7))
-    axes[1].set_yticklabels(dow_names, fontsize=8)
+    axes[1].set_yticks(range(len(dates)))
+    axes[1].set_yticklabels(dates, fontsize=8)
     axes[1].set_xticks(range(0, 24, 3))
+    axes[1].set_xlabel("hour of day (ET, inferred from market slug)")
     fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
-    fig.suptitle(f"Hour × Day-of-Week (n={len(records)} live trades)", fontsize=10, y=1.02)
+
+    for i in range(cnt.shape[0]):
+        for h in range(cnt.shape[1]):
+            if cnt[i, h] >= 5:
+                axes[1].text(h, i, f"{int(cnt[i, h])}", ha="center", va="center",
+                             fontsize=6, color="white" if cnt[i, h] > top_count * 0.45 else "#0f172a")
+
+    fig.suptitle(
+        f"Legacy Live Ledger Diagnostic ({len(dates)} dates, n={len(records)} trades; "
+        f"top cell {top_date} {top_h:02d}:00 = {top_count})",
+        fontsize=10,
+        y=1.02,
+    )
     fig.tight_layout()
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
-    return {"trades": len(records)}
+    return {"trades": len(records), "dates": len(dates), "top_cell_count": top_count}
 
 
 def plot_lag_hour_heatmap(out: Path, max_rows: int = 500_000) -> dict:
@@ -407,7 +447,6 @@ def plot_lag_hour_heatmap(out: Path, max_rows: int = 500_000) -> dict:
         return {"pairs": 0}
     chunks_p: list[np.ndarray] = []
     chunks_h: list[np.ndarray] = []
-    total = 0
     for pq_path in sorted(UNIFIED_LAG.rglob("*.parquet")):
         pf = pq.ParquetFile(pq_path)
         table = pf.read(columns=["lead_lag_ms", "polymarket_source_ts_ms"])
@@ -419,13 +458,15 @@ def plot_lag_hour_heatmap(out: Path, max_rows: int = 500_000) -> dict:
         hours = ((ts // 1000) % 86400) // 3600
         chunks_p.append(lag.astype(np.float64))
         chunks_h.append(hours.astype(np.int32))
-        total += len(lag)
-        if total >= max_rows:
-            break
     if not chunks_p:
         return {"pairs": 0}
     lag_all = np.concatenate(chunks_p)
     hour_all = np.concatenate(chunks_h)
+    if len(lag_all) > max_rows:
+        rng = np.random.default_rng(42)
+        idx = rng.choice(len(lag_all), size=max_rows, replace=False)
+        lag_all = lag_all[idx]
+        hour_all = hour_all[idx]
 
     medians = np.full(24, np.nan)
     counts = np.zeros(24)
@@ -441,6 +482,8 @@ def plot_lag_hour_heatmap(out: Path, max_rows: int = 500_000) -> dict:
     ax.set_xlabel("hour of day (UTC, from polymarket_source_ts_ms)")
     ax.set_ylabel("median lead_lag_ms")
     ax.set_title(f"Lead--Lag by Hour (sample n={len(lag_all):,})")
+    ax.set_xticks(range(0, 24, 2))
+    ax.set_xlim(-0.5, 23.5)
     ax.bar_label(bars, labels=[f"{v:.0f}" if not math.isnan(v) else "" for v in medians],
                 fontsize=6, padding=2)
     ax.spines[["top", "right"]].set_visible(False)
