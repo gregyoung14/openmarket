@@ -1,0 +1,12 @@
+# Operational build artifacts and generated files
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info
+*.so
+*.dylib
+*.dll
+/target/
+Cargo.lock
+version.json
+signal-engine

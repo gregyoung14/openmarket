@@ -223,6 +223,7 @@ openmarket/
 ├── docker/                  # Reproducible local runtime
 ├── benchmarks/              # Benchmark plans and harnesses
 ├── research/                # Strategy evolution and legacy ML archive
+│   └── operational/         # Optional wallet/funding/trading/signal scripts
 ├── paper/                   # Systems-paper draft (LaTeX + markdown)
 ├── notebooks/               # Jupyter quickstart
 └── scripts/                 # Repo automation and release scripts
@@ -237,6 +238,7 @@ openmarket/
 - [Reproducibility](docs/reproducibility.md)
 - [Release process](docs/release/releases.md)
 - [Project status](docs/release/PROJECT-STATUS.md)
+- [Operational reproduction scripts](research/operational/README.md)
 - [Systems paper](paper/paper.md)
 
 ## Citation

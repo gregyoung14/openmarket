@@ -1,0 +1,7 @@
+# Operational wallet / balance / deposit / trading scripts
+# Install: python3 -m pip install -r research/operational/scripts/requirements.txt
+
+py-clob-client
+web3
+eth-account
+requests
