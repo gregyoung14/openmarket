@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T21:30:31.501636+00:00",
+  "generated_at": "2026-07-03T21:46:55.743192+00:00",
   "lead_lag_vs_disagreement": {
     "quintile_medians_ms": [
       16.0,
@@ -63,8 +63,8 @@
       "ece": 0.026607018273752062,
       "log_loss": 0.4893006057256113,
       "n": 357390,
-      "score_seconds": 0.03271700022742152,
-      "score_us_per_row": 0.0915442520143863
+      "score_seconds": 0.034777000080794096,
+      "score_us_per_row": 0.09730826290829094
     },
     "naive_mid_prior": {
       "auc": 0.8401048141170063,

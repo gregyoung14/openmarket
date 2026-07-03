@@ -23,8 +23,8 @@ mkdir -p "$OUTDIR/assets/stats"
 cp assets/stats/characterization.tex "$OUTDIR/assets/stats/" 2>/dev/null || true
 cp assets/stats/research_stats.tex "$OUTDIR/assets/stats/" 2>/dev/null || true
 cp sections/*.tex "$OUTDIR/sections/"
-# Only data-driven matplotlib figures (pipeline diagrams are native TikZ)
-for fig in benchmarks.pdf lead-lag-hist.pdf daily-volume.pdf dataset-scale.pdf \
+# Only LaTeX-referenced data-driven matplotlib figures (pipeline diagrams are native TikZ)
+for fig in lead-lag-hist.pdf daily-volume.pdf dataset-scale.pdf \
   feature-correlation.pdf calibration-curve.pdf walk-forward-metrics.pdf \
   ledger-hour-dow.pdf lag-hour-heatmap.pdf throughput-bench.pdf \
   lead-lag-vs-disagreement.pdf lead-lag-by-regime.pdf spread-distribution.pdf \

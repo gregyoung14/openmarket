@@ -25,6 +25,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -45,6 +46,7 @@ UNIFIED_LAG = REPO / "data/hf_release/unified_parquet/lag_pairs_ms"
 BASELINE_JSON = REPO / "benchmarks/baselines/v0.1-sample.json"
 CHAR_JSON = STATS_DIR / "characterization.json"
 CHAR_TEX = STATS_DIR / "characterization.tex"
+NY_TZ = ZoneInfo("America/New_York")
 
 META_COLS = {
     "market_slug", "market_start_ms", "market_end_ms", "ts_ms",
@@ -371,75 +373,209 @@ def plot_walk_forward(out: Path) -> dict:
     }
 
 
-def plot_ledger_hour_dow(out: Path) -> dict:
-    if not LEDGER_JSON.exists():
-        return {"trades": 0}
-    data = json.loads(LEDGER_JSON.read_text(encoding="utf-8"))
-    from datetime import timedelta
-
-    et = timedelta(hours=-5)
-    records = []
-    for row in data:
-        slug = row.get("slug", "")
-        m = re.search(r"-(\d+)$", slug)
-        if not m:
+def ledger_candidates() -> list[Path]:
+    """Operational ledgers are optional and are consumed only as aggregates."""
+    explicit = [
+        REPO / "data/trade_ledger.json",
+        REPO / "data/paper_ledger.json",
+        REPO / "data/paper_trade_ledger.json",
+        REPO / "data/paper_trades.json",
+        REPO / "data/paper_trades.csv",
+        REPO / "data/paper_trade_log.csv",
+        REPO / "v15_trade_log.csv",
+        LEDGER_JSON,
+    ]
+    found: list[Path] = []
+    for path in explicit:
+        if path.exists() and path.is_file() and path.stat().st_size > 0:
+            found.append(path)
+    for root in [REPO / "data", REPO / "research"]:
+        if not root.exists():
             continue
-        ts = datetime.fromtimestamp(int(m.group(1)), tz=timezone.utc) + et
-        records.append((ts.date().isoformat(), ts.hour, 1 if row.get("won") else 0))
+        for pattern in ["*ledger*.json", "*ledger*.csv", "*trade_log*.csv", "*paper*trade*.json", "*paper*trade*.csv"]:
+            for path in root.rglob(pattern):
+                if path.is_file() and path.stat().st_size > 0 and path not in found:
+                    found.append(path)
+    return found
 
-    if not records:
-        return {"trades": 0}
 
-    dates = sorted({d for d, _, _ in records})
-    date_idx = {d: i for i, d in enumerate(dates)}
-    wr = np.full((len(dates), 24), np.nan)
-    cnt = np.zeros((len(dates), 24))
-    wins = np.zeros((len(dates), 24))
-    for date, hour, won in records:
-        i = date_idx[date]
-        cnt[i, hour] += 1
-        wins[i, hour] += won
-        if cnt[i, hour]:
-            wr[i, hour] = wins[i, hour] / cnt[i, hour]
+def infer_ledger_kind(path: Path, row: dict) -> str:
+    text = str(path).lower()
+    strategy = str(row.get("strategy", row.get("signal_version", ""))).lower()
+    mode = str(row.get("mode", row.get("account", ""))).lower()
+    if "paper" in text or "paper" in strategy or "paper" in mode:
+        return "paper"
+    if "backtest" in text or "v15_trade_log" in text:
+        return "paper"
+    return "actual"
 
-    top_i, top_h = np.unravel_index(np.argmax(cnt), cnt.shape)
-    top_count = int(cnt[top_i, top_h])
-    top_date = dates[top_i]
 
-    fig_h = max(2.4, 0.75 * len(dates) + 1.6)
-    fig, axes = plt.subplots(1, 2, figsize=(10.0, fig_h))
-    im0 = axes[0].imshow(wr * 100, aspect="auto", cmap="RdYlGn", vmin=0, vmax=100)
-    axes[0].set_title("Win Rate (%)")
-    axes[0].set_yticks(range(len(dates)))
-    axes[0].set_yticklabels(dates, fontsize=8)
-    axes[0].set_xticks(range(0, 24, 3))
-    axes[0].set_xlabel("hour of day (ET, inferred from market slug)")
-    fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
+def parse_bool(value) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return None
+    text = str(value).strip().lower()
+    if text in {"1", "true", "win", "won", "success", "yes", "y"}:
+        return True
+    if text in {"0", "false", "loss", "lost", "fail", "failed", "no", "n"}:
+        return False
+    return None
 
-    im1 = axes[1].imshow(cnt, aspect="auto", cmap="Blues", vmin=0)
-    axes[1].set_title("Trade Count")
-    axes[1].set_yticks(range(len(dates)))
-    axes[1].set_yticklabels(dates, fontsize=8)
-    axes[1].set_xticks(range(0, 24, 3))
-    axes[1].set_xlabel("hour of day (ET, inferred from market slug)")
-    fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
 
-    for i in range(cnt.shape[0]):
-        for h in range(cnt.shape[1]):
-            if cnt[i, h] >= 5:
-                axes[1].text(h, i, f"{int(cnt[i, h])}", ha="center", va="center",
-                             fontsize=6, color="white" if cnt[i, h] > top_count * 0.45 else "#0f172a")
+def ledger_timestamp(row: dict) -> datetime | None:
+    slug = str(row.get("slug", row.get("market_slug", "")))
+    match = re.search(r"-(\d{10})$", slug)
+    if match:
+        return datetime.fromtimestamp(int(match.group(1)), tz=timezone.utc).astimezone(NY_TZ)
 
-    fig.suptitle(
-        f"Legacy Live Ledger Diagnostic ({len(dates)} dates, n={len(records)} trades; "
-        f"top cell {top_date} {top_h:02d}:00 = {top_count})",
-        fontsize=10,
-        y=1.02,
-    )
+    for field in ["market_start_ms", "ts_ms", "entry_ts_ms", "entry_time_ms", "created_at_ms", "redeemed_at_ms"]:
+        raw = row.get(field)
+        if raw not in (None, ""):
+            try:
+                return datetime.fromtimestamp(float(raw) / 1000.0, tz=timezone.utc).astimezone(NY_TZ)
+            except (TypeError, ValueError, OSError):
+                pass
+
+    for field in ["market_start", "entry_time", "entered_at", "created_at", "redeemed_at", "timestamp"]:
+        raw = row.get(field)
+        if not raw:
+            continue
+        text = str(raw).replace("Z", "+00:00")
+        try:
+            dt = datetime.fromisoformat(text)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=NY_TZ)
+            return dt.astimezone(NY_TZ)
+        except ValueError:
+            pass
+    return None
+
+
+def ledger_win_flag(row: dict) -> bool | None:
+    for field in ["won", "is_win", "win", "correct"]:
+        parsed = parse_bool(row.get(field))
+        if parsed is not None:
+            return parsed
+    for field in ["result", "outcome_result", "status"]:
+        parsed = parse_bool(row.get(field))
+        if parsed is not None:
+            return parsed
+    for field in ["pnl", "cash_pnl", "profit", "return"]:
+        raw = row.get(field)
+        if raw not in (None, ""):
+            try:
+                return float(raw) > 0
+            except (TypeError, ValueError):
+                pass
+    return None
+
+
+def iter_ledger_rows(path: Path):
+    if path.suffix.lower() == ".json":
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(doc, dict):
+            for key in ["trades", "ledger", "rows", "data"]:
+                if isinstance(doc.get(key), list):
+                    doc = doc[key]
+                    break
+        if isinstance(doc, list):
+            for row in doc:
+                if isinstance(row, dict):
+                    yield row
+    elif path.suffix.lower() == ".csv":
+        import csv
+        with path.open(encoding="utf-8") as fh:
+            yield from csv.DictReader(fh)
+
+
+def load_trade_timing_records() -> tuple[list[dict], list[str]]:
+    records: list[dict] = []
+    sources: list[str] = []
+    for path in ledger_candidates():
+        source_count = 0
+        for row in iter_ledger_rows(path):
+            dt = ledger_timestamp(row)
+            won = ledger_win_flag(row)
+            if dt is None or won is None:
+                continue
+            records.append({
+                "kind": infer_ledger_kind(path, row),
+                "dow": dt.weekday(),
+                "hour": dt.hour,
+                "date": dt.date().isoformat(),
+                "won": bool(won),
+                "source": path.relative_to(REPO).as_posix() if path.is_relative_to(REPO) else path.as_posix(),
+            })
+            source_count += 1
+        if source_count:
+            sources.append(path.relative_to(REPO).as_posix() if path.is_relative_to(REPO) else path.as_posix())
+    return records, sources
+
+
+def plot_ledger_hour_dow(out: Path) -> dict:
+    records, sources = load_trade_timing_records()
+    groups = [(name, [r for r in records if r["kind"] == name]) for name in ["actual", "paper"]]
+    groups = [(name, rows) for name, rows in groups if rows]
+
+    if not groups:
+        fig, ax = plt.subplots(figsize=(8, 2.5))
+        ax.axis("off")
+        ax.text(0.5, 0.5, "No sanitized actual or paper trade ledger found", ha="center", va="center")
+        fig.savefig(out, bbox_inches="tight")
+        plt.close(fig)
+        return {"trades": 0, "sources": []}
+
+    dow_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    fig, axes = plt.subplots(len(groups), 2, figsize=(10.8, 3.2 * len(groups)), squeeze=False)
+    stats: dict[str, object] = {"trades": len(records), "sources": sources}
+
+    for row_idx, (kind, rows) in enumerate(groups):
+        cnt = np.zeros((7, 24), dtype=np.float64)
+        wins = np.zeros((7, 24), dtype=np.float64)
+        for rec in rows:
+            cnt[int(rec["dow"]), int(rec["hour"])] += 1
+            wins[int(rec["dow"]), int(rec["hour"])] += 1 if rec["won"] else 0
+        wr = np.divide(wins, cnt, out=np.full_like(wins, np.nan), where=cnt > 0) * 100.0
+        top_count = int(cnt.max()) if cnt.size else 0
+        date_count = len({r["date"] for r in rows})
+        stats[f"{kind}_trades"] = len(rows)
+        stats[f"{kind}_dates"] = date_count
+        stats[f"{kind}_top_cell"] = top_count
+
+        im0 = axes[row_idx, 0].imshow(wr, aspect="auto", cmap="RdYlGn", vmin=0, vmax=100)
+        axes[row_idx, 0].set_title(f"{kind.title()} ledger win rate (%)")
+        axes[row_idx, 0].set_yticks(range(7))
+        axes[row_idx, 0].set_yticklabels(dow_labels)
+        axes[row_idx, 0].set_xticks(range(0, 24, 3))
+        axes[row_idx, 0].set_xlabel("ET hour")
+        fig.colorbar(im0, ax=axes[row_idx, 0], fraction=0.046, pad=0.04)
+
+        im1 = axes[row_idx, 1].imshow(cnt, aspect="auto", cmap="Blues", vmin=0)
+        axes[row_idx, 1].set_title(f"{kind.title()} ledger trade count")
+        axes[row_idx, 1].set_yticks(range(7))
+        axes[row_idx, 1].set_yticklabels(dow_labels)
+        axes[row_idx, 1].set_xticks(range(0, 24, 3))
+        axes[row_idx, 1].set_xlabel("ET hour")
+        fig.colorbar(im1, ax=axes[row_idx, 1], fraction=0.046, pad=0.04)
+
+        for d in range(7):
+            for h in range(24):
+                if cnt[d, h] >= 5:
+                    axes[row_idx, 1].text(
+                        h, d, f"{int(cnt[d, h])}", ha="center", va="center",
+                        fontsize=6, color="white" if cnt[d, h] > max(1, top_count) * 0.45 else "#0f172a",
+                    )
+        axes[row_idx, 0].text(
+            0.0, -0.28, f"n={len(rows):,} trades across {date_count} dates; aggregate-safe fields only",
+            transform=axes[row_idx, 0].transAxes, fontsize=7, color="#475569",
+        )
+
+    fig.suptitle("Sanitized Trade-Ledger Timing (ET hour x weekday)", fontsize=11, y=1.01)
     fig.tight_layout()
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
-    return {"trades": len(records), "dates": len(dates), "top_cell_count": top_count}
+    return stats
 
 
 def plot_lag_hour_heatmap(out: Path, max_rows: int = 500_000) -> dict:

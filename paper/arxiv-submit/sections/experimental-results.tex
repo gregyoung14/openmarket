@@ -167,19 +167,22 @@ Figure~\ref{fig:lag-hour} summarizes median lead--lag by hour-of-day (UTC) on a
   \label{fig:lag-hour}
 \end{figure}
 
-\FloatBarrier
-Figure~\ref{fig:ledger-hour-dow} is a legacy live-ledger diagnostic, not a
-representative hour-of-week result: the available v9 regime ledger contains 305
-trades on only two inferred market dates, with 133 trades concentrated in the
-Tuesday 09:00 ET bucket. We include it only to show how production logs can be
-audited alongside the archival HF release.
+Figure~\ref{fig:ledger-hour-dow} audits operational trade timing using
+aggregate-only ledger fields: inferred market timestamp, win/loss outcome, and
+actual-vs-paper source class. The generator deliberately ignores wallet
+addresses, transaction hashes, IPs, and raw execution metadata. When richer
+operational ledgers are present (for example \texttt{data/trade\_ledger.json}
+or paper-trade CSV/JSON logs), they are included automatically; otherwise the
+figure falls back to the non-empty legacy ledger checked into
+\texttt{research/legacy-ml/}.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.95\linewidth]{ledger-hour-dow.pdf}
-  \caption{Legacy live-ledger diagnostic by inferred market date and ET hour
-    (\texttt{research/legacy-ml/}). Coverage is limited to two dates and is not
-    a representative temporal microstructure sample.}
+  \caption{Sanitized trade-ledger timing by ET hour and weekday. The plot shows
+    win rate and trade count aggregates only; no wallet addresses, transaction
+    hashes, IP addresses, or raw ledger rows are exported into the paper
+    artifacts.}
   \label{fig:ledger-hour-dow}
 \end{figure}
 \FloatBarrier
