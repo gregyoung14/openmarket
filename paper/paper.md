@@ -274,11 +274,16 @@ evaluation under stated fee (1%) and slippage (0.5%) assumptions. Training on
 
 | Metric | Value |
 |---|---:|
-| AUC-ROC (calibrated OOS) | 0.838 |
+| Pooled walk-forward OOS AUC-ROC | 0.838 |
 | Brier | 0.165 |
 | ECE | 0.025 |
 | Simulated +EV trades | 260,617 |
 | Sim PnL / trade | -0.117 |
+
+For baseline comparison, the frozen exported scorer is also evaluated on the
+full 357,390-row step3 timeline; that full-timeline score is AUC 0.841, Brier
+0.163, ECE 0.027, and is the value used for the naive-prior effect-size test in
+Section 18.
 
 The negative simulated PnL is intentional transparency: the artifact demonstrates
 calibration and ranking skill, not deployable trading alpha. An earlier `v0.1/`

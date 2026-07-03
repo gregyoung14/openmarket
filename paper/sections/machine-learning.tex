@@ -23,11 +23,15 @@ Binance partitions, 14 with no valid order-book snapshots after feature filters,
 and one tied BTC close that is dropped because the binary label is undefined.
 
 For public releases, model binaries are uploaded to Hugging Face Models rather
-than committed to Git. The recommended \texttt{v0.2.1/} release achieves
-calibrated walk-forward AUC 0.838, Brier 0.165, and ECE 0.025 on 357k step3
-rows. Simulated positive-EV trading under 1\% fees and 0.5\% slippage yields
-$-0.117$ PnL per trade---reported as a reproducibility baseline, not deployable
-alpha. An earlier \texttt{v0.1/} pilot artifact remains for comparison.
+than committed to Git. The recommended \texttt{v0.2.1/} training artifact records
+pooled walk-forward out-of-sample AUC 0.838, Brier 0.165, and ECE 0.025 on 357k
+step3 rows. Separately, when the frozen exported scorer is evaluated on the full
+step3 timeline for baseline comparison, it yields AUC 0.841, Brier 0.163, and
+ECE 0.027 (Section~\ref{sec:insights-forecast}); the latter is the number used
+for the naive-prior effect-size test. Simulated positive-EV trading under 1\%
+fees and 0.5\% slippage yields $-0.117$ PnL per trade---reported as a
+reproducibility baseline, not deployable alpha. An earlier \texttt{v0.1/} pilot
+artifact remains for comparison.
 Figure~\ref{fig:calibration-curve} and Figure~\ref{fig:walk-forward} plot
 reliability and per-window metrics from the \texttt{v0.2.1} training run.
 Forecast ablations against naive baselines are in

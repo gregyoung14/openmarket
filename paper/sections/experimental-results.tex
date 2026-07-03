@@ -120,7 +120,7 @@ benchmarks.
     HF sample Parquet load & \OpenMarketBenchHfLoad{}~s \\
     Unified Parquet metadata scan & \OpenMarketUnifiedGiB{}~GiB, \OpenMarketUnifiedMetaScanSeconds{}\,s \\
     Unified \texttt{lag\_pairs\_ms} load & \OpenMarketLagPairs{} rows, \OpenMarketLagPairsLoadSeconds{}\,s \\
-    Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (245 rows) \\
+    Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (\OpenMarketBenchFeatRows{} rows, \OpenMarketBenchFeatParts{} parts) \\
     \texttt{v15\_brier\_calibration} (staging DB) & \OpenMarketBenchBacktest{}~s / \OpenMarketBenchBacktestMarkets{} markets \\
     Rust workspace (crates/) & \OpenMarketRustLoc{} non-blank lines \\
     \bottomrule
@@ -140,9 +140,11 @@ benchmarks.
 
 Figure~\ref{fig:feature-corr} summarizes pairwise Pearson correlations among
 100\,ms step-2 features exported from a staging snapshot
-(\texttt{features\_parquet/step2\_100ms/}, 245 rows, 44 numeric columns).
-Highly correlated blocks (returns, realized vol, volume) motivate regularized
-training and ablation in downstream ML work.
+(\texttt{features\_parquet/step2\_100ms/}). The heatmap is computed from
+\OpenMarketFeatureCorrRows{} rows after dropping near-constant columns and
+plotting \OpenMarketFeatureCorrFeatures{} selected numeric features. Highly
+correlated blocks (returns, realized vol, volume) motivate regularized training
+and ablation in downstream ML work.
 
 \begin{figure}[t]
   \centering
