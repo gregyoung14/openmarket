@@ -1,5 +1,11 @@
 # Hugging Face Public Dataset Release Investigation
 
+> **Historical note.** This investigation was written on 2026-06-30 while the
+> public archive was being planned. The final OpenMarket release followed the
+> same broad strategy but was implemented with the Rust exporters and validators
+> in this repository; some script names and paths differ from the original
+> operational repo.
+
 Date: 2026-06-30
 
 ## Current Storage Model
@@ -27,51 +33,6 @@ Public directory listing is disabled on the CDN. The known March snapshot is rea
 - `polymarket_btc_data_2026-03-14_193215.db.gz`
 
 The Bunny Storage API is required to enumerate every snapshot unless we create and maintain a separate manifest file.
-
-## Bunny Snapshot Inventory
-
-Inventory was run from the local machine against the VPS on 2026-07-01 using
-the Bunny access key from the `db-backup.service` user unit. The generated
-manifest was written on the VPS to:
-
-```text
-/mnt/nvme/code/polymarket-btc-scraper/data/hf_release/metadata/snapshot_manifest.json
-/mnt/nvme/code/polymarket-btc-scraper/data/hf_release/metadata/snapshot_manifest.tsv
-```
-
-The local OpenMarket checkout also has a copy under ignored `data/hf_release/`
-for release processing.
-
-Inventory summary:
-
-| Metric | Value |
-|---|---:|
-| Snapshot count | 202 |
-| Total compressed bytes | 46,205,325,113 |
-| Total compressed GB | 46.205 |
-| First snapshot | `polymarket_btc_data_2026-03-14_193215.db.gz` |
-| Last snapshot | `polymarket_btc_data_2026-07-01_025654.db.gz` |
-| Snapshots >= 1 GB | 5 |
-| Bytes in snapshots >= 1 GB | 45.022 GB |
-| Snapshots 10 MB to 1 GB | 5 |
-| Bytes in snapshots 10 MB to 1 GB | 1.090 GB |
-| Snapshots < 10 MB | 192 |
-| Bytes in snapshots < 10 MB | 0.093 GB |
-
-Largest snapshots:
-
-| Snapshot | Compressed bytes |
-|---|---:|
-| `polymarket_btc_data_2026-03-14_193215.db.gz` | 10,935,294,993 |
-| `polymarket_btc_data_2026-03-29_215354.db.gz` | 10,069,965,097 |
-| `polymarket_btc_data_2026-03-22_215354.db.gz` | 9,691,222,331 |
-| `polymarket_btc_data_2026-04-21_211838.db.gz` | 7,200,674,285 |
-| `polymarket_btc_data_2026-04-10_232833.db.gz` | 7,124,484,517 |
-
-The inventory strongly suggests the first HF processing pass should prioritize
-the five large snapshots, then treat the numerous ~485 KB snapshots as a
-separate validation problem because they may only contain schema, metadata, or
-post-prune residue.
 
 ## Data In The SQLite Snapshots
 
@@ -187,10 +148,8 @@ Hold back or review separately:
 
 ## Immediate Next Steps
 
-1. Use the generated `data/hf_release/metadata/snapshot_manifest.json` as the
-   source of truth for archive processing.
-2. Use `scripts/datasets/export_snapshot_to_parquet.py` to convert one
-   `.db.gz` snapshot into partitioned Parquet.
+1. Run `scripts/datasets/inventory_bunny_snapshots.py` on the VPS with `BUNNY_CDN_ACCESS_KEY` set to write `data/hf_release/metadata/snapshot_manifest.json`.
+2. Build `scripts/datasets/export_snapshot_to_parquet.py` to stream one `.db.gz` snapshot into partitioned Parquet.
 3. Build `scripts/datasets/merge_partitions.py` to dedupe and compact partition files across snapshots.
 4. Build `scripts/datasets/validate_release.py` to check row counts, timestamp coverage, duplicate rates, null rates, and schema consistency.
 5. Create a Hugging Face `README.md` dataset card with provenance, schema, timestamp semantics, known gaps, and intended use.
@@ -205,15 +164,4 @@ export BUNNY_CDN_ACCESS_KEY="$(
 )"
 
 scripts/datasets/inventory_bunny_snapshots.py --print-tsv
-```
-
-Single-snapshot Parquet export:
-
-```bash
-python3 -m pip install -r scripts/datasets/requirements.txt
-
-scripts/datasets/export_snapshot_to_parquet.py \
-  polymarket_btc_data_2026-03-14_193215.db.gz \
-  --manifest data/hf_release/metadata/snapshot_manifest.json \
-  --out-dir data/hf_release/parquet
 ```

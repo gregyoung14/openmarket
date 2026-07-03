@@ -45,6 +45,13 @@ split. Unified backfill partitions synced as `v0.4.3-unified` on 2026-07-02.
 
 The public `full/` split matches the complete fixed CDN inventory.
 
+### Provenance notes
+
+- Historical release planning investigation:
+  [`docs/release/HF-public-release-investigation-2026-06-30.md`](HF-public-release-investigation-2026-06-30.md)
+- Original CDN/storage connection and archive processor inputs:
+  [`docs/release/bunny-cdn-archive-provenance.md`](bunny-cdn-archive-provenance.md)
+
 ### Unified backfill limits
 
 | Gap | Notes |

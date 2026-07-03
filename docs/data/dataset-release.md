@@ -51,3 +51,8 @@ metadata/
 4. Publish a small sample split first.
 5. Publish the full dataset after sample validation.
 6. Add the Hugging Face dataset card from `datasets/dataset-card.md`.
+
+## Provenance
+
+- [`docs/release/HF-public-release-investigation-2026-06-30.md`](../release/HF-public-release-investigation-2026-06-30.md)
+- [`docs/release/bunny-cdn-archive-provenance.md`](../release/bunny-cdn-archive-provenance.md)
