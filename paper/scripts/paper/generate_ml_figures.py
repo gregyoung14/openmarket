@@ -614,7 +614,7 @@ def plot_throughput(bench: dict, out: Path) -> None:
     plt.close(fig)
 
 
-def append_tex_macros(bench: dict) -> None:
+def append_tex_macros(bench: dict, results: dict) -> None:
     hw = bench.get("hardware", {})
     lines: list[str] = []
     if CHAR_TEX.exists():
@@ -623,6 +623,7 @@ def append_tex_macros(bench: dict) -> None:
             "\\newcommand{\\OpenMarketHardware}",
             "\\newcommand{\\OpenMarketRustVersion}",
             "\\newcommand{\\OpenMarketBench",
+            "\\newcommand{\\OpenMarketFeatureCorr",
         )
         lines = [
             ln for ln in text.splitlines()
@@ -634,14 +635,19 @@ def append_tex_macros(bench: dict) -> None:
     cpu = hw.get("cpu", "unknown").replace("_", "\\_")
     feat = bench.get("feature_parquet_load", {})
     bt = bench.get("backtest_staging_db", {})
+    corr = results.get("feature_correlation", {})
 
     extra = [
         f"\\newcommand{{\\OpenMarketHardware}}{{{cpu}, {hw.get('ram_gb', '?')}~GB RAM}}",
         f"\\newcommand{{\\OpenMarketRustVersion}}{{{hw.get('rust', 'Rust unknown')}}}",
         f"\\newcommand{{\\OpenMarketBenchHfLoad}}{{{bench.get('hf_sample_load_s', '—')}}}",
         f"\\newcommand{{\\OpenMarketBenchFeatLoad}}{{{feat.get('seconds', '—')}}}",
+        f"\\newcommand{{\\OpenMarketBenchFeatRows}}{{{feat.get('rows', 0):,}}}",
+        f"\\newcommand{{\\OpenMarketBenchFeatParts}}{{{feat.get('parts', 0)}}}",
         f"\\newcommand{{\\OpenMarketBenchBacktest}}{{{bt.get('seconds', '—')}}}",
         f"\\newcommand{{\\OpenMarketBenchBacktestMarkets}}{{{bt.get('markets', 0)}}}",
+        f"\\newcommand{{\\OpenMarketFeatureCorrRows}}{{{corr.get('rows', 0):,}}}",
+        f"\\newcommand{{\\OpenMarketFeatureCorrFeatures}}{{{corr.get('features', 0)}}}",
         "",
     ]
     CHAR_TEX.write_text("\n".join(lines + extra), encoding="utf-8")
@@ -661,7 +667,7 @@ def main() -> int:
     }
     bench = run_throughput_benchmarks()
     plot_throughput(bench, FIG_DIR / "throughput-bench.pdf")
-    append_tex_macros(bench)
+    append_tex_macros(bench, results)
 
     out = {"figures": results, "benchmarks": bench}
     bench_path = STATS_DIR / "benchmarks.json"

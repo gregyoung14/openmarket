@@ -21,6 +21,7 @@ datasets/cache/
 *.csv
 *.html
 *.png
+!.github/images/readme/*.png
 *.pkl
 *.log
 
