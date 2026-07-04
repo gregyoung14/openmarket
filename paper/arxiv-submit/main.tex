@@ -126,15 +126,16 @@
   \newcommand{\OpenMarketLogisticEce}{0.027}
   \newcommand{\OpenMarketNaiveEce}{0.015}
   \newcommand{\OpenMarketLogisticScoreUs}{0.102}
-  \newcommand{\OpenMarketBootstrapN}{2,000}
+    \newcommand{\OpenMarketBootstrapN}{1,000}
+    \newcommand{\OpenMarketBootstrapBlocks}{2,251}
   \newcommand{\OpenMarketOosRows}{355,814}
   \newcommand{\OpenMarketNaiveOosAuc}{0.8405}
   \newcommand{\OpenMarketNaiveOosBrier}{0.163}
   \newcommand{\OpenMarketNaiveOosEce}{0.014}
   \newcommand{\OpenMarketNaiveOosLogLoss}{0.485}
-  \newcommand{\OpenMarketModelOosAuc}{0.8378}
+  \newcommand{\OpenMarketModelOosAuc}{0.8377}
   \newcommand{\OpenMarketModelOosBrier}{0.165}
-  \newcommand{\OpenMarketModelOosEce}{0.025}
+  \newcommand{\OpenMarketModelOosEce}{0.026}
   \newcommand{\OpenMarketModelOosLogLoss}{0.495}
   \newcommand{\OpenMarketFlagTightPct}{67.6}
   \newcommand{\OpenMarketFlagMediumPct}{27.0}
@@ -158,17 +159,20 @@
 OpenMarket began as an attempt to trade Polymarket's BTC 15-minute binary
 markets against Binance BTC/USDT order flow. The attempt did not produce a
 tradable edge: out-of-sample, a walk-forward logistic model over 43
-microstructure features matches but does not beat the probability already
-implied by Polymarket's own order book, and simulated trading nets
-$-0.117$ per trade under stated fee and slippage assumptions. We release
+microstructure features does not beat, and slightly underperforms, the
+probability already implied by Polymarket's own order book, and simulated
+trading nets
+$-0.116$ normalized payoff units per attempted trade under stated fee and
+slippage assumptions. We release
 the synchronized corpus and infrastructure that attempt produced---to our
 knowledge, the first public millisecond-level Polymarket BTC / Binance
 BTC-USDT paired corpus with explicit pairing metadata. The frozen archive
 (tag \OpenMarketReleaseTag{}) contains
 \OpenMarketTotalRows{} deduplicated rows across \OpenMarketSnapshots{}
 archival snapshots, with event data on \OpenMarketPolyObservedDays{}
-observed days between \OpenMarketDataFirstDay{} and
-\OpenMarketDataLastDay{}, including \OpenMarketLagPairs{} explicit
+observed Polymarket days (\OpenMarketBinanceObservedDays{} Binance days)
+between \OpenMarketDataFirstDay{} and \OpenMarketDataLastDay{}, including
+\OpenMarketLagPairs{} explicit
 lead--lag pairs, alongside a reproducible Rust pipeline for collection,
 millisecond pairing, Parquet export, and walk-forward calibration. Initial
 analyses establish Polymarket stylized facts (one-tick top-of-book spreads)
@@ -180,7 +184,7 @@ $\pm\OpenMarketEnvBinanceMed{}$~ms. A synchronization-free event study, measured
 only on the collector clock, independently shows that Polymarket quotes
 respond to large Binance moves after a median \OpenMarketRespMedianIngest{}~ms.
 We position this work as a data-and-methods release whose central empirical
-result is an honest null.
+result is a null out-of-sample forecasting result.
 \end{abstract}
 
 \input{sections/introduction}

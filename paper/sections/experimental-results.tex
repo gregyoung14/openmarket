@@ -38,7 +38,7 @@ have narrower coverage because only completed intervals are written.
   \label{fig:dataset-scale}
 \end{figure}
 
-The first five rows are the core event and metadata tables; derived candle
+The first five bars are the core event and metadata tables; derived candle
 tables account for the remaining 498{,}525 rows in the headline total. Counts
 and part numbers are tied to the frozen \texttt{v0.4.3-unified} manifest after
 recovery and final deduplication; earlier draft tables generated from
@@ -74,7 +74,8 @@ Section~\ref{sec:sync-clock} bounds relative clock drift empirically.
   \centering
   \includegraphics[width=0.88\linewidth]{lead-lag-hist.pdf}
   \caption{Empirical \texttt{lead\_lag\_ms} distribution from the unified
-    \texttt{lag\_pairs\_ms} table ($n=\OpenMarketLagPairs{}$).}
+    \texttt{lag\_pairs\_ms} table ($n=\OpenMarketLagPairs{}$): the median is
+    compact, but the distribution has heavy tails.}
   \label{fig:lead-lag-hist-unified}
 \end{figure}
 

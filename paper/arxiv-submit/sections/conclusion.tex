@@ -8,9 +8,12 @@ deduplicated rows, \OpenMarketLagPairs{} lead--lag pairs, reproducible Rust
 exporters and trainers, and Hugging Face artifacts
 (\texttt{v0.4.3-unified}, \texttt{v0.2.1/} model).
 
-Initial analyses show tight Polymarket spreads, heavy-tailed lead--lag with a
-compact median, and forecast benchmarks where a walk-forward logistic model
-matches but does not beat the naive mid prior out-of-sample---useful negative
-and null results for the community. We invite researchers to use the corpus for microstructure and
-forecasting studies, extend the tooling to new venues, and cite the dataset
-version used in each experiment.
+Initial analyses support five narrow claims: BTC 15-minute books are usually
+one tick wide at the top of book; source-clock lead--lag has a compact median
+and heavy tails; large Binance moves precede Polymarket quote responses by
+hundreds of milliseconds on the collector clock; lead--lag timing changes
+little across disagreement regimes; and multivariate features slightly
+underperform the naive mid prior out-of-sample. These are null and descriptive
+results rather than trading-alpha claims. We invite researchers to use the corpus for
+microstructure and forecasting studies, extend the tooling to new venues, and
+cite the dataset version used in each experiment.

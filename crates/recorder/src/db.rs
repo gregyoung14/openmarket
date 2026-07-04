@@ -218,7 +218,7 @@ pub fn find_nearest_binance(
         "SELECT id, source_ts_ms, price
          FROM binance_ticks_ms
          WHERE source_ts_ms BETWEEN ? AND ?
-         ORDER BY ABS(source_ts_ms - ?) ASC
+         ORDER BY ABS(source_ts_ms - ?) ASC, source_ts_ms ASC, id ASC
          LIMIT 1",
     )?;
 

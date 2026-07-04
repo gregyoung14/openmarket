@@ -38,13 +38,18 @@ FEATURES_CSV = REPO / "data/hf_release/features_exports"
 STEP3_GLOB = "step3_binary_calibration_*.csv"
 STAGING_DB = REPO / "data/hf_release/staging/polymarket_btc_data_2026-05-14_003913.recovered.db"
 MODEL_JSON = REPO / "models/hf_staging/v0.2.1/binary_outcome_model.json"
-METRICS_JSON = REPO / "models/hf_staging/v0.2.1/binary_outcome_metrics_1782951964345.json"
+METRICS_DIR = REPO / "models/hf_staging/v0.2.1"
 LEDGER_JSON = REPO / "research/legacy-ml/strategies/v9_regime_filter/ledger.json"
 UNIFIED_LAG = REPO / "data/hf_release/unified_parquet/lag_pairs_ms"
 BASELINE_JSON = REPO / "benchmarks/baselines/v0.1-sample.json"
 CHAR_JSON = STATS_DIR / "characterization.json"
 CHAR_TEX = STATS_DIR / "characterization.tex"
 NY_TZ = ZoneInfo("America/New_York")
+
+
+def latest_metrics_json() -> Path | None:
+    files = sorted(METRICS_DIR.glob("binary_outcome_metrics_*.json"))
+    return files[-1] if files else None
 
 META_COLS = {
     "market_slug", "market_start_ms", "market_end_ms", "ts_ms",
@@ -238,8 +243,9 @@ def plot_calibration_curve(out: Path) -> dict:
                 p_list.append(prob)
 
     metrics_doc = {}
-    if METRICS_JSON.exists():
-        metrics_doc = json.loads(METRICS_JSON.read_text(encoding="utf-8"))
+    metrics_json = latest_metrics_json()
+    if metrics_json is not None and metrics_json.exists():
+        metrics_doc = json.loads(metrics_json.read_text(encoding="utf-8"))
 
     if not y_list and metrics_doc:
         # Fallback: show published pilot metrics (no per-row CSV in tree)
@@ -328,9 +334,10 @@ def _rolling_median(values: np.ndarray, k: int = 25) -> np.ndarray:
 
 
 def plot_walk_forward(out: Path) -> dict:
-    if not METRICS_JSON.exists():
+    metrics_json = latest_metrics_json()
+    if metrics_json is None or not metrics_json.exists():
         return {}
-    doc = json.loads(METRICS_JSON.read_text(encoding="utf-8"))
+    doc = json.loads(metrics_json.read_text(encoding="utf-8"))
     windows = doc.get("walk_forward_windows", [])
     if not windows:
         return {}

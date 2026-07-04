@@ -1019,9 +1019,11 @@ fn resolve_export_start_ts(conn: &rusqlite::Connection) -> Result<i64> {
     }
     if std::env::var("ARCHIVE_EXPORT").ok().as_deref() == Some("1") {
         let min_ts: Option<i64> = conn
-            .query_row("SELECT MIN(source_ts_ms) FROM binance_ticks_ms", [], |row| {
-                row.get(0)
-            })
+            .query_row(
+                "SELECT MIN(source_ts_ms) FROM binance_ticks_ms",
+                [],
+                |row| row.get(0),
+            )
             .unwrap_or(None);
         return Ok(min_ts.unwrap_or(0));
     }

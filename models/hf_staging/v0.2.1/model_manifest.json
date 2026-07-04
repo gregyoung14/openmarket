@@ -8,7 +8,7 @@
   "rows_total": 357390,
   "markets_total": 2251,
   "export_path": "data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv",
-  "trainer": "binary-outcome-trainer (walk-forward logistic + Platt)",
+  "trainer": "binary-outcome-trainer (walk-forward logistic + pre-cutoff Platt)",
   "feature_export": "export_step3_from_parquet (unified Parquet)",
-  "notes": "Trained on locally backfilled unified Parquet (sqlite-fill partitions)."
+  "notes": "Trained on locally backfilled unified Parquet (sqlite-fill partitions). Walk-forward OOS metrics fit logistic weights and Platt calibrators only on pre-cutoff rows within each window."
 }

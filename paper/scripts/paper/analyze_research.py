@@ -29,13 +29,18 @@ ROOT = REPO / "paper"
 UNIFIED = REPO / "data/hf_release/unified_parquet"
 STEP3 = REPO / "data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv"
 MODEL = REPO / "models/hf_staging/v0.2.1/binary_outcome_model.json"
-MODEL_METRICS = REPO / "models/hf_staging/v0.2.1/binary_outcome_metrics_1782951964345.json"
+MODEL_METRICS_DIR = REPO / "models/hf_staging/v0.2.1"
 # Walk-forward protocol constants; must match binary-outcome-trainer TrainConfig defaults.
 WF_MIN_TRAIN_MARKETS = 12
 WF_TEST_MARKETS = 4
 WF_STEP_MARKETS = 4
 FIG = ROOT / "assets/figures"
 STATS = ROOT / "assets/stats"
+
+
+def latest_model_metrics_path() -> Path | None:
+    files = sorted(MODEL_METRICS_DIR.glob("binary_outcome_metrics_*.json"))
+    return files[-1] if files else None
 
 
 def roc_auc(y: np.ndarray, p: np.ndarray) -> float:
@@ -92,15 +97,22 @@ def benchmark_row(y: np.ndarray, p: np.ndarray, elapsed_s: float | None = None) 
 
 
 def bootstrap_auc_diff(
-    y: np.ndarray, p_new: np.ndarray, p_base: np.ndarray, n_boot: int = 2000, seed: int = 42
+    y: np.ndarray,
+    p_new: np.ndarray,
+    p_base: np.ndarray,
+    block_ids: np.ndarray,
+    n_boot: int = 1000,
+    seed: int = 42,
 ) -> dict:
-    """Paired bootstrap for AUC(new) - AUC(base)."""
+    """Paired block bootstrap for AUC(new) - AUC(base)."""
     rng = np.random.default_rng(seed)
-    n = len(y)
     obs = roc_auc(y, p_new) - roc_auc(y, p_base)
+    unique_blocks = np.unique(block_ids)
+    block_index = {b: np.flatnonzero(block_ids == b) for b in unique_blocks}
     diffs = np.empty(n_boot, dtype=np.float64)
     for i in range(n_boot):
-        idx = rng.integers(0, n, n)
+        sampled = rng.choice(unique_blocks, size=len(unique_blocks), replace=True)
+        idx = np.concatenate([block_index[b] for b in sampled])
         diffs[i] = roc_auc(y[idx], p_new[idx]) - roc_auc(y[idx], p_base[idx])
     p_one = float(np.mean(diffs <= 0))
     return {
@@ -109,7 +121,28 @@ def bootstrap_auc_diff(
         "ci_high": float(np.percentile(diffs, 97.5)),
         "p_value_one_sided": p_one,
         "n_bootstrap": n_boot,
+        "n_blocks": int(len(unique_blocks)),
+        "block_unit": "market_start_ms",
     }
+
+
+def _average_ranks(x: np.ndarray) -> np.ndarray:
+    order = np.argsort(x, kind="mergesort")
+    ranks = np.empty(len(x), dtype=np.float64)
+    i = 0
+    while i < len(x):
+        j = i + 1
+        while j < len(x) and x[order[j]] == x[order[i]]:
+            j += 1
+        ranks[order[i:j]] = (i + 1 + j) / 2.0
+        i = j
+    return ranks
+
+
+def spearman_corr(x: np.ndarray, y: np.ndarray) -> float:
+    rx = _average_ranks(x)
+    ry = _average_ranks(y)
+    return float(np.corrcoef(rx, ry)[0, 1])
 
 
 BENCHMARK_LABELS = {
@@ -543,6 +576,7 @@ def write_research_stats_tex(findings: dict) -> None:
         f"\\newcommand{{\\OpenMarketNaiveEce}}{{{naive.get('ece', 0):.3f}}}",
         f"\\newcommand{{\\OpenMarketLogisticScoreUs}}{{{logistic.get('score_us_per_row', 0):.3f}}}",
         f"\\newcommand{{\\OpenMarketBootstrapN}}{{{auc.get('n_bootstrap', 0):,}}}",
+        f"\\newcommand{{\\OpenMarketBootstrapBlocks}}{{{auc.get('n_blocks', 0):,}}}",
     ]
     oos = findings.get("pooled_oos_comparison", {})
     if oos:
@@ -602,9 +636,12 @@ def write_research_stats_tex(findings: dict) -> None:
             f"\\newcommand{{\\OpenMarketSpreadTwoTickPct}}{{{100 * spread_stats.get('share_two_tick', 0):.1f}}}",
         ])
     lag_corr = findings.get("lead_lag_price_corr", {})
-    if lag_corr.get("pearson_abs_delta") is not None:
+    if lag_corr.get("spearman_abs_delta") is not None:
+        corr = lag_corr["spearman_abs_delta"]
+        if abs(corr) < 0.005:
+            corr = 0.0
         lines.append(
-            f"\\newcommand{{\\OpenMarketLagPriceCorr}}{{{lag_corr['pearson_abs_delta']:.2f}}}"
+            f"\\newcommand{{\\OpenMarketLagPriceCorr}}{{{corr:.2f}}}"
         )
     (STATS / "research_stats.tex").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -664,15 +701,16 @@ def main() -> int:
     if "market_mid_prior_up" in names:
         prior = X[:, names.index("market_mid_prior_up")]
         benchmarks["naive_mid_prior"] = benchmark_row(y, prior)
-        findings["auc_bootstrap"] = bootstrap_auc_diff(y, full_p, prior)
+        findings["auc_bootstrap"] = bootstrap_auc_diff(y, full_p, prior, market_start)
 
         # Naive prior restricted to the trainer's pooled OOS rows, directly
         # comparable to the published walk-forward pooled OOS model metrics.
         oos = pooled_oos_mask(market_start)
         naive_oos = benchmark_row(y[oos], prior[oos])
         pooled_model = {}
-        if MODEL_METRICS.exists():
-            pooled_model = json.loads(MODEL_METRICS.read_text()).get("metrics", {})
+        metrics_path = latest_model_metrics_path()
+        if metrics_path and metrics_path.exists():
+            pooled_model = json.loads(metrics_path.read_text()).get("metrics", {})
         findings["pooled_oos_comparison"] = {
             "oos_rows": int(oos.sum()),
             "naive_mid_prior_oos": naive_oos,
@@ -740,6 +778,7 @@ def main() -> int:
     if valid.sum() > 100:
         findings["lead_lag_price_corr"] = {
             "pearson_abs_delta": float(np.corrcoef(np.abs(delta[valid]), ll[valid])[0, 1]),
+            "spearman_abs_delta": spearman_corr(np.abs(delta[valid]), ll[valid]),
             "n": int(valid.sum()),
         }
 

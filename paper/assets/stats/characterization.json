@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-04T22:21:01.952803+00:00",
+  "generated_at": "2026-07-04T23:30:48.784001+00:00",
   "release_tag": "v0.5.2",
   "unified_root": "data/hf_release/unified_parquet",
-  "scan_seconds": 0.118,
-  "lag_load_seconds": 0.018,
+  "scan_seconds": 0.06,
+  "lag_load_seconds": 0.013,
   "manifest": {
     "snapshot_count": 202,
     "collection_start": "2026-03-14T19:32:15Z",
@@ -171,5 +171,5 @@
       }
     }
   },
-  "rust_loc": 17824
+  "rust_loc": 17854
 }

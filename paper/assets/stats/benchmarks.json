@@ -7,9 +7,9 @@
     "calibration": {
       "source": "data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv",
       "rows": 357390,
-      "ece": 0.02660701831439764,
+      "ece": 0.02677233466421143,
       "auc_roc": 0.8414750117904141,
-      "brier": 0.16305181486804252
+      "brier": 0.1630698386283677
     },
     "walk_forward": {
       "windows": 559,
@@ -22,7 +22,7 @@
     }
   },
   "benchmarks": {
-    "generated_at": "2026-07-04T22:22:28.752820+00:00",
+    "generated_at": "2026-07-04T23:31:31.608412+00:00",
     "hardware": {
       "cpu": "Apple M5 Max",
       "ram_gb": 64,
@@ -32,13 +32,13 @@
     "hf_sample_download_s": 1.551,
     "hf_sample_load_s": 0.002,
     "hf_sample_rows": 9352,
-    "unified_metadata_scan_s": 0.118,
-    "unified_lag_load_s": 0.018,
+    "unified_metadata_scan_s": 0.06,
+    "unified_lag_load_s": 0.013,
     "unified_total_rows": 727098247,
     "unified_gib": 8.69,
     "feature_parquet_load": {
       "rows": 33349,
-      "seconds": 0.0052,
+      "seconds": 0.0055,
       "parts": 3
     },
     "backtest_staging_db": {

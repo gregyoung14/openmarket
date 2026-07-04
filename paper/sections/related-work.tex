@@ -3,32 +3,68 @@
 
 Prediction markets aggregate dispersed information into tradable prices
 \cite{wolfers2004prediction,hanson2003combinatorial,berg2008prediction}.
-High-frequency microstructure methods emphasize order-book dynamics, latency,
-and price impact \cite{ohara2015high,cont2014price}. Multi-venue studies
-measure which market contributes to price discovery \cite{hasbrouck1995one},
-and cross-exchange price dislocations in crypto markets are documented at
-scale by Makarov and Schoar~\cite{makarov2020trading}.
+The broader prediction-market literature studies forecast accuracy, incentive
+compatibility, and event-study use cases, while market-microstructure research
+studies how order flow, liquidity, latency, and price impact determine
+short-horizon prices \cite{madhavan2000survey,ohara2015high,cont2014price}.
+OpenMarket sits at the intersection: it treats a prediction market as a
+high-frequency limit-order-book venue whose prices are probabilities.
 
 \textbf{Public high-frequency order-book datasets.}
 LOBSTER~\cite{huang2011lobster} reconstructs NASDAQ limit-order books for
 academic use, and FI-2010~\cite{ntakaris2018benchmark} is a widely used
-mid-price forecasting benchmark; both cover traditional equity venues.
+mid-price forecasting benchmark. The limit-order-book survey literature
+\cite{gould2013limit} and neural LOB forecasting work such as
+DeepLOB~\cite{zhang2019deeplob} show why public, timestamped order-book
+benchmarks matter: they enable method comparison under fixed reconstruction and
+evaluation rules. These datasets and models cover traditional equity venues.
 OpenMarket follows this lineage but targets a decentralized prediction-market
-CLOB paired with a crypto spot reference stream, with explicit cross-venue
-pairing metadata.
+CLOB paired with a crypto spot reference stream, settlement labels, and explicit
+cross-venue pairing metadata.
 
-\textbf{Polymarket microstructure.}
+\textbf{Polymarket and decentralized prediction-market data.}
 Dubach~\cite{dubach2026anatomy} analyzes tick-level Polymarket order-book
 evidence and releases analysis code, but does not ship a synchronized Binance
-reference stream or a Hugging Face archival corpus. Saguillo et al.~\cite{saguillo2025arbitrage}
-document combinatorial arbitrage and market replications using proprietary-scale
-scrapes; reproduction requires re-implementing data collection. Rahman et al.~\cite{rahman2025sok}
-survey DePM design trade-offs without a cross-venue BTC 15-minute benchmark.
+reference stream or a Hugging Face archival corpus. Saguillo et
+al.~\cite{saguillo2025arbitrage} document combinatorial arbitrage and market
+replications using proprietary-scale scrapes; reproduction requires
+re-implementing data collection. Rahman et al.~\cite{rahman2025sok} survey DePM
+design trade-offs without a cross-venue BTC 15-minute benchmark.
+Recent Polymarket dataset releases are complementary rather than substitutes.
+PolyBench~\cite{cheng2026polybench} provides timestamp-locked Polymarket order
+book and news snapshots for LLM forecasting and trading evaluation. Jia et
+al.~\cite{jia2026forecasting} construct a full-lifecycle Polymarket dataset
+suite spanning market metadata, fill-level trading records, and oracle
+resolution events. Qin and Yang~\cite{qin2026polymarketv1} release a complete
+on-chain first-generation Polymarket archive with ground-truth aggressor
+direction. OpenMarket differs by focusing narrowly on millisecond-level BTC
+15-minute CLOB dynamics paired with Binance BTC/USDT and by publishing explicit
+\texttt{lag\_pairs\_ms} construction metadata.
 
-\textbf{Crypto spot data.}
-Public Binance kline and aggTrade products are widely used, but they do not
-include Polymarket CLOB state, settlement labels, or pairing metadata needed for
-prediction-market forecasting studies.
+\textbf{Crypto price discovery and cross-venue timing.}
+Multi-venue studies measure which market contributes to price discovery
+\cite{hasbrouck1995one}. In crypto, Brandvold et
+al.~\cite{brandvold2015bitcoin} estimate information shares across Bitcoin
+exchanges, and Makarov and Schoar~\cite{makarov2020trading} document
+cross-exchange crypto arbitrage and segmentation at scale. Public Binance kline
+and trade products support many such studies, but they do not include
+Polymarket CLOB state, settlement labels, or prediction-market-specific pairing
+metadata. OpenMarket therefore does not claim to improve crypto price-discovery
+estimation in general; it supplies a reproducible cross-venue corpus for a
+specific prediction-market mechanism.
+
+\textbf{Clock synchronization and timestamp validity.}
+High-frequency cross-venue inference depends on timestamp semantics. NTPv4
+specifies Internet clock synchronization against UTC~\cite{mills2010ntp};
+precision-time deployments use IEEE 1588/PTP for tighter synchronization
+\cite{ieee1588}. Financial regulation also treats clock accuracy as a
+surveillance requirement: MiFID II RTS 25 specifies maximum UTC divergence and
+timestamp granularity for trading venues and participants
+\cite{mifid2016rts25}. OpenMarket is not a regulated trading venue and uses a
+single public collector, so it cannot identify absolute venue-clock offsets
+without additional vantage points. Its contribution is to publish both
+source and ingest timestamps and to quantify which timing claims survive that
+limitation.
 
 \textbf{Open infrastructure.}
 Most open-source trading repositories mix notebooks, private snapshots, and

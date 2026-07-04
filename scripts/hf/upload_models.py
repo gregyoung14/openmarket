@@ -75,7 +75,7 @@ def stage_artifacts(args: argparse.Namespace) -> Path:
         "rows_total": metrics_doc.get("rows_total"),
         "markets_total": metrics_doc.get("markets_total"),
         "export_path": metrics_doc.get("export_path"),
-        "trainer": "binary-outcome-trainer (walk-forward logistic + Platt)",
+        "trainer": "binary-outcome-trainer (walk-forward logistic + pre-cutoff Platt)",
         "feature_export": "export_step3_from_parquet (unified Parquet)",
         "notes": metrics_doc.get("notes")
         or "Trained on locally backfilled unified Parquet (sqlite-fill partitions).",

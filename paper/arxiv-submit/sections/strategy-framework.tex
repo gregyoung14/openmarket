@@ -3,14 +3,12 @@
 
 \subsection{Strategy Archive}
 
-The repository preserves the full evolution of the strategy line whose failure
-motivated this release (v1--v15 iterations), providing historical baselines
-for comparison and reproducibility. Strategies combine model confidence,
-market price, entry constraints, and risk controls. The current research line includes
-drift and order-flow imbalance signals, scoreboard-derived Polymarket book
-signals, whipsaw/chop detection, best-signal scanning inside an entry window,
-volume gating, entry price bounds, confidence and edge thresholds, Brier-score
-circuit breakers, and confidence-bin empirical edge gates.
+The repository preserves the trading-strategy lineage that motivated the data
+release, but those iterations are archival context rather than paper claims.
+They provide reproducibility hooks for simulated execution assumptions and
+negative-result auditing. The paper uses them only to define the released
+backtesting interface, fee/slippage assumptions, and model-evaluation metrics;
+detailed strategy variants remain in the repository archive.
 
 Position sizing and simulated execution assumptions are intentionally separated
 from directional accuracy. Backtests report slippage, fees, assumed fill

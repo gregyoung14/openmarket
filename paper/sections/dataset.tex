@@ -13,6 +13,27 @@ The frozen release has three dataset splits and two model artifacts: unified
 (quickstart), model \texttt{v0.2.1/} (canonical walk-forward logistic + Platt),
 and model \texttt{v0.1/} (pilot comparison). The feature demo split is not a
 full feature archive; full step3 features are reproducible from unified Parquet.
+
+\begin{table}[t]
+  \centering
+  \caption{Version map for citing and reproducing OpenMarket artifacts.}
+  \label{tab:artifact-versions}
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}p{0.23\linewidth}p{0.19\linewidth}p{0.49\linewidth}@{}}
+    \toprule
+    Artifact & Version & Pins \\
+    \midrule
+    Source code & \OpenMarketReleaseTag{} & public launch commit, paper scripts, Rust pipeline \\
+    Dataset unified split & \texttt{v0.4.3-unified} & deduplicated analytic Parquet timeline \\
+    Dataset full split & \texttt{v0.2-full} & per-snapshot archival exports \\
+    Dataset sample split & \texttt{v0.1-sample} & quickstart/demo subset \\
+    Model release & \texttt{v0.2.1/} & walk-forward logistic + Platt artifact \\
+    Model pilot & \texttt{v0.1/} & legacy comparison artifact \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 Hugging Face's indexed/default dataset view may surface a larger aggregate row
 count because it includes non-unified demo and full-archive artifacts; the
 \OpenMarketTotalRows{} headline in this paper refers only to the deduplicated

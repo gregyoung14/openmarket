@@ -54,7 +54,7 @@ README.md
 **Training pipeline (Rust):**
 
 1. `export_step3_from_parquet` on `unified/` Parquet (`v0.4.3-unified`)
-2. `train_binary_outcome_model` — walk-forward logistic regression + Platt scaling
+2. `train_binary_outcome_model` — walk-forward logistic regression + pre-cutoff Platt scaling
 
 **Training data:**
 
@@ -74,11 +74,11 @@ README.md
 |---|---:|
 | AUC-ROC | 0.838 |
 | Brier | 0.165 |
-| ECE | 0.025 |
+| ECE | 0.026 |
 | Log loss | 0.495 |
 
-**Simulated +EV trading (fee 1%, slippage 0.5%):** 260,617 trades, 49.4% hit
-rate, **-0.117 PnL/trade**. Not deployable alpha — research artifact only.
+**Simulated +EV trading (fee 1%, slippage 0.5%):** 261,889 trades, 49.8% hit
+rate, **-0.116 PnL/trade**. Not deployable alpha — research artifact only.
 
 **Known limitations:**
 

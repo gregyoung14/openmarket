@@ -12,7 +12,7 @@ and an ingest timestamp (collector-observed):
 \end{align}
 Following multi-venue price-discovery practice~\cite{hasbrouck1995one},
 we pair Binance and Polymarket observations inside a bounded millisecond
-window and compute lead-lag as
+window and compute lead--lag as
 \begin{equation}
   \texttt{lead\_lag\_ms}
     = \texttt{polymarket\_source\_ts\_ms} - \texttt{binance\_source\_ts\_ms}.
@@ -30,8 +30,32 @@ market slug, side label, and price delta in basis points.
 
 \subsection{Pairing and Quality Metrics}
 
-The recorder pairs events when their source timestamps fall within a
-configurable alignment window~$W$ (milliseconds).
+The canonical release constructs \texttt{lag\_pairs\_ms} with a
+nearest-neighbor rule and alignment window $W=750$~ms. Polymarket ticks are
+processed in recorder order in bounded batches. For each unpaired Polymarket
+tick, the recorder queries Binance ticks whose source timestamps fall in
+$[t_P-W,t_P+W]$, orders candidates by $|t_B-t_P|$, and stores the closest
+candidate. Ties are broken by deterministic secondary ordering on
+\texttt{binance\_source\_ts\_ms}, then the Binance tick row id; no random tie
+breaking is used. The emitted lag is then $t_P-t_B$ as in
+Equation~\eqref{eq:lead-lag}.
+
+The pairing is one-to-one on the Polymarket side and many-to-one on the Binance
+side: each Polymarket tick is marked paired after a match and is not reused, but
+a high-rate Binance tick can be the nearest neighbor for multiple Polymarket
+updates. This is deliberate because \texttt{lag\_pairs\_ms} is an event-alignment
+table, not an order-book state reconstruction. The pairing code assigns
+\texttt{quality\_flag} after matching from the realized absolute lag:
+\texttt{tight} for $|\texttt{lead\_lag\_ms}|\leq100$~ms, \texttt{medium} for
+$\leq300$~ms, and \texttt{wide} otherwise (within the 750~ms search window).
+The public \texttt{v0.4.3-unified} split is produced later by merging overlapping
+snapshot exports and deduplicating table partitions with table-specific keys;
+for \texttt{lag\_pairs\_ms}, the dedupe key is
+(\texttt{paired\_at\_ms}, \texttt{market\_slug}, \texttt{side\_label},
+\texttt{binance\_source\_ts\_ms}, \texttt{polymarket\_source\_ts\_ms},
+\texttt{polymarket\_bid}). Quality flags are therefore computed before unified
+deduplication and preserved as row attributes.
+
 OpenMarket treats the following as first-class dataset quality metrics,
 consistent with microstructure guidance for decentralized prediction
 markets~\cite{dubach2026anatomy,rahman2025sok}:
@@ -144,6 +168,8 @@ Empirical lead--lag distributions on the unified split ($n=\OpenMarketLagPairs{}
 median \OpenMarketLagMedian{}~ms) are reported in
 Section~\ref{sec:exp-sync} and Figure~\ref{fig:lead-lag-hist-unified}.
 
+\FloatBarrier
+\begin{samepage}
 \subsection{Validation Checklist}
 
 Researchers reproducing synchronization results should:
@@ -153,3 +179,4 @@ Researchers reproducing synchronization results should:
   \item plot lead--lag histograms stratified by day and market;
   \item rebuild \texttt{lag\_pairs\_ms} from raw partitions and compare checksums.
 \end{enumerate}
+\end{samepage}

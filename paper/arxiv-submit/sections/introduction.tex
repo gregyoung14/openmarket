@@ -4,19 +4,18 @@
 OpenMarket began as a trading system, not a dataset. We built a Rust
 pipeline to trade Polymarket's BTC 15-minute binary markets against Binance
 BTC/USDT spot flow: WebSocket collectors for both venues, a millisecond
-recorder, fifteen generations of signal logic (v1--v15), a walk-forward
-calibrated logistic scorer, and simulated and paper execution. The result was
-negative. No strategy iteration survived fees and spread; out-of-sample, the
-strongest published model \emph{matches but does not beat} the probability
-already implied by Polymarket's own order book
-(Section~\ref{sec:insights-forecast}); and simulated positive-EV trading
-nets $-0.117$ per trade under stated fee and slippage assumptions. We do
-not claim trading profitability---the central empirical finding is the
-opposite, and we believe that negative result is worth publishing with the
-data that produced it.
+recorder, a walk-forward calibrated logistic scorer, and simulated and paper
+execution. The result was negative. No strategy iteration survived fees and
+spread; out-of-sample, the strongest published model \emph{does not beat, and
+slightly underperforms} the probability already implied by Polymarket's own
+order book (Section~\ref{sec:insights-forecast}); and simulated positive-EV
+trading nets $-0.116$ normalized payoff units per attempted trade under stated
+fee and slippage assumptions. We do not claim trading profitability---the
+central empirical finding is the opposite, and that negative result is
+published with the data that produced it.
 
-This paper releases what the attempt built, because the infrastructure and
-the corpus outlived the strategy. Empirical work now documents tick-level
+This paper releases the resulting infrastructure and corpus, which outlived
+the trading strategy. Empirical work now documents tick-level
 Polymarket dynamics, decentralized prediction-market (DePM) design
 trade-offs, and combinatorial arbitrage
 \cite{dubach2026anatomy,saguillo2025arbitrage,rahman2025sok}. What remains
@@ -46,12 +45,22 @@ scale. OpenMarket closes that gap. The contribution is threefold:
         not).
 \end{enumerate}
 
+The initial empirical claims are intentionally narrow:
+\begin{enumerate}
+  \item BTC 15-minute top-of-book spreads are usually one tick wide.
+  \item Source-clock lead--lag has a compact median but heavy tails.
+  \item Polymarket quotes respond to large Binance moves after hundreds of
+        milliseconds on the collector clock.
+  \item Lead--lag timing changes little across cross-venue disagreement regimes.
+  \item Multivariate features slightly underperform the Polymarket mid prior
+        out-of-sample.
+\end{enumerate}
+
 The released artifacts deliberately include the full research trail: the
 collectors and recorder, the synchronization layer, the feature and
-training pipelines, the backtesting framework, the v1--v15 strategy
-evolution archive, legacy Python ML prototypes, the Hugging Face dataset
-and model releases, and a sanitized operational appendix for audit
-context. OpenMarket is frozen as a public research archive (source tag
-\OpenMarketReleaseTag{}); active collection has ended. The remainder of the
+training pipelines, the backtesting framework, the strategy-evolution archive,
+the Hugging Face dataset and model releases, and a sanitized operational
+appendix for audit context. OpenMarket is frozen as a public research archive
+(source tag \OpenMarketReleaseTag{}); active collection has ended. The remainder of the
 paper describes the system, the released artifacts, and initial microstructure
 findings that prior single-venue or closed pipelines cannot support.

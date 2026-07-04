@@ -53,7 +53,7 @@ OpenMarket closes that gap by publishing:
 2. **Methods** — documented source-vs.-ingest pairing, clock-offset validation, Parquet-native export, walk-forward calibration, and validation harnesses.
 3. **Baselines** — stylized facts, forecast benchmarks, and a clearly reported null trading result on the released corpus.
 
-> **Transparency:** the published `v0.2.1` model shows calibration and ranking skill, but it matches rather than beats the naive Polymarket mid-price prior out of sample, and simulated economics under stated fees and slippage are negative. This is a data-and-methods release, not a claim of deployable trading alpha.
+> **Transparency:** the published `v0.2.1` model shows calibration and ranking skill, but it does not beat, and slightly underperforms, the naive Polymarket mid-price prior out of sample; simulated economics under stated fees and slippage are negative. This is a data-and-methods release, not a claim of deployable trading alpha.
 
 ## Architecture
 
@@ -134,12 +134,12 @@ The recommended release is `v0.2.1/` — a calibrated binary-outcome model train
 | **Markets** | 2,251 / 4,450 (51%) |
 | **Features** | 43 |
 | **Walk-forward windows** | 559 |
-| **Model AUC-ROC (OOS)** | 0.8378 |
+| **Model AUC-ROC (OOS)** | 0.8377 |
 | **Naive mid-prior AUC-ROC (OOS)** | 0.8405 |
-| **Model Brier / ECE (OOS)** | 0.165 / 0.025 |
+| **Model Brier / ECE (OOS)** | 0.165 / 0.026 |
 | **Naive Brier / ECE (OOS)** | 0.163 / 0.014 |
-| **Simulated +EV trades** | 260,617 |
-| **Simulated PnL / trade** | −0.117 |
+| **Simulated +EV trades** | 261,889 |
+| **Simulated PnL / trade** | -0.116 |
 
 **Training pipeline (Rust):**
 

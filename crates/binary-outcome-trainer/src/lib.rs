@@ -208,8 +208,14 @@ pub fn load_dataset(csv_path: &Path) -> Result<Dataset> {
     })
 }
 
-pub fn train(config: &TrainConfig, dataset: &Dataset, export_path: &Path, artifact_dir: &Path) -> Result<TrainSummary> {
-    fs::create_dir_all(artifact_dir).with_context(|| format!("create {}", artifact_dir.display()))?;
+pub fn train(
+    config: &TrainConfig,
+    dataset: &Dataset,
+    export_path: &Path,
+    artifact_dir: &Path,
+) -> Result<TrainSummary> {
+    fs::create_dir_all(artifact_dir)
+        .with_context(|| format!("create {}", artifact_dir.display()))?;
 
     let n_markets = dataset.market_ranges.len();
     if n_markets < config.min_train_markets + config.test_markets {
@@ -235,8 +241,11 @@ pub fn train(config: &TrainConfig, dataset: &Dataset, export_path: &Path, artifa
     let mut market_cursor = config.min_train_markets;
     while market_cursor + config.test_markets <= n_markets {
         let (train_start, train_end) = row_range(&dataset.market_ranges, 0, market_cursor);
-        let (test_start, test_end) =
-            row_range(&dataset.market_ranges, market_cursor, market_cursor + config.test_markets);
+        let (test_start, test_end) = row_range(
+            &dataset.market_ranges,
+            market_cursor,
+            market_cursor + config.test_markets,
+        );
         window_specs.push(WindowSpec {
             train_start,
             train_end,
@@ -247,7 +256,7 @@ pub fn train(config: &TrainConfig, dataset: &Dataset, export_path: &Path, artifa
         market_cursor += config.step_markets;
     }
 
-    let window_results: Vec<(WindowSummary, Vec<f64>, Vec<f64>, Vec<u8>, Vec<usize>)> = window_specs
+    let window_results: Vec<(WindowSummary, Vec<f64>, Vec<u8>, Vec<usize>)> = window_specs
         .par_iter()
         .map(|spec| {
             let model = train_lr(
@@ -260,16 +269,24 @@ pub fn train(config: &TrainConfig, dataset: &Dataset, export_path: &Path, artifa
                 config.lr,
                 1e-4,
             );
+            let mut train_logits = Vec::with_capacity(spec.train_end - spec.train_start);
+            let mut y_train = Vec::with_capacity(spec.train_end - spec.train_start);
+            for row in spec.train_start..spec.train_end {
+                train_logits.push(predict_logit(&model, dataset.row_features(row), n_feat));
+                y_train.push(dataset.labels[row]);
+            }
+            let (platt_a, platt_b) = fit_platt(&train_logits, &y_train);
+
             let n_test = spec.test_end - spec.test_start;
-            let mut logits = Vec::with_capacity(n_test);
             let mut raw_probs = Vec::with_capacity(n_test);
+            let mut calibrated_probs = Vec::with_capacity(n_test);
             let mut y_test = Vec::with_capacity(n_test);
             let mut test_row_indices = Vec::with_capacity(n_test);
 
             for row in spec.test_start..spec.test_end {
                 let logit = predict_logit(&model, dataset.row_features(row), n_feat);
-                logits.push(logit);
                 raw_probs.push(sigmoid(logit));
+                calibrated_probs.push(sigmoid(platt_a * logit + platt_b));
                 y_test.push(dataset.labels[row]);
                 test_row_indices.push(row);
             }
@@ -282,27 +299,22 @@ pub fn train(config: &TrainConfig, dataset: &Dataset, export_path: &Path, artifa
                 brier_raw: brier_score(&y_test, &raw_probs),
                 log_loss_raw: log_loss(&y_test, &raw_probs),
             };
-            (summary, logits, raw_probs, y_test, test_row_indices)
+            (summary, calibrated_probs, y_test, test_row_indices)
         })
         .collect();
 
     let mut window_summaries = Vec::with_capacity(window_results.len());
-    let mut all_logits = Vec::new();
+    let mut calibrated_probs = Vec::new();
     let mut all_labels = Vec::new();
     let mut all_eval_rows = Vec::new();
 
-    for (summary, logits, _raw_probs, y_test, row_indices) in window_results {
+    for (summary, probs, y_test, row_indices) in window_results {
         window_summaries.push(summary);
-        all_logits.extend(logits);
+        calibrated_probs.extend(probs);
         all_labels.extend(y_test);
         all_eval_rows.extend(row_indices);
     }
 
-    let (platt_a, platt_b) = fit_platt(&all_logits, &all_labels);
-    let calibrated_probs: Vec<f64> = all_logits
-        .iter()
-        .map(|&logit| sigmoid(platt_a * logit + platt_b))
-        .collect();
     let ece = calibration_ece(&all_labels, &calibrated_probs);
     let trading = evaluate_trades(
         dataset,
@@ -336,6 +348,15 @@ pub fn train(config: &TrainConfig, dataset: &Dataset, export_path: &Path, artifa
         config.lr,
         1e-4,
     );
+    let mut final_logits = Vec::with_capacity(dataset.n_rows());
+    for row in 0..dataset.n_rows() {
+        final_logits.push(predict_logit(
+            &final_model,
+            dataset.row_features(row),
+            n_feat,
+        ));
+    }
+    let (platt_a, platt_b) = fit_platt(&final_logits, &dataset.labels);
 
     let generated_at = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
     let ts = chrono::Utc::now().timestamp_millis();
@@ -695,10 +716,18 @@ fn evaluate_trades(
 
     TradingResult {
         chosen,
-        hit_rate: if chosen == 0 { 0.0 } else { wins as f64 / chosen as f64 },
+        hit_rate: if chosen == 0 {
+            0.0
+        } else {
+            wins as f64 / chosen as f64
+        },
         up_chosen,
         down_chosen,
-        pnl_per_trade: if chosen == 0 { 0.0 } else { total_pnl / chosen as f64 },
+        pnl_per_trade: if chosen == 0 {
+            0.0
+        } else {
+            total_pnl / chosen as f64
+        },
         total_pnl,
     }
 }

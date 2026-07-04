@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T00:26:04Z",
+  "generated_at": "2026-07-04T23:24:25Z",
   "export_path": "data/hf_release/features_exports/step3_binary_calibration_1782951891604.csv",
   "manifest_path": null,
   "feature_names": [
@@ -4524,15 +4524,15 @@
     }
   ],
   "metrics": {
-    "auc_roc": 0.8378404828229593,
-    "brier": 0.16481803801658634,
-    "ece": 0.025357574198280733,
-    "log_loss": 0.4947205125776966,
-    "positive_ev_hit_rate": 0.49370915941784305,
-    "positive_ev_trades": 260617,
-    "up_chosen": 152985,
-    "down_chosen": 107632,
-    "realized_pnl_per_trade": -0.11701832978875487,
-    "realized_total_pnl": -30496.966054555927
+    "auc_roc": 0.8376849943443003,
+    "brier": 0.16492682572610784,
+    "ece": 0.025588203681258182,
+    "log_loss": 0.4951451778578381,
+    "positive_ev_hit_rate": 0.49762303876833314,
+    "positive_ev_trades": 261889,
+    "up_chosen": 154486,
+    "down_chosen": 107403,
+    "realized_pnl_per_trade": -0.11559626225234673,
+    "realized_total_pnl": -30273.389525004834
   }
 }
