@@ -37,6 +37,8 @@ unified/
 metadata/
   snapshot_manifest.json     # full inventory of operator archive
   snapshot_manifest.tsv      # same, TSV for easy diffing
+unified/metadata/
+  merge_quality_report.json  # dedupe quality report for v0.4.3-unified
 README.md                    # HF dataset card
 ```
 

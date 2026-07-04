@@ -10,7 +10,7 @@ Use the versioned dataset and source tag in every derivative publication.
   author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}},
-  note         = {Version v0.4.3-unified; source tag v0.5.1; 727M+ deduplicated rows}
+  note         = {Version v0.4.3-unified; source tag v0.5.2; 727M+ deduplicated rows}
 }
 ```
 
@@ -22,7 +22,7 @@ Use the versioned dataset and source tag in every derivative publication.
   author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://github.com/gregyoung14/openmarket}},
-  note         = {Source tag v0.5.1; systems paper in repository \texttt{paper/}}
+  note         = {Source tag v0.5.2; systems paper in repository \texttt{paper/}}
 }
 ```
 
@@ -34,13 +34,13 @@ Use the versioned dataset and source tag in every derivative publication.
   author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/gregyoung14/openmarket-models}},
-  note         = {Release v0.2.1.1; walk-forward logistic + Platt on unified step3 features}
+  note         = {Release v0.2.1; walk-forward logistic + Platt on unified step3 features}
 }
 ```
 
 ## In-text example
 
-> We use the OpenMarket BTC–Polymarket corpus (v0.4.3-unified, source tag v0.5.1)
+> We use the OpenMarket BTC–Polymarket corpus (v0.4.3-unified, source tag v0.5.2)
 > [Young, 2026].
 
 Report the Hugging Face dataset revision hash when available.

@@ -1,11 +1,11 @@
 # OpenMarket Project Status
 
-Last updated: 2026-07-02
+Last updated: 2026-07-04
 
 ## Status
 
 OpenMarket is in archival shutdown. The full CDN archive is published on
-Hugging Face; GitHub source remains **private** until public launch.
+Hugging Face, and the GitHub source repository is public.
 
 Active data collection and active strategy development are over. The clean-lane
 snapshot publication pass completed on 2026-07-01: all 202 inventoried CDN
@@ -25,12 +25,12 @@ split. Unified backfill partitions synced as `v0.4.3-unified` on 2026-07-02.
   - `v0.2/` prior release (354k rows)
   - `v0.1/` earlier release (historical)
 
-## What Is Private
+## Source Repository
 
-- GitHub source: `github.com/gregyoung14/openmarket` (**private**)
+- GitHub source: `github.com/gregyoung14/openmarket` (**public**)
   - Rust ML pipeline (`step3-parquet-export`, `binary-outcome-trainer`,
     `unified-backfill`), docs, paper, and release tooling live here
-  - Source tag `v0.5.1` tracks the backfill + Rust trainer release
+  - Source tag `v0.5.2` tracks the backfill + Rust trainer release
   - `v0.5.0` remains the archival milestone tag
 
 ## Archive Coverage
@@ -65,7 +65,7 @@ The public `full/` split matches the complete fixed CDN inventory.
 
 1. ~~Unified backfill sync to HF (`v0.4.3-unified`)~~ (done 2026-07-02).
 2. ~~Rust ML pipeline + doc version sync~~ (done 2026-07-02).
-3. **Deferred:** flip GitHub repository to public when launch-ready.
+3. ~~Flip GitHub repository to public~~ (done 2026-07-04).
 4. **Optional (not required):** full-archive `features/` HF upload — reproducible
    from `unified/` via Rust exporters.
 5. **Optional:** compile and submit arXiv bundle (`paper/scripts/export-arxiv.sh`).
@@ -81,5 +81,5 @@ The public `full/` split matches the complete fixed CDN inventory.
 
 The archived CDN inventory has been published in full, `unified/` has been
 backfilled and synced to Hugging Face, and documentation is reconciled for
-source tag `v0.5.1`. The public research record on HF is complete; GitHub
-remains private until launch.
+source tag `v0.5.2`. The public research record on HF is complete; GitHub
+source is public.

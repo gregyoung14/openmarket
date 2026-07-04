@@ -85,7 +85,7 @@ rate, **-0.117 PnL/trade**. Not deployable alpha — research artifact only.
 - Step3 export skips markets without sufficient Polymarket ticks or Binance
   trades (~50% of `market_meta` entries).
 - Simulated economics are sensitive to fee/slippage assumptions.
-- No ongoing model maintenance; frozen at source tag `v0.5.1`.
+- No ongoing model maintenance; frozen at source tag `v0.5.2`.
 
 **Reproduce:**
 

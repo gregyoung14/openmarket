@@ -24,7 +24,7 @@ OpenMarket is an open-source Rust research platform and frozen dataset release f
 
 The goal is **reproducible prediction-market research**, not a black-box trading bot. The repository contains collectors, a recorder, exporters, trainers, backtesters, schemas, documentation, and release scripts. Large datasets and pretrained models are released separately through Hugging Face.
 
-> **Archive status:** OpenMarket is in archival shutdown. The complete 202-snapshot CDN archive is published on Hugging Face and the project is frozen as a public research record at source tag `v0.5.1`.
+> **Archive status:** OpenMarket is in archival shutdown. The complete 202-snapshot CDN archive is published on Hugging Face and the project is frozen as a public research record at source tag `v0.5.2`.
 
 ## At a glance
 
@@ -89,7 +89,9 @@ full/                        # per-snapshot exports, 202 snapshots (v0.2-full)
 features/                    # optional ML feature exports (v0.4-features)
 metadata/
   snapshot_manifest.json     # full archive inventory (CDN URLs redacted)
+unified/metadata/
   merge_quality_report.json  # unified dedupe stats
+full/metadata/
   per-snapshot export reports
 README.md
 ```
@@ -250,7 +252,7 @@ openmarket/
 
 See [`CITATION.md`](CITATION.md) for BibTeX entries. In text:
 
-> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag `v0.5.1`) [Young, 2026].
+> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag `v0.5.2`) [Young, 2026].
 
 **Repository visibility:** GitHub source, dataset artifacts, and model artifacts are public.
 

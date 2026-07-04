@@ -20,7 +20,7 @@ are published here rather than committed to the OpenMarket GitHub repository.
 ```bibtex
 @misc{openmarket_models_v02_2026,
   title        = {{OpenMarket} Binary-Outcome Calibration Model},
-  author       = {{OpenMarket Contributors}},
+  author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/gregyoung14/openmarket-models}},
   note         = {Release v0.2.1}
@@ -85,7 +85,7 @@ rate, **-0.117 PnL/trade**. Not deployable alpha — research artifact only.
 - Step3 export skips markets without sufficient Polymarket ticks or Binance
   trades (~50% of `market_meta` entries).
 - Simulated economics are sensitive to fee/slippage assumptions.
-- No ongoing model maintenance; frozen at source tag `v0.5.1`.
+- No ongoing model maintenance; frozen at source tag `v0.5.2`.
 
 **Reproduce:**
 
@@ -115,7 +115,7 @@ Same pipeline on pre-backfill unified Parquet (354,684 rows, 2,234 markets).
 | `v0.1/binary_outcome_metrics_*.json` | Metrics snapshots |
 | `v0.1/model_manifest.json` | Provenance manifest |
 
-Trained on a smaller step3 export. Superseded by `v0.2/` for research use.
+Trained on a smaller step3 export. Superseded by `v0.2.1/` for research use.
 
 ## Required Metadata Per Model
 

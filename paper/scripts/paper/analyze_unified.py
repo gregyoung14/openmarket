@@ -34,7 +34,14 @@ FIG_DIR = ROOT / "assets/figures"
 MANIFEST = REPO / "data/hf_release/metadata_redacted/snapshot_manifest.json"
 MODEL_METRICS = REPO / "models/hf_staging/v0.1/binary_outcome_metrics_1778654444636.json"
 BASELINE_SAMPLE = REPO / "benchmarks/baselines/v0.1-sample.json"
-RELEASE_TAG = "v0.5.1"
+RELEASE_TAG = "v0.5.2"
+
+
+def display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO))
+    except ValueError:
+        return "<external-unified-parquet-root>"
 
 
 def parse_args() -> argparse.Namespace:
@@ -296,7 +303,7 @@ def main() -> int:
     stats = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "release_tag": RELEASE_TAG,
-        "unified_root": str(args.root),
+        "unified_root": display_path(args.root),
         "scan_seconds": round(scan_seconds, 3),
         "lag_load_seconds": round(lag_load_seconds, 3),
         "manifest": manifest,

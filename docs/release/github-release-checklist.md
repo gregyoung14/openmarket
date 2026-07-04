@@ -13,7 +13,9 @@
 - [ ] Optional: upload full-archive `features/` split (not required — reproducible from `unified/`)
 - [x] Unified backfill sync to HF (`v0.4.3-unified`, five partitions)
 - [x] Rust ML pipeline (`step3-parquet-export`, `binary-outcome-trainer`, `unified-backfill`)
-- [x] Tag `v0.5.1` for post-closeout commits (private GitHub)
+- [x] Tag `v0.5.1` for post-closeout commits
+- [x] Prepare `v0.5.2` public-launch integrity commit
+- [x] Flip GitHub repository public and scrub reachable Git history
 
 ## v0.1.0
 
@@ -46,7 +48,7 @@ OpenMarket GitHub push verification:
 
 ```bash
 gh api repos/gregyoung14/openmarket --jq '.visibility, .pushed_at'
-# private, 2026-07-01T04:17:11Z
+# public, 2026-07-04
 ```
 
 Release metadata:

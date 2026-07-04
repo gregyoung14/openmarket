@@ -1,7 +1,7 @@
 # OpenMarket v0.5.1 — Unified backfill sync
 
 Post-`v0.5.0` maintenance release. Hugging Face dataset and model artifacts
-updated; GitHub source remains **private** until public launch.
+updated; GitHub source is public.
 
 ## Dataset (`v0.4.3-unified`)
 
@@ -40,5 +40,5 @@ Python training scripts removed; `scripts/ml/README.md` documents Rust path.
 
 ## GitHub visibility
 
-Source tag `v0.5.1` is pushed to the **private** `gregyoung14/openmarket`
+Source tag `v0.5.1` is pushed to the public `gregyoung14/openmarket`
 repository. HF dataset and model repos remain public.

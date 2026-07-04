@@ -13,7 +13,7 @@ We release OpenMarket, to our knowledge the first public synchronized
 high-frequency corpus pairing Polymarket BTC 15-minute binary markets with
 Binance BTC/USDT. The release combines a frozen Hugging Face archive with a
 reproducible Rust pipeline for collection, millisecond pairing, Parquet export,
-and walk-forward calibration. The archive (tag `v0.5.1`) spans 109 days, 727.1M
+and walk-forward calibration. The archive (tag `v0.5.2`) spans 109 days, 727.1M
 deduplicated events across 202 snapshots, and 2.94M explicit lead–lag pairs.
 Initial analyses establish Polymarket stylized facts (top-of-book spreads
 concentrated at one tick),
@@ -49,7 +49,7 @@ We do **not** claim persistent trading profitability. Simulated economics under
 stated fees and slippage are negative for the published scorer. The goal is to
 enable the community to study *how* external spot prices and Polymarket books
 interact at high frequency. OpenMarket is frozen as a public research archive
-(source tag `v0.5.1`); active collection has ended.
+(source tag `v0.5.2`); active collection has ended.
 
 ## 2. Related Work
 
@@ -656,7 +656,7 @@ and WebSocket gaps are documented; top-of-book backtests are not executable PnL
 without explicit queue and fee models.
 
 **Ethics / availability.** Public market data only (no user identities). Apache
-2.0 code; cite dataset version and tag `v0.5.1` (see `CITATION.md`).
+2.0 code; cite dataset version and tag `v0.5.2` (see `CITATION.md`).
 
 **Funding / competing interests.** Independent open-source release; no external
 funding or competing interests are declared.
@@ -684,7 +684,7 @@ completed on 2026-07-01:
 - five formerly-partial snapshots recovered via `sqlite3 .recover` and re-exported
 - `unified/` rebuilt (`v0.4.3-unified`, 727M rows)
 - `v0.2.1/` binary-outcome model published on Hugging Face Models
-- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.1`
+- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.2`
 
 Optional research extensions, if anyone in the open-source community chooses to
 continue from this base, include:
@@ -706,7 +706,7 @@ continue from this base, include:
 
 The public release includes:
 
-- GitHub repository: `github.com/gregyoung14/openmarket` (source tag `v0.5.1`)
+- GitHub repository: `github.com/gregyoung14/openmarket` (source tag `v0.5.2`)
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
 - Hugging Face models: `gregyoung14/openmarket-models` (`v0.2.1/` walk-forward
   logistic on unified step3; `v0.2/`, `v0.1/` historical)

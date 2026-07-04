@@ -94,7 +94,7 @@ See `scripts/ml/README.md` in the source repo.
 | `v0.1/binary_outcome_metrics_*.json` | Metrics snapshots |
 | `v0.1/model_manifest.json` | Provenance manifest |
 
-Trained on a smaller step3 export. Superseded by `v0.2/` for research use.
+Trained on a smaller step3 export. Superseded by `v0.2.1/` for research use.
 
 ## Required Metadata Per Model
 
