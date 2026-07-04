@@ -219,7 +219,7 @@ Completely separate from the live redeem service (port 8006).
   "total_trades": 3452,
   "running_since": "2026-03-14T00:00:00Z",
   "hours_elapsed": 48.2,
-  "csv_dir": "/mnt/nvme/paper_logs/"
+  "csv_dir": "<DATA_VOLUME>/paper_logs/"
 }
 ```
 
@@ -346,7 +346,7 @@ python3 services/redeem-positions/redeem_positions_service.py  # port 8006
 
 # PAPER (new):
 python3 services/paper-tournament/paper_dashboard_service.py \
-  --csv-dir /mnt/nvme/paper_logs/ \
+  --csv-dir <DATA_VOLUME>/paper_logs/ \
   --port 8007                                                   # port 8007
 ```
 

@@ -17,6 +17,7 @@
 \usepackage{url}
 \setlength{\emergencystretch}{2em}
 \usepackage{listings}
+\usepackage{upquote}
 \usepackage{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
@@ -47,27 +48,34 @@
   linkcolor=blue,
   citecolor=blue,
   urlcolor=blue,
-  pdftitle={OpenMarket: The First Public Synchronized Polymarket--Binance Dataset for High-Frequency Prediction Market Research},
-  pdfauthor={OpenMarket Contributors}
+  pdftitle={OpenMarket: A Synchronized Polymarket--Binance Dataset for High-Frequency Prediction-Market Research},
+  pdfauthor={Gregory Young}
 }
 
 \graphicspath{{assets/figures/}}
 
 \lstset{
-  basicstyle=\ttfamily\small,
+  basicstyle=\ttfamily\footnotesize,
   breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
   frame=single,
   backgroundcolor=\color{gray!8}
 }
 
 \title{%
-  OpenMarket: The First Public Synchronized Polymarket--Binance\\
-  Dataset for High-Frequency Prediction Market Research
+  OpenMarket: A Synchronized Polymarket--Binance\\
+  Dataset for High-Frequency Prediction-Market Research
 }
 
 \author{%
-  OpenMarket Contributors\\
-  \texttt{https://github.com/gregyoung14/openmarket}
+  Gregory Young\\
+  Department of Computer Science\\
+  University of Colorado Boulder\\
+  Boulder, CO 80309\\
+  \texttt{gryo8540@colorado.edu}
 }
 
 \date{\today}
@@ -76,7 +84,7 @@
 \IfFileExists{assets/stats/characterization.tex}{
   \input{assets/stats/characterization.tex}
 }{
-  \newcommand{\OpenMarketReleaseTag}{v0.5.0}
+  \newcommand{\OpenMarketReleaseTag}{v0.5.1}
   \newcommand{\OpenMarketTotalRows}{727,098,247}
   \newcommand{\OpenMarketUnifiedGiB}{8.69}
   \newcommand{\OpenMarketSnapshots}{202}
@@ -87,6 +95,11 @@
   \newcommand{\OpenMarketCollectionStart}{2026-03-14}
   \newcommand{\OpenMarketCollectionEnd}{2026-07-01}
   \newcommand{\OpenMarketRustLoc}{17,823}
+  \newcommand{\OpenMarketPolyObservedDays}{54}
+  \newcommand{\OpenMarketBinanceObservedDays}{57}
+  \newcommand{\OpenMarketDataFirstDay}{2026-02-12}
+  \newcommand{\OpenMarketDataLastDay}{2026-05-15}
+  \newcommand{\OpenMarketDataSpanDays}{93}
 }
 
 % Auto-generated research macros (scripts/paper/analyze_research.py)
@@ -97,63 +110,98 @@
   \newcommand{\OpenMarketAucDiffLow}{0.0013}
   \newcommand{\OpenMarketAucDiffHigh}{0.0015}
   \newcommand{\OpenMarketAucPvalue}{<0.001}
+  \newcommand{\OpenMarketLogisticAuc}{0.8415}
+  \newcommand{\OpenMarketNaiveAuc}{0.8401}
+  \newcommand{\OpenMarketDriftAuc}{0.7725}
+  \newcommand{\OpenMarketImbalanceAuc}{0.5863}
   \newcommand{\OpenMarketBrierTight}{0.161}
   \newcommand{\OpenMarketBrierWide}{0.184}
+  \newcommand{\OpenMarketSpreadMedian}{0.01}
+  \newcommand{\OpenMarketSpreadPNinety}{0.01}
+  \newcommand{\OpenMarketSpreadPNinetyFive}{0.02}
+  \newcommand{\OpenMarketSpreadPNinetyNine}{0.03}
+  \newcommand{\OpenMarketSpreadOneTickPct}{91.9}
+  \newcommand{\OpenMarketSpreadTwoTickPct}{6.0}
   \newcommand{\OpenMarketLagPriceCorr}{0.00}
   \newcommand{\OpenMarketLogisticEce}{0.027}
   \newcommand{\OpenMarketNaiveEce}{0.015}
   \newcommand{\OpenMarketLogisticScoreUs}{0.102}
+  \newcommand{\OpenMarketBootstrapN}{2,000}
+  \newcommand{\OpenMarketOosRows}{355,814}
+  \newcommand{\OpenMarketNaiveOosAuc}{0.8405}
+  \newcommand{\OpenMarketNaiveOosBrier}{0.163}
+  \newcommand{\OpenMarketNaiveOosEce}{0.014}
+  \newcommand{\OpenMarketNaiveOosLogLoss}{0.485}
+  \newcommand{\OpenMarketModelOosAuc}{0.8378}
+  \newcommand{\OpenMarketModelOosBrier}{0.165}
+  \newcommand{\OpenMarketModelOosEce}{0.025}
+  \newcommand{\OpenMarketModelOosLogLoss}{0.495}
+  \newcommand{\OpenMarketFlagTightPct}{67.6}
+  \newcommand{\OpenMarketFlagMediumPct}{27.0}
+  \newcommand{\OpenMarketFlagWidePct}{5.5}
+  \newcommand{\OpenMarketEnvBinanceMed}{99}
+  \newcommand{\OpenMarketEnvBinanceRange}{4}
+  \newcommand{\OpenMarketEnvPolyMed}{7}
+  \newcommand{\OpenMarketEnvPolyRange}{2}
+  \newcommand{\OpenMarketDriftBound}{6}
+  \newcommand{\OpenMarketJumpCount}{15,148}
+  \newcommand{\OpenMarketJumpMatched}{4,272}
+  \newcommand{\OpenMarketRespMedianIngest}{347}
+  \newcommand{\OpenMarketRespMedianSource}{345}
+  \newcommand{\OpenMarketDelayAsym}{97}
 }
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We release OpenMarket, to our knowledge the first public synchronized
-high-frequency corpus pairing Polymarket BTC 15-minute binary markets with
-Binance BTC/USDT. The release combines a frozen Hugging Face archive with a
-reproducible Rust pipeline for collection, millisecond pairing, Parquet export,
-and walk-forward calibration. The archive (tag \OpenMarketReleaseTag{}) spans
-109 days, \OpenMarketTotalRows{} deduplicated events across
-\OpenMarketSnapshots{} snapshots, and \OpenMarketLagPairs{} explicit lead--lag
-pairs. Initial analyses establish Polymarket stylized facts (median one-tick
-spreads), characterize heavy-tailed cross-venue timing with a compact
-\OpenMarketLagMedian{}~ms median lag, and benchmark forecasts against naive mid
-priors---multivariate logistic models yield modest AUC gains without tradable
-simulated edge. We position this work as a data-and-methods release enabling
-microstructure and forecasting research, not a trading-alpha claim.
+OpenMarket began as an attempt to trade Polymarket's BTC 15-minute binary
+markets against Binance BTC/USDT order flow. The attempt did not produce a
+tradable edge: out-of-sample, a walk-forward logistic model over 43
+microstructure features matches but does not beat the probability already
+implied by Polymarket's own order book, and simulated trading nets
+$-0.117$ per trade under stated fee and slippage assumptions. We release
+the synchronized corpus and infrastructure that attempt produced---to our
+knowledge, the first public millisecond-level Polymarket BTC / Binance
+BTC-USDT paired corpus with explicit pairing metadata. The frozen archive
+(tag \OpenMarketReleaseTag{}) contains
+\OpenMarketTotalRows{} deduplicated rows across \OpenMarketSnapshots{}
+archival snapshots, with event data on \OpenMarketPolyObservedDays{}
+observed days between \OpenMarketDataFirstDay{} and
+\OpenMarketDataLastDay{}, including \OpenMarketLagPairs{} explicit
+lead--lag pairs, alongside a reproducible Rust pipeline for collection,
+millisecond pairing, Parquet export, and walk-forward calibration. Initial
+analyses establish Polymarket stylized facts (one-tick top-of-book spreads)
+and characterize cross-venue timing: an apparent \OpenMarketLagMedian{}~ms
+median lag on venue source clocks, with relative clock drift bounded to
+${\leq}\OpenMarketDriftBound{}$~ms over the archive but a remaining
+single-vantage constant-offset ambiguity of roughly
+$\pm\OpenMarketEnvBinanceMed{}$~ms. A synchronization-free event study, measured
+only on the collector clock, independently shows that Polymarket quotes
+respond to large Binance moves after a median \OpenMarketRespMedianIngest{}~ms.
+We position this work as a data-and-methods release whose central empirical
+result is an honest null.
 \end{abstract}
 
 \input{sections/introduction}
 \input{sections/background}
 \input{sections/related-work}
-\input{sections/contributions}
 \input{sections/architecture}
-\input{sections/data-collection}
 \input{sections/synchronization}
-\input{sections/feature-engineering}
 \input{sections/machine-learning}
 \input{sections/strategy-framework}
-\input{sections/backtesting}
-\input{sections/evaluation}
 \input{sections/dataset}
 \input{sections/experimental-results}
 \input{sections/microstructure-insights}
-\input{sections/performance}
 \input{sections/reproducibility}
 \input{sections/discussion}
 \input{sections/limitations}
-\input{sections/future-work}
 \input{sections/conclusion}
-\input{sections/open-source-release}
 
 \section*{Funding and Competing Interests}
-This project was produced as an independent open-source release. The authors
-declare no external funding and no competing interests.
+This project was produced as an independent open-source release. The author
+declares no external funding and no competing interests.
 
 \bibliography{bibliography}
-
-\input{sections/appendix-schema}
-\input{sections/appendix-architecture}
 
 \end{document}

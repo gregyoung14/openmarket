@@ -2,38 +2,29 @@
 
 ## Navigation
 
-### [Architecture Overview](./architecture/overview.md)
+This index covers the operational documents actually preserved in
+`research/operational/docs/`. Empty category directories are retained only as
+historical placeholders; missing private runbooks were not recreated.
 
-Core system components, data flow, and design decisions.
+### Architecture And Execution
 
-### [Service Catalog](./architecture/services.md)
-
-All 6 services: ports, endpoints, responsibilities.
-
-### Setup
-
-- **[VPS Configuration](./setup/vps_config.md)** — OS, storage layout, firewall
-- **[Installation](./setup/installation.md)** — Cloning, Rust/Python setup, environment variables
-- **[Dependencies](./setup/dependencies.md)** — Rust, Python, and frontend dependency management
-
-### Authentication
-
-- **[Credentials](./authentication/credentials.md)** — L1 (private key) and L2 (API keys)
-- **[Wallet Utilities](./authentication/wallet_gen.md)** — `wallet-gen/` derivation and swap tools
+- **[Execution Engine v15 Spec](./EXECUTION-ENGINE-V15-SPEC.md)** — execution parser, sizing, signal flow, and mismatch guards.
+- **[Polymarket Inversion Root Cause](./POLYMARKET-INVERSION-ROOT-CAUSE.md)** — token-ordering bug analysis.
+- **[Polymarket Audit](./TDR-POLYMARKET-AUDIT.md)** — paper-executor integration audit against Polymarket docs.
+- **[Rolling BTC Context](./TDR-ROLLING-BTC-CONTEXT.md)** — signal-engine rolling context design.
+- **[Backtest Database Access](./TDR-backtest-database-access.md)** — archived snapshot access model.
 
 ### Trading
 
-- **[Execution](./trading/execution.md)** — Signal flow, order placement, risk management
-- **[Position Redemption](./trading/redemption.md)** — On-chain redemption, trade ledger, dashboard
 - **[Paper Tournament Profitability Path (2026-04-05)](./TDR-paper-tournament-profitability-path-2026-04-05.md)** — v2 canary analysis, failure modes, and next-step strategy plan
 - **[Calibrated Net-EV Binary Scorer (2026-04-05)](./TDR-calibrated-net-ev-binary-scorer-2026-04-05.md)** — symmetric probability model, calibration path, and EV-based candidate scoring design
 - **[Calibrated Net-EV Delivery Task List (2026-04-06)](./TASKLIST-calibrated-net-ev-binary-scorer-2026-04-06.md)** — phased implementation backlog, dependencies, validation gates, and rollout order
 - **[Calibrated Net-EV Feature Contract (2026-04-06)](./FEATURE-CONTRACT-calibrated-net-ev-binary-scorer-2026-04-06.md)** — rollout modes, dataset schema, runtime artifact location, and paper-only scorer fields
+- **[Mobile Paper Tournament Dashboard](./TDR-mobile-paper-tournament-dashboard.md)** — read-only mobile dashboard design.
 
 ### Operations
 
-- **[Monitoring & Logs](./monitoring/logs.md)** — Log locations, systemd commands, health checks
-- **[Paper Tournament Stall Postmortem (2026-04-03)](./monitoring/paper-tournament-stall-2026-04-03.md)** — Root cause, recovery timeline, and follow-up actions
+- **[Ledger Version Correlation Audit (2026-03-09)](./LEDGER-VERSION-CORRELATION-AUDIT-2026-03-09.md)** — git/runtime/ledger reconciliation.
 
 ### Reference
 
@@ -54,7 +45,6 @@ All 6 services: ports, endpoints, responsibilities.
 
 ### Codebase Notes
 
-- **All runtime services are Rust** except `redeem-positions` (Python).
-- **No legacy Python services remain** — all original Python trading/scraping code was replaced by Rust services and removed (March 2026).
-- **Signal Engine v1 archive** (ML bridge via TCP/Python) was removed — it's preserved in git history before commit `f4d107b`.
-- **One-time backfill scripts** live in `scripts/deprecated/` for reference only.
+- The archived tree contains 8 standalone Rust service directories and 2 Python service directories.
+- Runtime/output data such as private ledgers, paper logs, wallet state, and raw credentials are intentionally omitted or sanitized.
+- Empty documentation category directories are placeholders from the source repo; this index only links files present in the archive.

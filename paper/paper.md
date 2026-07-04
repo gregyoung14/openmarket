@@ -1,4 +1,7 @@
-# OpenMarket: The First Public Synchronized Polymarket-Binance Dataset for High-Frequency Prediction Market Research
+# OpenMarket: A Public Synchronized Polymarket-Binance Dataset for High-Frequency Prediction Market Research
+
+**Author:** Gregory Young, Department of Computer Science, University of
+Colorado Boulder, Boulder, CO 80309. Email: gryo8540@colorado.edu.
 
 > **LaTeX build:** `paper/scripts/compile.sh` → `paper/main.pdf`.
 > **Empirical stats:** `analyze_unified.py` + `analyze_research.py` → `assets/stats/`
@@ -10,9 +13,10 @@ We release OpenMarket, to our knowledge the first public synchronized
 high-frequency corpus pairing Polymarket BTC 15-minute binary markets with
 Binance BTC/USDT. The release combines a frozen Hugging Face archive with a
 reproducible Rust pipeline for collection, millisecond pairing, Parquet export,
-and walk-forward calibration. The archive (tag `v0.5.0`) spans 109 days, 727.1M
+and walk-forward calibration. The archive (tag `v0.5.1`) spans 109 days, 727.1M
 deduplicated events across 202 snapshots, and 2.94M explicit lead–lag pairs.
-Initial analyses establish Polymarket stylized facts (median one-tick spreads),
+Initial analyses establish Polymarket stylized facts (top-of-book spreads
+concentrated at one tick),
 characterize heavy-tailed cross-venue timing with a compact 16 ms median lag,
 and benchmark forecasts against naive mid priors—multivariate logistic models
 yield modest AUC gains without tradable simulated edge. We position this work as
@@ -45,7 +49,7 @@ We do **not** claim persistent trading profitability. Simulated economics under
 stated fees and slippage are negative for the published scorer. The goal is to
 enable the community to study *how* external spot prices and Polymarket books
 interact at high frequency. OpenMarket is frozen as a public research archive
-(source tag `v0.5.0`); active collection has ended.
+(source tag `v0.5.1`); active collection has ended.
 
 ## 2. Related Work
 
@@ -64,6 +68,11 @@ design trade-offs without a cross-venue BTC 15-minute benchmark.
 Parquet splits, (ii) explicit `lag_pairs_ms` with quality flags, (iii) Rust
 exporters/trainers with pinned commands, and (iv) empirical baselines on the
 released corpus.
+
+The comparison below is not a measure of analytical depth or private-scale
+coverage: Dubach provides a deeper single-venue microstructure analysis, while
+Saguillo et al. study broader proprietary-scale arbitrage data than this public
+BTC 15-minute release.
 
 | Artifact | PM ticks | Binance ref. | HF corpus | Cross-venue pairs | OSS repro |
 |---|---|---|---|---|---|
@@ -112,6 +121,8 @@ OpenMarket contributes:
   `unified/`, and a sample `features/` split) plus published model artifacts on
   Hugging Face Models (`v0.2.1/` recommended, `v0.1/` historical)
 - Reproducibility commands, Docker scaffolding, documentation, and benchmarks
+- A sanitized operational appendix for audit context, kept separate from the
+  benchmark claims and main dataset workflow
 
 ## 5. System Architecture
 
@@ -141,7 +152,9 @@ OpenMarket contributes:
 
 The codebase is a Rust workspace spanning exchange collectors, a multi-market
 recorder with lag-pairing export, signal and execution engines, backtesting, and
-Parquet-native ML crates. Crate-level detail is in Appendix B.
+Parquet-native ML crates. The paper's benchmark claims are regenerated from the
+frozen dataset and model artifacts, not from live operational services.
+Crate-level detail is in Appendix B.
 
 ## 6. Data Collection
 
@@ -270,20 +283,20 @@ market (559 windows, expanding train horizon), Platt scaling, and simulated +EV
 evaluation under stated fee (1%) and slippage (0.5%) assumptions. Training on
 357k rows completes in ~67s (Rayon-parallel on Apple M5 Max).
 
-**Published model (`v0.2.1/` on Hugging Face Models):**
+**Published scorer benchmark (`v0.2.1/` on Hugging Face Models):**
 
 | Metric | Value |
 |---|---:|
-| Pooled walk-forward OOS AUC-ROC | 0.838 |
-| Brier | 0.165 |
-| ECE | 0.025 |
+| Full step3 AUC-ROC | 0.841 |
+| Brier | 0.163 |
+| ECE | 0.027 |
 | Simulated +EV trades | 260,617 |
 | Sim PnL / trade | -0.117 |
 
-For baseline comparison, the frozen exported scorer is also evaluated on the
-full 357,390-row step3 timeline; that full-timeline score is AUC 0.841, Brier
-0.163, ECE 0.027, and is the value used for the naive-prior effect-size test in
-Section 18.
+The training artifact also records a separate walk-forward stability diagnostic:
+pooled OOS AUC 0.838, Brier 0.165, and ECE 0.025 across 559 windows. That
+diagnostic is useful for stability auditing but is not the baseline used for the
+naive-prior effect-size test in Section 18.
 
 The negative simulated PnL is intentional transparency: the artifact demonstrates
 calibration and ranking skill, not deployable trading alpha. An earlier `v0.1/`
@@ -380,10 +393,10 @@ huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket
 
 | Split | Version | Status | Purpose |
 |-------|---------|--------|---------|
-| Unified | `v0.4.3-unified` | **Live** | Deduped research timeline — **727M rows**, 8.7 GiB (recommended) |
-| Full | `v0.2-full` | **Live** | Complete 202-snapshot per-export archive (3,312 parquet files) |
-| Features | `v0.4-features` | **Optional** | One-snapshot demo on HF; full step2/step3 reproducible from `unified/` |
-| Sample | `v0.1-sample` | **Live** | 12 flat parquet at repo root; quickstart and CI |
+| Unified | `v0.4.3-unified` | **Frozen** | Deduped research timeline — **727M rows**, 8.7 GiB (recommended) |
+| Full | `v0.2-full` | **Frozen** | Complete 202-snapshot per-export archive (3,312 parquet files) |
+| Features | `v0.4-features` | **Demo** | One-snapshot demo on HF; full step2/step3 reproducible from `unified/` |
+| Sample | `v0.1-sample` | **Frozen** | 12 flat parquet at repo root; quickstart and CI |
 
 **Archive inventory:** 202 CDN SQLite snapshots (46 GB compressed), collected
 2026-03-14 through 2026-07-01. Five formerly-partial snapshots were recovered
@@ -549,10 +562,14 @@ OpenMarket has several limitations:
 - Simulated strategy outcomes may be sensitive to a small number of market regimes.
 - Historical Polymarket liquidity may not match future liquidity.
 - Live execution has additional latency, queue position, and partial-fill risks.
+- The operational archive is sanitized audit context, not a recommendation to
+  run live trading infrastructure or a profitability claim.
 - BTC 15-minute markets are only one prediction-market domain; lower tick rates,
   wider books, ambiguous settlement, and missing external reference streams can
   break the assumptions used here.
 - Step3 feature export writes 2,251 of 4,450 `market_meta` markets; skipped
+  markets are audited as missing Polymarket ticks, insufficient Binance trades,
+  missing Binance partitions, invalid book snapshots, or tied labels.
   markets are mostly no Polymarket ticks (1,241), insufficient Binance trades
   (922), missing Binance partitions (21), no valid book snapshots (14), and one
   tied close.
@@ -605,10 +622,10 @@ overstate executable edge.
 
 | Model | AUC | Brier |
 |---|---:|---:|
-| Naive `market_mid_prior_up` | 0.840 | 0.163 |
-| Logistic + Platt (`v0.2.1`) | 0.841 | 0.163 |
-| `drift_prob_up` only | 0.773 | 0.218 |
-| `imbalance_60s` (sigmoid) | 0.586 | 0.246 |
+| Naive `market_mid_prior_up` | 0.8401 | 0.163 |
+| Logistic + Platt (`v0.2.1`) | 0.8415 | 0.163 |
+| `drift_prob_up` only | 0.7725 | 0.218 |
+| `imbalance_60s` (sigmoid) | 0.5863 | 0.246 |
 
 ΔAUC ≈ 0.0014 vs. naive mid (bootstrap 95% CI [0.0013, 0.0015], p < 0.001):
 statistically detectable, economically tiny. Brier rises from ~0.162 at one-tick
@@ -622,9 +639,10 @@ facts; Saguillo et al. [2025] quantify arbitrage gaps. Neither provides a
 reproducible Binance–Polymarket timeline with published pairing metadata and
 walk-forward calibration baselines.
 
-**Venue positioning.** Best read as a data-and-methods release with empirical
-baselines—appropriate for arXiv, ML-for-finance workshops, or data-descriptor
-journals.
+**Artifact scope.** Best read as a data-and-methods release with empirical
+baselines rather than as pure systems or econometrics theory. The primary claim
+is reproducible public infrastructure: synchronized corpus, pairing metadata,
+validation commands, and baseline diagnostics.
 
 **Domain scope.** BTC 15m markets are liquid and volatile but niche. Election,
 macro, or long-dated markets can have lower tick rates, wider/intermittent
@@ -638,7 +656,7 @@ and WebSocket gaps are documented; top-of-book backtests are not executable PnL
 without explicit queue and fee models.
 
 **Ethics / availability.** Public market data only (no user identities). Apache
-2.0 code; cite dataset version and tag `v0.5.0` (see `CITATION.md`).
+2.0 code; cite dataset version and tag `v0.5.1` (see `CITATION.md`).
 
 **Funding / competing interests.** Independent open-source release; no external
 funding or competing interests are declared.
@@ -666,7 +684,7 @@ completed on 2026-07-01:
 - five formerly-partial snapshots recovered via `sqlite3 .recover` and re-exported
 - `unified/` rebuilt (`v0.4.3-unified`, 727M rows)
 - `v0.2.1/` binary-outcome model published on Hugging Face Models
-- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.0` on private GitHub
+- unified backfill synced (`v0.4.3-unified`); source tag `v0.5.1`
 
 Optional research extensions, if anyone in the open-source community chooses to
 continue from this base, include:
@@ -688,12 +706,14 @@ continue from this base, include:
 
 The public release includes:
 
-- GitHub repository: `github.com/gregyoung14/openmarket` (private during pre-launch)
+- GitHub repository: `github.com/gregyoung14/openmarket` (source tag `v0.5.1`)
 - Hugging Face dataset: `gregyoung14/openmarket-btc-polymarket`
 - Hugging Face models: `gregyoung14/openmarket-models` (`v0.2.1/` walk-forward
   logistic on unified step3; `v0.2/`, `v0.1/` historical)
 - mdBook documentation
 - Rust API documentation
+- Sanitized operational archive: `research/operational/` (audit context;
+  summarized in Appendix B)
 - Docker reproducibility
 - benchmark tables
 - Apache License 2.0 (code) and documented HF dataset license

@@ -29,8 +29,13 @@ import time
 import argparse
 from web3 import Web3
 
-# Polygon RPC endpoint (Alchemy)
-RPC_URL = 'https://polygon-rpc.com'
+# Polygon RPC endpoint. Prefer POLYGON_RPC_URL; fall back to Alchemy only when
+# ALCHEMY_API_KEY is supplied, then to a public RPC for dry-run style checks.
+RPC_URL = os.environ.get("POLYGON_RPC_URL") or (
+    f"https://polygon-mainnet.g.alchemy.com/v2/{os.environ['ALCHEMY_API_KEY']}"
+    if os.environ.get("ALCHEMY_API_KEY")
+    else "https://polygon-rpc.com"
+)
 
 # Token addresses
 NATIVE_USDC = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'

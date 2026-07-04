@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-03T21:52:45.262986+00:00",
-  "release_tag": "v0.5.0",
+  "generated_at": "2026-07-04T21:58:26.277324+00:00",
+  "release_tag": "v0.5.1",
   "unified_root": "<OPENMARKET_REPO>/paper/../data/hf_release/unified_parquet",
-  "scan_seconds": 0.059,
+  "scan_seconds": 0.069,
   "lag_load_seconds": 0.013,
   "manifest": {
     "snapshot_count": 202,
@@ -85,6 +85,13 @@
   },
   "daily_polymarket_days": 54,
   "daily_binance_days": 57,
+  "observed_days": {
+    "polymarket_observed_days": 54,
+    "binance_observed_days": 57,
+    "first_observed_day": "2026-02-12",
+    "last_observed_day": "2026-05-15",
+    "observed_span_days": 93
+  },
   "model_v01_metrics": {
     "auc_roc": 0.8608286252354049,
     "brier": 0.15472731496398393,
@@ -164,5 +171,5 @@
       }
     }
   },
-  "rust_loc": 17823
+  "rust_loc": 17824
 }

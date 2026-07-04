@@ -1,10 +1,8 @@
 \section{Experimental Characterization}
 \label{sec:experiments}
 
-We characterize the published \texttt{v0.4.3-unified} Hugging Face split using
-\texttt{scripts/paper/analyze\_unified.py} and
-\texttt{scripts/paper/generate\_ml\_figures.py} on local Parquet and model
-artifacts. Statistics below are computed from
+We characterize the published \texttt{v0.4.3-unified} Hugging Face split with
+the paper analysis scripts on local Parquet and model artifacts. Statistics below are computed from
 on-disk Parquet metadata and a full scan of \texttt{lag\_pairs\_ms} (release tag
 \OpenMarketReleaseTag{}). These results describe \textbf{what the archival corpus
 contains}; microstructure findings and forecast benchmarks are in
@@ -13,37 +11,25 @@ Section~\ref{sec:insights}.
 \subsection{Dataset Scale}
 \label{sec:exp-scale}
 
-The unified split contains \OpenMarketTotalRows{} rows across all exported tables,
-occupying \OpenMarketUnifiedGiB{}~GiB on disk. The operator archive spans
-\OpenMarketSnapshots{} SQLite snapshots collected from
-\OpenMarketCollectionStart{} to \OpenMarketCollectionEnd{} (109 days). After
+The unified split contains \OpenMarketTotalRows{} rows across all exported tables
+(Figure~\ref{fig:dataset-scale}),
+occupying \OpenMarketUnifiedGiB{}~GiB on disk. The operator archive comprises
+\OpenMarketSnapshots{} SQLite snapshots published from
+\OpenMarketCollectionStart{} to \OpenMarketCollectionEnd{} (a 109-day
+publication window). The event data inside those snapshots spans
+\OpenMarketDataFirstDay{} to \OpenMarketDataLastDay{}
+(\OpenMarketDataSpanDays{} calendar days), with event data on
+\OpenMarketPolyObservedDays{} observed days for Polymarket and
+\OpenMarketBinanceObservedDays{} for Binance; coverage is uneven, with
+multi-day gaps, and no new event data was recorded after
+\OpenMarketDataLastDay{} even though snapshot checkpoints
+continued to be published until \OpenMarketCollectionEnd{}. After
 deduplication across overlapping snapshot exports, the unified timeline removes
 ${\sim}$21\% duplicate rows relative to the raw \texttt{full/} union (916M
-input rows $\rightarrow$ \OpenMarketTotalRows{} output rows).
-
-\begin{table}[t]
-  \centering
-  \caption{Unified split table row counts (from Parquet metadata).}
-  \label{tab:unified-rows}
-  \small
-  \begin{tabular}{@{}lrr@{}}
-    \toprule
-    Table & Rows & Parts \\
-    \midrule
-    \texttt{polymarket\_ticks\_ms} & 605,608,370 & 54 \\
-    \texttt{binance\_trades}        & 62,258,815  & 57 \\
-    \texttt{binance\_ticks\_ms}    & 55,792,056  & 55 \\
-    \texttt{lag\_pairs\_ms}         & 2,936,031   & 8  \\
-    \texttt{market\_meta}           & 4,450       & 1  \\
-    \texttt{binance\_candles\_1s}   & 405,704     & 55 \\
-    \texttt{binance\_candles\_5s}   & 82,260      & 56 \\
-    \texttt{binance\_candles\_1m}   & 7,449       & 56 \\
-    \texttt{binance\_candles\_5m}   & 1,969       & 56 \\
-    \texttt{binance\_candles\_15m}  & 828         & 56 \\
-    \texttt{binance\_candles\_1h}   & 315         & 50 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+input rows $\rightarrow$ \OpenMarketTotalRows{} output rows). Most rows are
+Polymarket ticks (605.6M), Binance trades (62.3M), Binance millisecond ticks
+(55.8M), and explicit lag pairs (2.9M); candle tables add 498{,}525 rows and
+have narrower coverage because only completed intervals are written.
 
 \begin{figure}[t]
   \centering
@@ -75,8 +61,14 @@ summary statistics are:
 \end{itemize}
 
 Positive values indicate Polymarket source timestamps following Binance source
-timestamps (Equation~\ref{eq:lead-lag}). The long tails motivate treating
-alignment-window sensitivity and clock drift as first-class quality metrics.
+timestamps (Equation~\ref{eq:lead-lag}). On a 500k-pair sample, the recorder's
+pairing-window quality flags split into \OpenMarketFlagTightPct{}\%
+\texttt{tight} ($|$lag$| \le 100$~ms), \OpenMarketFlagMediumPct{}\%
+\texttt{medium} ($\le 300$~ms), and \OpenMarketFlagWidePct{}\% \texttt{wide}
+($> 300$~ms) pairs, so filtering to \texttt{tight} pairs retains roughly
+two-thirds of the table. The long tails motivate treating
+alignment-window sensitivity and clock drift as first-class quality metrics;
+Section~\ref{sec:sync-clock} bounds relative clock drift empirically.
 
 \begin{figure}[t]
   \centering
@@ -86,69 +78,15 @@ alignment-window sensitivity and clock drift as first-class quality metrics.
   \label{fig:lead-lag-hist-unified}
 \end{figure}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.95\linewidth]{daily-volume.pdf}
-  \caption{Daily event volume (last 30 days with data) for Polymarket ticks and
-    Binance trades in the unified split.}
-  \label{fig:daily-volume}
-\end{figure}
-
 \subsection{Reproducibility Benchmarks}
 \label{sec:exp-bench}
 
-Table~\ref{tab:repro-bench} and Figure~\ref{fig:throughput-bench} report
-environment-specific measurements on the publication workstation
-(\OpenMarketHardware{}; \OpenMarketRustVersion{}). No \texttt{cargo bench}
-targets ship in the workspace yet; we time end-to-end I/O and the release
-backtester binary instead. Unified metadata and \texttt{lag\_pairs\_ms} timings
-are local filesystem measurements from the same \texttt{analyze\_unified.py}
-run used to generate Figure~\ref{fig:throughput-bench}, not cold-download
-benchmarks.
-
-\begin{table}[t]
-  \centering
-  \caption{Reproducibility benchmarks (environment-specific).}
-  \label{tab:repro-bench}
-  \small
-  \begin{tabular}{@{}ll@{}}
-    \toprule
-    Metric & Value \\
-    \midrule
-    Hardware & \OpenMarketHardware{} \\
-    HF sample download + scan & 1.55\,s / 9,352 rows \\
-    HF sample Parquet load & \OpenMarketBenchHfLoad{}~s \\
-    Unified Parquet metadata scan & \OpenMarketUnifiedGiB{}~GiB, \OpenMarketUnifiedMetaScanSeconds{}\,s \\
-    Unified \texttt{lag\_pairs\_ms} load & \OpenMarketLagPairs{} rows, \OpenMarketLagPairsLoadSeconds{}\,s \\
-    Step-2 features Parquet load & \OpenMarketBenchFeatLoad{}~s (\OpenMarketBenchFeatRows{} rows, \OpenMarketBenchFeatParts{} parts) \\
-    \texttt{v15\_brier\_calibration} (staging DB) & \OpenMarketBenchBacktest{}~s / \OpenMarketBenchBacktestMarkets{} markets \\
-    Rust workspace (crates/) & \OpenMarketRustLoc{} non-blank lines \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.92\linewidth]{throughput-bench.pdf}
-  \caption{Throughput benchmarks on the publication workstation (see
-    Table~\ref{tab:repro-bench}).}
-  \label{fig:throughput-bench}
-\end{figure}
-
-\subsection{Feature Correlation (Step-2)}
-\label{sec:exp-features}
-
-Figure~\ref{fig:feature-corr} summarizes pairwise Pearson correlations among
-100\,ms step-2 features exported from a staging snapshot
-(\texttt{features\_parquet/step2\_100ms/}). The heatmap is computed from
-\OpenMarketFeatureCorrRows{} rows after dropping near-constant columns and
-plotting \OpenMarketFeatureCorrFeatures{} selected numeric features. Highly
-correlated blocks (returns, realized vol, volume) motivate regularized training
-and ablation in downstream ML work.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.95\linewidth]{feature-correlation.pdf}
-  \caption{Feature correlation heatmap (step-2, 100\,ms buckets).}
-  \label{fig:feature-corr}
-\end{figure}
+Environment-specific measurements on the publication workstation
+(\OpenMarketHardware{}; \OpenMarketRustVersion{}) are recorded in
+\texttt{assets/stats/benchmarks.json}. They include HF sample validation
+(1.55\,s / 9{,}352 rows), unified Parquet metadata scan
+(\OpenMarketUnifiedGiB{}~GiB in \OpenMarketUnifiedMetaScanSeconds{}\,s),
+\texttt{lag\_pairs\_ms} load (\OpenMarketLagPairs{} rows in
+\OpenMarketLagPairsLoadSeconds{}\,s), and the released staging backtest
+(\OpenMarketBenchBacktest{}\,s across \OpenMarketBenchBacktestMarkets{}
+markets). These are local I/O measurements, not cold-download benchmarks.

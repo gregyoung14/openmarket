@@ -20,7 +20,12 @@ window and compute lead-lag as
 \end{equation}
 Positive values indicate that the Polymarket event timestamp follows the
 Binance event timestamp; negative values indicate the opposite.
-Each pair is stored with a quality flag, Binance price, Polymarket bid,
+Note that \texttt{lead\_lag\_ms} is an \emph{event-timing} difference between
+paired observations inside the window, not an econometric price-discovery
+measure such as Hasbrouck's information share~\cite{hasbrouck1995one}; the
+released pairs are the raw material from which such measures can be computed.
+Each pair is stored with a quality flag (\texttt{tight}/\texttt{medium}/\texttt{wide}
+pairing-window band), Binance price, Polymarket bid,
 market slug, side label, and price delta in basis points.
 
 \subsection{Pairing and Quality Metrics}
@@ -32,6 +37,64 @@ consistent with microstructure guidance for decentralized prediction
 markets~\cite{dubach2026anatomy,rahman2025sok}:
 clock drift, dropped WebSocket messages, duplicate payloads, reconnect gaps,
 stale order-book state, out-of-order events, and sensitivity to~$W$.
+
+\subsection{Clock-Offset Validation}
+\label{sec:sync-clock}
+
+Equation~\eqref{eq:lead-lag} compares timestamps from two independent venue
+clocks, so the lead--lag distribution is meaningful only up to their relative
+offset and drift. With a single collection vantage point the \emph{constant}
+component of the venue-clock offset cannot be separated from asymmetric
+network latency; rather than assume it away, we measure what is identifiable
+(Figure~\ref{fig:clock-validation}; regenerate with
+\texttt{analyze\_research.py --refresh-clock}).
+
+\textbf{Drift bound.} Every tick carries both venue and collector timestamps,
+so per-venue transport delay $\texttt{ingest\_ts\_ms}-\texttt{source\_ts\_ms}$
+is observable. Its per-day minimum envelope is
+\OpenMarketEnvBinanceMed{}~ms for Binance and \OpenMarketEnvPolyMed{}~ms for
+Polymarket, and each envelope varies by at most
+\OpenMarketEnvBinanceRange{}~ms and \OpenMarketEnvPolyRange{}~ms respectively
+across all observed days (Figure~\ref{fig:clock-validation}a). Any relative
+drift between the venue clocks would move these envelopes; their stability
+bounds cumulative relative clock drift to
+${\leq}\OpenMarketDriftBound{}$~ms over the entire archive. The lead--lag
+distribution is therefore not smeared by time-varying clock error; a constant
+offset can only shift it uniformly. The same diagnostic does \emph{not}
+identify the constant offset from a single collector host. The observed
+minimum-delay envelopes imply a conservative single-vantage ambiguity of roughly
+$\pm\OpenMarketEnvBinanceMed{}$~ms for source-clock lead--lag values, so the
+\OpenMarketLagMedian{}~ms median should be read as an \emph{apparent}
+source-clock median rather than an absolute cross-venue latency.
+
+\textbf{Synchronization-free causal ordering.} To validate cross-venue
+ordering without any venue-clock assumption, we detect
+\OpenMarketJumpCount{} large Binance moves ($\geq$5~bps within 1~s) and match
+\OpenMarketJumpMatched{} of them to the first directionally consistent
+Polymarket UP-token best-bid change ($\geq$1 tick) within 2~s. Measured
+entirely on the collector's single ingest clock---no cross-venue timestamp
+comparison involved---the median quote response lag is
+\OpenMarketRespMedianIngest{}~ms
+(Figure~\ref{fig:clock-validation}b). This estimate uses only event ordering
+on the collector clock, so the conclusion that Polymarket quotes
+\emph{follow} large Binance moves does not depend on venue-clock offset.
+
+We therefore report unconditional lead--lag medians as source-clock
+quantities with drift bounded to ${\leq}\OpenMarketDriftBound{}$~ms and an
+unresolved constant-offset ambiguity of roughly
+$\pm\OpenMarketEnvBinanceMed{}$~ms; the causal response result is independent
+of both.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.98\linewidth]{clock-validation.pdf}
+  \caption{Clock-offset validation. (a) Per-day minimum transport-delay
+    envelopes for both venues are flat across the archive, bounding relative
+    clock drift to ${\leq}\OpenMarketDriftBound{}$~ms. (b) Distribution of
+    Polymarket quote response lags after $\geq$5~bps Binance moves, measured
+    on the collector's single clock (synchronization-free).}
+  \label{fig:clock-validation}
+\end{figure}
 
 \subsection{Lead--Lag Timeline (Figure~\ref{fig:lead-lag-timeline})}
 
@@ -50,25 +113,26 @@ ordering. The shaded interval is the alignment window~$W$.
       ingest/.style={dashed, gray},
       evlabel/.style={align=center, font=\scriptsize}
     ]
+    % Shaded alignment window drawn first so event ticks sit on top of it.
+    \draw[fill=blue!8, draw=blue!40] (1.4,-0.08) rectangle (7.8,0.62);
+    \node[blue!60!black] at (4.6,0.44) {alignment window $W$};
+
     \draw[->] (0,0) -- (11.2,0) node[right] {time (ms)};
 
     \draw[ts, blue] (2.2,0) -- (2.2,0.6);
-    \node[blue] at (2.2,0.78) {$t_B$};
-    \node[blue, evlabel] at (2.2,-0.55) {Binance\\trade};
-    \draw[ingest] (2.7,1.05) -- (2.7,0);
-    \node[gray] at (2.7,1.22) {$t_B^{\mathrm{ing}}$};
+    \node[blue] at (2.2,0.82) {$t_B$};
+    \node[blue, evlabel] at (2.2,-0.52) {Binance\\trade};
+    \draw[ingest] (2.7,1.1) -- (2.7,0);
+    \node[gray] at (2.7,1.28) {$t_B^{\mathrm{ing}}$};
 
     \draw[ts, orange] (7.0,0) -- (7.0,0.6);
-    \node[orange] at (7.0,0.78) {$t_P$};
-    \node[orange, evlabel] at (7.0,-0.55) {Polymarket\\book};
-    \draw[ingest] (7.6,1.05) -- (7.6,0);
-    \node[gray] at (7.6,1.22) {$t_P^{\mathrm{ing}}$};
+    \node[orange] at (7.0,0.82) {$t_P$};
+    \node[orange, evlabel] at (7.0,-0.52) {Polymarket\\book};
+    \draw[ingest] (7.6,1.1) -- (7.6,0);
+    \node[gray] at (7.6,1.28) {$t_P^{\mathrm{ing}}$};
 
-    \draw[fill=blue!10, draw=blue!40] (1.4,-0.38) rectangle (7.8,-0.18);
-    \node at (4.6,-0.28) {alignment window $W$};
-
-    \draw[<->, thick] (2.2,-0.88) -- (7.0,-0.88)
-      node[midway, below=4pt] {$\texttt{lead\_lag\_ms}=t_P-t_B$};
+    \draw[<->, thick] (2.2,-1.05) -- (7.0,-1.05)
+      node[midway, below=3pt] {$\Delta t=t_P-t_B$};
   \end{tikzpicture}
   \caption{Lead--lag pairing timeline. Source timestamps determine
     Equation~\eqref{eq:lead-lag}; ingest timestamps diagnose collector

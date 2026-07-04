@@ -2,7 +2,7 @@
 
 # OpenMarket
 
-**A public, synchronized, millisecond-resolution Polymarket–Binance BTC corpus and Rust research platform.**
+**A public, millisecond-level Polymarket BTC / Binance BTC-USDT paired corpus and Rust research platform.**
 
 [![CI](https://github.com/gregyoung14/openmarket/actions/workflows/ci.yml/badge.svg)](https://github.com/gregyoung14/openmarket/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/gregyoung14/openmarket)](https://github.com/gregyoung14/openmarket/releases)
@@ -20,7 +20,7 @@
 
 ---
 
-OpenMarket is an open-source Rust research platform for collecting, synchronizing, and backtesting high-frequency Polymarket prediction-market data against Binance BTC/USDT.
+OpenMarket is an open-source Rust research platform and frozen dataset release for collecting, pairing, and backtesting high-frequency Polymarket prediction-market data against Binance BTC/USDT.
 
 The goal is **reproducible prediction-market research**, not a black-box trading bot. The repository contains collectors, a recorder, exporters, trainers, backtesters, schemas, documentation, and release scripts. Large datasets and pretrained models are released separately through Hugging Face.
 
@@ -30,15 +30,18 @@ The goal is **reproducible prediction-market research**, not a black-box trading
 
 | | |
 |---|---:|
-| **Collection span** | 109 days (2026-03-14 → 2026-07-01) |
+| **Snapshot publication window** | 109 days (2026-03-14 → 2026-07-01) |
+| **Observed event span** | 93 calendar days (2026-02-12 → 2026-05-15) |
+| **Observed event days** | 54 Polymarket / 57 Binance |
 | **Operator snapshots** | 202 SQLite snapshots (46 GB compressed) |
 | **Unified corpus** | 727,098,247 rows / 8.7 GiB Parquet |
 | **Cross-venue pairs** | 2,936,031 explicit `lag_pairs_ms` |
-| **Median lead–lag** | 16 ms (5th/95th: −185 / +315 ms) |
+| **Apparent source-clock lead–lag** | 16 ms median (5th/95th: −186 / +316 ms) |
+| **Collector-clock quote response** | 347 ms median after large Binance moves |
 | **Polymarket ticks** | 605,608,370 |
 | **Binance trades** | 62,258,815 |
 | **Markets tracked** | 4,450 (2,251 with sufficient data for modeling) |
-| **Rust workspace** | 17,823 LOC |
+| **Rust workspace** | 17,824 LOC |
 
 ## Why this matters
 
@@ -47,10 +50,10 @@ Polymarket's short-horizon BTC binary markets combine prediction-market forecast
 OpenMarket closes that gap by publishing:
 
 1. **Corpus** — a frozen Hugging Face archive with raw per-snapshot exports and a deduped unified timeline.
-2. **Methods** — documented source-vs.-ingest synchronization, Parquet-native export, walk-forward calibration, and validation harnesses.
-3. **Baselines** — stylized facts and forecast benchmarks on the released corpus.
+2. **Methods** — documented source-vs.-ingest pairing, clock-offset validation, Parquet-native export, walk-forward calibration, and validation harnesses.
+3. **Baselines** — stylized facts, forecast benchmarks, and a clearly reported null trading result on the released corpus.
 
-> **Transparency:** the published `v0.2.1` model shows calibration and ranking skill, but simulated economics under stated fees and slippage are negative. This is a data-and-methods release, not a claim of deployable trading alpha.
+> **Transparency:** the published `v0.2.1` model shows calibration and ranking skill, but it matches rather than beats the naive Polymarket mid-price prior out of sample, and simulated economics under stated fees and slippage are negative. This is a data-and-methods release, not a claim of deployable trading alpha.
 
 ## Architecture
 
@@ -97,11 +100,12 @@ See [`datasets/README.md`](datasets/README.md) and [`docs/data/dataset-release.m
 
 ## Microstructure findings
 
-Key stylized facts from the released corpus:
+Key stylized facts and validation results from the released corpus:
 
-- **Compact median lag.** Polymarket order-book events trail Binance by a median of **16 ms**, with heavy tails (5th/95th: −185 / +315 ms).
+- **Compact apparent source-clock lag.** Paired Polymarket order-book events trail Binance by a median of **16 ms**, with heavy tails (5th/95th: −186 / +316 ms). Per-day transport-delay envelopes bound relative clock drift to **≤6 ms**, but a single collector cannot identify a constant venue-clock offset; read the 16 ms as an apparent source-clock median.
+- **Collector-clock response.** A synchronization-free event study finds Polymarket quote changes after large Binance moves with a median **347 ms** response lag, measured entirely on the collector's ingest clock.
 - **Lag is disagreement-invariant.** Median lead–lag is stable (16–19 ms) across `|price_delta_bps|` quintiles; magnitude does not predict contemporaneous price disagreement.
-- **Tight spreads.** Top-of-book spreads concentrate at one tick wide (median ≈ 0.01; 95th ≈ 0.02), so mid-price backtests can overstate executable edge.
+- **Tight spreads.** Top-of-book spreads concentrate at one tick wide (median `0.01`; 95th `0.02`; 91.9% one-tick), so mid-price backtests can overstate executable edge.
 
 <div align="center">
   <table>
@@ -111,7 +115,7 @@ Key stylized facts from the released corpus:
     </tr>
     <tr>
       <td align="center"><img src=".github/images/readme/spread-distribution.png" width="420"/><br/><sub>Top-of-book spread stylized facts</sub></td>
-      <td align="center"><img src=".github/images/readme/lag-hour-heatmap.png" width="420"/><br/><sub>Median lead–lag by hour and day of week</sub></td>
+      <td align="center"><img src=".github/images/readme/clock-validation.png" width="420"/><br/><sub>Clock validation and collector-clock quote response</sub></td>
     </tr>
   </table>
 </div>
@@ -128,9 +132,10 @@ The recommended release is `v0.2.1/` — a calibrated binary-outcome model train
 | **Markets** | 2,251 / 4,450 (51%) |
 | **Features** | 43 |
 | **Walk-forward windows** | 559 |
-| **AUC-ROC (calibrated OOS)** | 0.838 |
-| **Brier** | 0.165 |
-| **ECE** | 0.025 |
+| **Model AUC-ROC (OOS)** | 0.8378 |
+| **Naive mid-prior AUC-ROC (OOS)** | 0.8405 |
+| **Model Brier / ECE (OOS)** | 0.165 / 0.025 |
+| **Naive Brier / ECE (OOS)** | 0.163 / 0.014 |
 | **Simulated +EV trades** | 260,617 |
 | **Simulated PnL / trade** | −0.117 |
 
@@ -245,9 +250,9 @@ openmarket/
 
 See [`CITATION.md`](CITATION.md) for BibTeX entries. In text:
 
-> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag `v0.5.1`) [OpenMarket Contributors, 2026].
+> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag `v0.5.1`) [Young, 2026].
 
-**Repository visibility:** GitHub source is currently **private** during pre-launch. The Hugging Face dataset and model repos are public.
+**Repository visibility:** GitHub source, dataset artifacts, and model artifacts are public.
 
 ## License
 

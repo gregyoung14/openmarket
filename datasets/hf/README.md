@@ -30,7 +30,7 @@ backtesting.
 ```bibtex
 @misc{openmarket_dataset_2026,
   title        = {{OpenMarket BTC Polymarket}: Synchronized High-Frequency Corpus},
-  author       = {{OpenMarket Contributors}},
+  author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}},
   note         = {Version v0.4.3-unified; source tag v0.5.1}

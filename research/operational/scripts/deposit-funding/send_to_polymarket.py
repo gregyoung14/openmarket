@@ -2,12 +2,14 @@
 """
 Send USDC to Polymarket deposit address
 """
+import os
+
 from web3 import Web3
 from eth_account import Account
 
 # Configuration
-POLYGON_PRIVATE_KEY = "REPLACE_WITH_POLYGON_PRIVATE_KEY"
-POLYMARKET_DEPOSIT_ADDRESS = "POLYMARKET_DEPOSIT_ADDRESS"
+POLYGON_PRIVATE_KEY = os.environ["POLYGON_PRIVATE_KEY"]
+POLYMARKET_DEPOSIT_ADDRESS = os.environ["POLYMARKET_DEPOSIT_ADDRESS"]
 USDC_CONTRACT_ADDRESS = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"  # Native USDC on Polygon
 
 if POLYGON_PRIVATE_KEY.startswith("0x"):

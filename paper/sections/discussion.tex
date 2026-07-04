@@ -17,13 +17,15 @@ OpenMarket lowers the cost of questions such as:
 Section~\ref{sec:insights} gives initial answers; the tooling is the enduring
 contribution.
 
-\subsection{Positioning for Venues}
+\subsection{Artifact Scope}
 
-The paper is best read as a \textbf{data-and-methods} release with empirical
-baselines---appropriate for arXiv, ML-for-finance workshops, or data-descriptor
-journals---rather than as a pure systems or pure econometrics theory paper. We
-embrace that framing: the field needs public corpora and honest negative results
-as much as novel alpha claims.
+This work is best read as a \textbf{data-and-methods} release with empirical
+baselines. Its primary claim is reproducible public infrastructure: a
+synchronized corpus, pairing metadata, validation commands, and baseline
+diagnostics that make future microstructure and forecasting comparisons easier
+to audit. Its primary empirical result is negative: on this corpus, a
+walk-forward multivariate model does not beat the market's own mid
+out-of-sample, and simulated trading is cost-dominated.
 
 \subsection{Domain Generalizability}
 
@@ -37,21 +39,44 @@ way this release does.
 
 Polygon settlement latency, oracle definition risk, and U.S.\ regulatory
 uncertainty affect economic interpretation but are outside our artifact. We
-document collector-host clock drift and WebSocket gaps; users should not treat
+document clock-offset diagnostics and WebSocket gaps; users should not treat
 top-of-book backtests as executable PnL without explicit queue and fee models.
 
 \subsection{Data Availability and Ethics}
+\label{sec:release}
 
-The Hugging Face corpus contains only public market data (order books, trades,
+The public release comprises the GitHub repository
+(\url{https://github.com/gregyoung14/openmarket}, tag \OpenMarketReleaseTag{},
+Apache~2.0), the Hugging Face dataset
+\texttt{gregyoung14/openmarket-btc-polymarket} (\texttt{v0.4.3-unified},
+\texttt{v0.2-full}, \texttt{v0.1-sample}) and models
+\texttt{gregyoung14/openmarket-models} (\texttt{v0.2.1/}, \texttt{v0.1/}),
+mdBook and Rust API documentation, a Jupyter quickstart
+(\path{notebooks/quickstart.ipynb}), Docker reproducibility scaffolding, a
+citation guide (\path{CITATION.md}), and the sanitized operational archive
+(\path{research/operational/}).
+The frozen source tag \OpenMarketReleaseTag{} resolves to commit
+\path{f609d4dd6057a00e1bc94c220331e0495796ebf3}; this paper build was
+generated from commit \path{223692dc46e2cc8f47d3c8122767b1dc420428f2}. The
+archive inventory contains \OpenMarketSnapshots{} snapshots
+(46.21~GB compressed), and the generated characterization manifest is shipped
+as \path{paper/assets/stats/characterization.json}. A DOI/Zenodo record has not
+yet been assigned; derivative work should cite the Hugging Face dataset/model
+revision hashes and the frozen source tag.
+The corpus contains only public market data (order books, trades,
 metadata) collected from open APIs---no user identities or private positions.
-The GitHub repository ships under Apache~2.0; dataset and model cards document
-licenses and version pins. Cite the dataset version and source tag
-(\OpenMarketReleaseTag{}) in derivative work (see repository \path{CITATION.md}).
+Dataset and model cards document licenses and version pins. Cite the dataset
+version and source tag (\OpenMarketReleaseTag{}) in derivative work.
 
-\subsection{Limitations and Extensions}
+\subsection{Archive Status and Extensions}
+\label{sec:future-work}
 
-Step3 export writes ${\sim}$50\% of \texttt{market\_meta} markets (missing ticks
-or trades). Full \texttt{features/} Parquet is not on Hugging Face; researchers
-should run \path{export_step3_from_parquet} locally. Community extensions
-(neural sequence models, additional assets, benchmark leaderboards) can build on
-the frozen \OpenMarketReleaseTag{} tag without implying ongoing maintenance.
+OpenMarket completed archival closeout on 2026-07-01. Active data collection
+and model maintenance have ended; source tag \OpenMarketReleaseTag{} freezes
+the public research record. Community extensions that the frozen artifacts
+support include additional exchanges and assets, Polymarket non-crypto
+markets, multi-vantage collection to resolve the constant clock-offset
+component (Section~\ref{sec:sync-clock}), richer order-book reconstruction,
+stronger model baselines (tree ensembles, neural sequence models), improved
+execution simulation, and a public benchmark leaderboard---none of which
+imply ongoing maintenance.

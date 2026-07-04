@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import os
 import shutil
 import sys
 import tempfile
@@ -19,9 +20,10 @@ from pathlib import Path
 HF_REPO = "gregyoung14/openmarket-btc-polymarket"
 HF_SPLITS = ("sample", "unified", "full")
 
-LEGACY_SNAPSHOTS = {
-    "sample": "https://YOUR_STORAGE_ZONE.b-cdn.net/polymarket-bot/polymarket_btc_data_2026-03-14_193215.db.gz",
-    "2026-03-14_193215": "https://YOUR_STORAGE_ZONE.b-cdn.net/polymarket-bot/polymarket_btc_data_2026-03-14_193215.db.gz",
+LEGACY_SAMPLE_FILENAME = "polymarket_btc_data_2026-03-14_193215.db.gz"
+LEGACY_SNAPSHOT_FILENAMES = {
+    "sample": LEGACY_SAMPLE_FILENAME,
+    "2026-03-14_193215": LEGACY_SAMPLE_FILENAME,
 }
 
 
@@ -66,7 +68,21 @@ def download_hf_split(split: str, out_dir: Path) -> Path:
 
 
 def download_legacy_cdn(snapshot: str, out: Path, keep_compressed: bool) -> Path:
-    url = LEGACY_SNAPSHOTS.get(snapshot, snapshot)
+    if snapshot.startswith(("http://", "https://")):
+        url = snapshot
+    else:
+        filename = LEGACY_SNAPSHOT_FILENAMES.get(snapshot)
+        if filename is None:
+            raise SystemExit(
+                "legacy snapshot must be a full URL or one of "
+                f"{tuple(LEGACY_SNAPSHOT_FILENAMES)}"
+            )
+        base_url = os.environ.get("OPENMARKET_LEGACY_CDN_BASE", "").strip().rstrip("/")
+        if not base_url:
+            raise SystemExit(
+                "set OPENMARKET_LEGACY_CDN_BASE to use named legacy CDN snapshots"
+            )
+        url = f"{base_url}/{filename}"
     compressed = out.with_suffix(out.suffix + ".gz")
     print(f"Downloading legacy CDN snapshot: {url}", file=sys.stderr)
     download_url(url, compressed)

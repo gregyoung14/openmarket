@@ -12,6 +12,7 @@ This script is read-only and does not send transactions.
 
 import argparse
 import json
+import os
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
@@ -20,7 +21,11 @@ import requests
 from web3 import Web3
 
 
-RPC_URL = "https://polygon-rpc.com"
+RPC_URL = os.environ.get("POLYGON_RPC_URL") or (
+    f"https://polygon-mainnet.g.alchemy.com/v2/{os.environ['ALCHEMY_API_KEY']}"
+    if os.environ.get("ALCHEMY_API_KEY")
+    else "https://polygon-rpc.com"
+)
 NATIVE_USDC = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
 BRIDGED_USDCE = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
 UNISWAP_ROUTER_V3 = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"

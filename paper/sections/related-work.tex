@@ -5,7 +5,17 @@ Prediction markets aggregate dispersed information into tradable prices
 \cite{wolfers2004prediction,hanson2003combinatorial,berg2008prediction}.
 High-frequency microstructure methods emphasize order-book dynamics, latency,
 and price impact \cite{ohara2015high,cont2014price}. Multi-venue studies
-measure which market contributes to price discovery \cite{hasbrouck1995one}.
+measure which market contributes to price discovery \cite{hasbrouck1995one},
+and cross-exchange price dislocations in crypto markets are documented at
+scale by Makarov and Schoar~\cite{makarov2020trading}.
+
+\textbf{Public high-frequency order-book datasets.}
+LOBSTER~\cite{huang2011lobster} reconstructs NASDAQ limit-order books for
+academic use, and FI-2010~\cite{ntakaris2018benchmark} is a widely used
+mid-price forecasting benchmark; both cover traditional equity venues.
+OpenMarket follows this lineage but targets a decentralized prediction-market
+CLOB paired with a crypto spot reference stream, with explicit cross-venue
+pairing metadata.
 
 \textbf{Polymarket microstructure.}
 Dubach~\cite{dubach2026anatomy} analyzes tick-level Polymarket order-book
@@ -27,23 +37,7 @@ Parquet splits, (ii) explicit \texttt{lag\_pairs\_ms} with quality flags, (iii)
 Rust exporters/trainers with pinned commands, and (iv) empirical baselines on the
 released corpus.
 
-Table~\ref{tab:related-work} summarizes positioning. We claim infrastructure
-and reproducible characterization, not superior live trading performance.
-
-\begin{table}[t]
-  \centering
-  \caption{Comparison with adjacent artifacts (tick-level PM focus).}
-  \label{tab:related-work}
-  \footnotesize
-  \setlength{\tabcolsep}{3pt}
-  \begin{tabular}{@{}lccccc@{}}
-    \toprule
-    Artifact & PM ticks & Binance ref. & HF corpus & Cross-venue pairs & OSS repro \\
-    \midrule
-    Dubach (2026)~\cite{dubach2026anatomy} & \checkmark & -- & partial & -- & \checkmark \\
-    Saguillo (2025)~\cite{saguillo2025arbitrage} & \checkmark & -- & -- & -- & partial \\
-    Public Binance dumps & -- & \checkmark & \checkmark & -- & \checkmark \\
-    OpenMarket (this work) & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+We claim infrastructure and reproducible characterization, not superior live
+trading performance. Dubach provides a deeper single-venue microstructure
+analysis, while Saguillo et al. study broader proprietary-scale arbitrage data
+than this public BTC 15-minute release.

@@ -1,38 +1,57 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Polymarket's short-horizon BTC binary markets combine prediction-market
-forecasting with crypto-native central-limit-order-book (CLOB) microstructure.
-Empirical work now documents tick-level Polymarket dynamics, decentralized
-prediction-market (DePM) design trade-offs, and combinatorial arbitrage
-\cite{dubach2026anatomy,saguillo2025arbitrage,rahman2025sok}. What remains
-missing is a \textbf{public, cross-venue, millisecond-resolution corpus} paired
-with Binance BTC/USDT and tooling that makes synchronization quality, lead--lag,
-and calibration analysis reproducible at archival scale.
+OpenMarket began as a trading system, not a dataset. We built a Rust
+pipeline to trade Polymarket's BTC 15-minute binary markets against Binance
+BTC/USDT spot flow: WebSocket collectors for both venues, a millisecond
+recorder, fifteen generations of signal logic (v1--v15), a walk-forward
+calibrated logistic scorer, and simulated and paper execution. The result was
+negative. No strategy iteration survived fees and spread; out-of-sample, the
+strongest published model \emph{matches but does not beat} the probability
+already implied by Polymarket's own order book
+(Section~\ref{sec:insights-forecast}); and simulated positive-EV trading
+nets $-0.117$ per trade under stated fee and slippage assumptions. We do
+not claim trading profitability---the central empirical finding is the
+opposite, and we believe that negative result is worth publishing with the
+data that produced it.
 
-We release OpenMarket to close that gap. The contribution is threefold:
+This paper releases what the attempt built, because the infrastructure and
+the corpus outlived the strategy. Empirical work now documents tick-level
+Polymarket dynamics, decentralized prediction-market (DePM) design
+trade-offs, and combinatorial arbitrage
+\cite{dubach2026anatomy,saguillo2025arbitrage,rahman2025sok}. What remains
+missing is a \textbf{public, cross-venue, millisecond-resolution corpus}
+paired with Binance BTC/USDT and tooling that makes synchronization
+quality, lead--lag, and calibration analysis reproducible at archival
+scale. OpenMarket closes that gap. The contribution is threefold:
 \begin{enumerate}
-  \item \textbf{Corpus.} To our knowledge, the first public synchronized
-        Polymarket--Binance dataset: \OpenMarketTotalRows{} deduplicated
-        events across \OpenMarketSnapshots{} archival snapshots
-        (\OpenMarketCollectionStart{}--\OpenMarketCollectionEnd{}), including
+  \item \textbf{Corpus.} To our knowledge, the first public millisecond-level
+        Polymarket BTC / Binance BTC-USDT paired corpus with explicit pairing
+        metadata: \OpenMarketTotalRows{} deduplicated rows across
+        \OpenMarketSnapshots{} archival snapshots, with event data on
+        \OpenMarketPolyObservedDays{} observed days
+        (\OpenMarketDataFirstDay{}--\OpenMarketDataLastDay{};
+        Section~\ref{sec:exp-scale}), including
         \OpenMarketLagPairs{} explicit lead--lag pairs.
-  \item \textbf{Methods.} Documented source-vs.-ingest synchronization,
-        Parquet-native export, walk-forward calibration training, and validation
-        harnesses that treat clock drift and pairing-window sensitivity as
-        measurable objects rather than implementation details.
-  \item \textbf{Empirical baselines.} Stylized facts and forecast benchmarks on
-        the released corpus---e.g., top-of-book spreads, lead--lag distributions,
-        and ablations showing when multivariate models outperform naive
-        order-book mid priors.
+  \item \textbf{Methods.} Documented source-vs.-ingest synchronization
+        with empirical clock-offset validation
+        (Section~\ref{sec:sync-clock}), Parquet-native export,
+        walk-forward calibration training, and validation harnesses that
+        treat clock drift and pairing-window sensitivity as measurable
+        objects rather than implementation details.
+  \item \textbf{Empirical baselines.} Stylized facts and forecast
+        benchmarks on the released corpus---top-of-book spreads, lead--lag
+        distributions, and ablations testing whether multivariate models
+        outperform naive order-book mid priors (out-of-sample, they do
+        not).
 \end{enumerate}
 
-We do \textbf{not} claim persistent trading profitability. Simulated economics
-under stated fees and slippage are negative for the published scorer. The goal is
-to enable the community to study \emph{how} external spot prices and Polymarket
-books interact at high frequency, not to ship a production bot.
-
-OpenMarket is frozen as a public research archive (source tag
+The released artifacts deliberately include the full research trail: the
+collectors and recorder, the synchronization layer, the feature and
+training pipelines, the backtesting framework, the v1--v15 strategy
+evolution archive, legacy Python ML prototypes, the Hugging Face dataset
+and model releases, and a sanitized operational appendix for audit
+context. OpenMarket is frozen as a public research archive (source tag
 \OpenMarketReleaseTag{}); active collection has ended. The remainder of the
 paper describes the system, the released artifacts, and initial microstructure
 findings that prior single-venue or closed pipelines cannot support.

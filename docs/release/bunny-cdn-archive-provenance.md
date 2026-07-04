@@ -11,10 +11,10 @@ This document collects the connection details needed to find, download, and inve
 
 ## Canonical Live Database
 
-- Live SQLite database path: `/mnt/nvme/polymarket_btc_data.db`
+- Live SQLite database path: `<DATA_VOLUME>/polymarket_btc_data.db`
 - Backup service: `db-backup`
 - Backup service port: `8007`
-- Backup state file: `/mnt/nvme/polymarket_btc_data.backup_state.json`
+- Backup state file: `<DATA_VOLUME>/polymarket_btc_data.backup_state.json`
 
 Health check:
 
@@ -74,7 +74,7 @@ The access key is configured in the user systemd unit, not duplicated here.
 Unit location:
 
 ```text
-/home/ec2-user/.config/systemd/user/db-backup.service
+<SERVICE_USER_HOME>/.config/systemd/user/db-backup.service
 ```
 
 Show loaded service config:
@@ -123,7 +123,7 @@ systemd/user/db-backup.service
 Installed user unit:
 
 ```text
-/home/ec2-user/.config/systemd/user/db-backup.service
+<SERVICE_USER_HOME>/.config/systemd/user/db-backup.service
 ```
 
 Important environment values:
@@ -133,7 +133,7 @@ DB_BACKUP_INTERVAL_SECS=21600
 DB_PRUNE_INTERVAL_SECS=21600
 DB_PRUNE_RETENTION_DAYS=0
 DB_PRUNE_REQUIRED_RECENT_BACKUP_MAX_AGE_SECS=43200
-DB_VACUUM_TEMP_DIRS=/mnt/nvme/db-vacuum-staging:/home/ec2-user/db-vacuum-staging:/var/tmp/polymarket-db-maintenance:/tmp
+DB_VACUUM_TEMP_DIRS=<DATA_VOLUME>/db-vacuum-staging:<SERVICE_USER_HOME>/db-vacuum-staging:/var/tmp/polymarket-db-maintenance:/tmp
 ```
 
 Service controls:
@@ -199,4 +199,4 @@ Recommended processing shape:
 - `rust-services/db-backup/src/main.rs`
 - `systemd/user/db-backup.service`
 - `scripts/ml/bootstrap_archived_snapshot.sh`
-- `/mnt/nvme/code/binance-historical-backtest/TDR-CDN.md`
+- `<DATA_VOLUME>/code/binance-historical-backtest/TDR-CDN.md`

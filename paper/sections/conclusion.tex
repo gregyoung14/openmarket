@@ -1,15 +1,16 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented OpenMarket, an open-source pipeline and public archive for
-high-frequency Polymarket BTC 15-minute markets synchronized with Binance
-BTC/USDT. The release includes \OpenMarketTotalRows{} deduplicated events,
-\OpenMarketLagPairs{} lead--lag pairs, reproducible Rust exporters and trainers,
-and Hugging Face artifacts (\texttt{v0.4.3-unified}, \texttt{v0.2.1/} model).
+We presented OpenMarket, an open-source pipeline and, to our knowledge, the
+first public millisecond-level Polymarket BTC / Binance BTC-USDT paired corpus
+with explicit pairing metadata. The release includes \OpenMarketTotalRows{}
+deduplicated rows, \OpenMarketLagPairs{} lead--lag pairs, reproducible Rust
+exporters and trainers, and Hugging Face artifacts
+(\texttt{v0.4.3-unified}, \texttt{v0.2.1/} model).
 
 Initial analyses show tight Polymarket spreads, heavy-tailed lead--lag with a
-compact median, and forecast benchmarks where multivariate logistic models offer
-only modest gains over naive mid priors---useful negative and null results for
-the community. We invite researchers to use the corpus for microstructure and
+compact median, and forecast benchmarks where a walk-forward logistic model
+matches but does not beat the naive mid prior out-of-sample---useful negative
+and null results for the community. We invite researchers to use the corpus for microstructure and
 forecasting studies, extend the tooling to new venues, and cite the dataset
 version used in each experiment.

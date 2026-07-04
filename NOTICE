@@ -21,9 +21,8 @@ OpenMarket pairs publicly available market data feeds:
 
 No private keys, wallet addresses, account IDs, or other operator
 credentials are included in this repository or in the published Hugging
-Face datasets. The operator's Bunny CDN storage zone
-(`YOUR_STORAGE_ZONE`) hosts private archival snapshots and is not part of this
-release.
+Face datasets. Private archival snapshot mirrors, if any, are operator
+infrastructure and are not part of this release.
 
 ## Third-Party Rust Dependencies
 

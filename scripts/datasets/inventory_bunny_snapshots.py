@@ -23,9 +23,12 @@ from typing import Any
 
 
 DEFAULT_REGION = "ny"
-DEFAULT_STORAGE_ZONE = "YOUR_STORAGE_ZONE"
+DEFAULT_STORAGE_ZONE = os.environ.get("BUNNY_STORAGE_ZONE", "YOUR_STORAGE_ZONE")
 DEFAULT_STORAGE_FOLDER = "polymarket-bot"
-DEFAULT_CDN_BASE = "https://YOUR_STORAGE_ZONE.b-cdn.net/polymarket-bot"
+DEFAULT_CDN_BASE = os.environ.get(
+    "BUNNY_CDN_BASE",
+    f"https://{DEFAULT_STORAGE_ZONE}.b-cdn.net/{DEFAULT_STORAGE_FOLDER}",
+)
 DEFAULT_OUTPUT_JSON = "data/hf_release/metadata/snapshot_manifest.json"
 SNAPSHOT_RE = re.compile(
     r"^polymarket_btc_data_(?P<date>\d{4}-\d{2}-\d{2})_(?P<hms>\d{6})\.db\.gz$"

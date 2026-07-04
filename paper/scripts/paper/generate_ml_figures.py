@@ -63,6 +63,20 @@ def platt_calibrate(raw_prob: np.ndarray, a: float, b: float) -> np.ndarray:
     return sigmoid(a * logit + b)
 
 
+def roc_auc(y: np.ndarray, p: np.ndarray) -> float:
+    y = np.asarray(y, dtype=np.int32)
+    p = np.asarray(p, dtype=np.float64)
+    order = np.argsort(p)
+    ranks = np.empty_like(order, dtype=np.float64)
+    ranks[order] = np.arange(1, len(p) + 1)
+    pos = y == 1
+    n_pos = int(pos.sum())
+    n_neg = int((~pos).sum())
+    if n_pos == 0 or n_neg == 0:
+        return float("nan")
+    return float((ranks[pos].sum() - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg))
+
+
 def load_model(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -246,6 +260,8 @@ def plot_calibration_curve(out: Path) -> dict:
     y = np.array(y_list, dtype=np.int32)
     p = np.array(p_list, dtype=np.float64)
     bins, ece = calibration_bins(y, p)
+    auc = roc_auc(y, p)
+    brier = float(np.mean((p - y) ** 2))
 
     fig, ax = plt.subplots(figsize=(5.5, 3.8))
     nonempty = [b for b in bins if b["count"] > 0]
@@ -290,7 +306,8 @@ def plot_calibration_curve(out: Path) -> dict:
         "source": str(step3) if step3 else "none",
         "rows": int(len(y)),
         "ece": ece,
-        "auc_roc": metrics_doc.get("metrics", {}).get("auc_roc"),
+        "auc_roc": auc,
+        "brier": brier,
     }
 
 
@@ -754,7 +771,7 @@ def plot_throughput(bench: dict, out: Path) -> None:
     labels: list[str] = []
     values: list[float] = []
     if bench.get("hf_sample_load_s"):
-        labels.append("HF sample\nload (s)")
+        labels.append("HF sample\nParquet load (s)")
         values.append(float(bench["hf_sample_load_s"]))
     if bench.get("unified_metadata_scan_s"):
         labels.append("Unified\nmeta scan (s)")
@@ -840,8 +857,9 @@ def main() -> int:
         "calibration": plot_calibration_curve(FIG_DIR / "calibration-curve.pdf"),
         "walk_forward": plot_walk_forward(FIG_DIR / "walk-forward-metrics.pdf"),
     }
+    # Throughput measurements feed Table 4 macros; the bar-chart figure was
+    # dropped from the paper (it duplicated the table).
     bench = run_throughput_benchmarks()
-    plot_throughput(bench, FIG_DIR / "throughput-bench.pdf")
     append_tex_macros(bench, results)
 
     out = {"figures": results, "benchmarks": bench}

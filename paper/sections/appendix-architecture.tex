@@ -17,3 +17,25 @@ The Rust workspace comprises:
   \item \texttt{backtester}: historical backtesting and strategy evaluation
   \item \texttt{data-prep}, \texttt{dataset-downloader}: conversion utilities
 \end{itemize}
+
+\paragraph{Operational reproduction archive.}
+The repository also includes \path{research/operational/}, a sanitized copy of
+the original operational platform. It is not part of the main Cargo workspace,
+but it records how the data and strategy artifacts were operated in production:
+\begin{itemize}
+  \item \path{rust-services/}: standalone Tokio/Axum services for Binance and
+        Polymarket WebSocket ingestion, market recording, signal generation,
+        execution, paper execution, database backup, and shared BTC types
+  \item \path{services/}: Python paper-tournament and position-redemption
+        services with HTML dashboards
+  \item \path{scripts/}: audit, monitoring, wallet setup, funding, trading,
+        deployment, database, and service-start scripts
+  \item \path{docs/}: operational TDRs and audits, including token-inversion
+        root cause analysis, v15 execution specification, paper-tournament
+        profitability notes, and ledger/version reconciliation
+  \item \path{systemd/}: user-level service and timer units for backup and
+        storage guardrails
+\end{itemize}
+Host paths, CDN hostnames, storage-zone names, access keys, and private keys are
+redacted or replaced with placeholders; public exchange endpoints and public
+contract addresses are retained where required for reproducibility.

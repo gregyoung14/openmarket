@@ -12,8 +12,14 @@ BTC/USDT. Those differences can break both the synchronization assumptions
 (dense cross-venue observations inside millisecond windows) and the forecasting
 features calibrated for short-horizon crypto price discovery.
 
-\textbf{Data and methods.} WebSocket outages can create gaps; collector clocks
-can drift; top-of-book backtests may overstate execution quality; mishandled
+\textbf{Data and methods.} WebSocket outages can create gaps; relative venue
+clock drift is bounded empirically
+(${\leq}\OpenMarketDriftBound{}$~ms, Section~\ref{sec:sync-clock}) but
+source-clock lead--lag retains a roughly
+$\pm\OpenMarketEnvBinanceMed{}$~ms constant-offset ambiguity from a single
+collection vantage point; resolving that component would require
+multi-vantage collection; top-of-book backtests may overstate execution
+quality; mishandled
 settlement labels can leak information; and step3 export covers 2{,}251 of
 4{,}450 \texttt{market\_meta} markets for the reasons audited in
 Section~\ref{sec:ml}. Full-archive \texttt{features/} Parquet is not on
@@ -28,4 +34,6 @@ future work.
 
 \textbf{Live trading.} Simulated outcomes are sensitive to regime and fee
 assumptions; live execution adds latency, queue position, partial fills, and
-regulatory uncertainty not modeled in this artifact.
+regulatory uncertainty not modeled in this artifact. The operational archive is
+included only as sanitized audit context; it is not a recommendation to run live
+trading infrastructure and should not be interpreted as a profitability claim.

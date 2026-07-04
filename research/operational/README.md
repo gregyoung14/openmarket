@@ -74,10 +74,11 @@ Key TDRs and operational guides:
 - `TDR-calibrated-net-ev-binary-scorer-2026-04-05.md` — proposal to replace heuristic edge with calibrated EV
 - `FEATURE-CONTRACT-*` and `TASKLIST-*` — feature contract and implementation plan
 - `EXECUTION-ENGINE-V15-SPEC.md` — v15 execution engine spec
-- `architecture/overview.md` and `architecture/services.md` — system architecture
-- `trading/execution.md`, `trading/redemption.md`, `trading/wallet-operations.md`
-- `setup/`, `authentication/`, `monitoring/` — install, credentials, logs
-- `official-docs-mcp/` — MCP-formal design and audit documents
+- `TDR-POLYMARKET-AUDIT.md` — paper-executor integration audit against Polymarket docs
+- `TDR-backtest-database-access.md` — archived snapshot access model
+- `TDR-ROLLING-BTC-CONTEXT.md` — rolling BTC context design
+- `LEDGER-VERSION-CORRELATION-AUDIT-2026-03-09.md` — ledger/version reconciliation
+- `SCRAPER-DOCS-INDEX.md` — index of the operational documents preserved here
 
 ### Deployment (`systemd/`)
 
@@ -100,8 +101,8 @@ See `scripts/common/wallet_env.py` for the loader implementation.
 
 ## Sanitization note
 
-Host-specific paths (`/home/ec2-user/`, `/mnt/nvme/`), the BunnyCDN storage
-zone name, and infrastructure identifiers have been replaced with generic
+Host-specific service-home and data-volume paths, the BunnyCDN storage zone
+name, and infrastructure identifiers have been replaced with generic
 placeholders. Public smart-contract addresses, Polymarket/Binance API
 endpoints, and well-known RPC URLs are retained because they are required for
 reproduction and are not personal data. Any remaining hardcoded secrets in the

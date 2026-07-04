@@ -1,17 +1,49 @@
-\section{Strategy Framework}
+\section{Strategy, Backtesting, and Evaluation Framework}
 \label{sec:strategy}
 
-The repository preserves the evolution of multiple research strategies developed
-throughout the project (v1--v15 iterations), providing historical baselines for
-comparison and reproducibility. This is a research archive, not a single
-validated production system. Strategies combine model confidence, market
-price, entry constraints, and risk controls. The current research line includes
+\subsection{Strategy Archive}
+
+The repository preserves the full evolution of the strategy line whose failure
+motivated this release (v1--v15 iterations), providing historical baselines
+for comparison and reproducibility. Strategies combine model confidence,
+market price, entry constraints, and risk controls. The current research line includes
 drift and order-flow imbalance signals, scoreboard-derived Polymarket book
 signals, whipsaw/chop detection, best-signal scanning inside an entry window,
 volume gating, entry price bounds, confidence and edge thresholds, Brier-score
 circuit breakers, and confidence-bin empirical edge gates.
 
 Position sizing and simulated execution assumptions are intentionally separated
-from directional accuracy. Backtests should report slippage, fees, assumed fill
-prices, and market impact assumptions explicitly; reported outcomes are
-counterfactual simulations, not live trading results.
+from directional accuracy. Backtests report slippage, fees, assumed fill
+prices, and market impact assumptions explicitly.
+
+\subsection{Backtesting}
+\label{sec:backtesting}
+
+Backtesting processes market windows independently and evaluates entry signals
+against settled outcomes under documented simulation assumptions (signal gate,
+simulated fill, settlement, metric aggregation). Preferred
+validation methods include walk-forward validation, rolling-window evaluation,
+strict out-of-sample splits, sensitivity analysis over entry windows and
+thresholds, and Monte Carlo resampling of fill and slippage assumptions. Random
+row splits are discouraged because adjacent high-frequency observations are
+highly autocorrelated.
+
+\subsection{Evaluation Metrics}
+\label{sec:evaluation}
+
+Evaluation includes both predictive and simulated-economic metrics.
+Economic metrics are counterfactual diagnostics under explicit fill, fee, and
+slippage assumptions.
+
+\paragraph{Predictive metrics.}
+Accuracy, precision, recall, F1, ROC AUC, Brier score, and calibration
+curves~\cite{brier1950verification}.
+
+\paragraph{Simulated-economic metrics.}
+Simulated win rate, expectancy, PnL, Sharpe and Sortino ratios (under stated
+assumptions), maximum drawdown, turnover, average entry price, and documented
+fill, fee, and slippage assumptions.
+
+Calibration is especially important because binary market strategies are
+sensitive to the difference between predicted probability and market-implied
+price.

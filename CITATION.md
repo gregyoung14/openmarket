@@ -7,7 +7,7 @@ Use the versioned dataset and source tag in every derivative publication.
 ```bibtex
 @misc{openmarket_dataset_2026,
   title        = {{OpenMarket BTC Polymarket}: Synchronized High-Frequency Corpus},
-  author       = {{OpenMarket Contributors}},
+  author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket}},
   note         = {Version v0.4.3-unified; source tag v0.5.1; 727M+ deduplicated rows}
@@ -19,10 +19,10 @@ Use the versioned dataset and source tag in every derivative publication.
 ```bibtex
 @misc{openmarket_software_2026,
   title        = {{OpenMarket}: Open-Source High-Frequency Prediction-Market Research Framework},
-  author       = {{OpenMarket Contributors}},
+  author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://github.com/gregyoung14/openmarket}},
-  note         = {Source tag v0.5.1; systems paper in repository \texttt{paper/}; GitHub private during pre-launch}
+  note         = {Source tag v0.5.1; systems paper in repository \texttt{paper/}}
 }
 ```
 
@@ -31,7 +31,7 @@ Use the versioned dataset and source tag in every derivative publication.
 ```bibtex
 @misc{openmarket_models_v02_2026,
   title        = {{OpenMarket} Binary-Outcome Calibration Model},
-  author       = {{OpenMarket Contributors}},
+  author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/gregyoung14/openmarket-models}},
   note         = {Release v0.2.1.1; walk-forward logistic + Platt on unified step3 features}
@@ -41,6 +41,6 @@ Use the versioned dataset and source tag in every derivative publication.
 ## In-text example
 
 > We use the OpenMarket BTC–Polymarket corpus (v0.4.3-unified, source tag v0.5.1)
-> [OpenMarket Contributors, 2026].
+> [Young, 2026].
 
 Report the Hugging Face dataset revision hash when available.

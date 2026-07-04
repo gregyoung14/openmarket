@@ -20,7 +20,7 @@ are published here rather than committed to the OpenMarket GitHub repository.
 ```bibtex
 @misc{openmarket_models_v02_2026,
   title        = {{OpenMarket} Binary-Outcome Calibration Model},
-  author       = {{OpenMarket Contributors}},
+  author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://huggingface.co/gregyoung14/openmarket-models}},
   note         = {Release v0.2.1}

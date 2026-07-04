@@ -12,7 +12,7 @@ Date: 2026-06-30
 
 The canonical live database is SQLite:
 
-- Production DB: `/mnt/nvme/polymarket_btc_data.db`
+- Production DB: `<DATA_VOLUME>/polymarket_btc_data.db`
 - Backup service: `rust-services/db-backup`
 - Backup API: `POST http://<server>:8007/backup`
 - Health API: `GET http://<server>:8007/health`

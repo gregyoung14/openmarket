@@ -1,4 +1,4 @@
-\section{System Architecture}
+\section{System Architecture and Data Collection}
 \label{sec:architecture}
 
 \begin{figure}[t]
@@ -36,5 +36,39 @@
 The codebase is a Rust workspace spanning exchange collectors, a multi-market
 recorder with lag-pairing export, signal and execution engines, backtesting, and
 Parquet-native ML crates (\texttt{step3-parquet-export},
-\texttt{binary-outcome-trainer}). Crate-level detail is in
-Appendix~\ref{app:crates}.
+\texttt{binary-outcome-trainer}); Figure~\ref{fig:architecture} shows how the
+two WebSocket streams converge on the synchronizer and downstream stages.
+Crate-level detail is maintained in the repository; the paper's benchmark
+claims are regenerated from the frozen dataset and model artifacts, not from
+live operational services.
+
+\subsection{Binance}
+\label{sec:data-binance}
+
+The Binance collector records BTC/USDT trades and derives candle tables at
+multiple time resolutions. The source schema includes trade ID, trade timestamp,
+price, quantity, quote volume, maker/taker direction, and local receive time.
+Millisecond-level tick snapshots preserve both source and ingest timestamps.
+
+\subsection{Polymarket}
+\label{sec:data-polymarket}
+
+The Polymarket collector subscribes to BTC binary market order book updates,
+trades, and last-trade-price events. The recorder maps token IDs to market slugs
+and side labels using market metadata so that UP and DOWN books can be analyzed
+consistently across rolling 15-minute markets.
+
+\subsection{Storage}
+\label{sec:data-storage}
+
+The initial recorder stores data in SQLite for operational simplicity. The
+public dataset release exports raw and processed tables to partitioned Parquet.
+Key recorded tables include:
+\begin{itemize}
+  \item \texttt{binance\_trades}, \texttt{binance\_ticks\_ms}
+  \item \texttt{polymarket\_ticks\_ms}, \texttt{market\_meta}
+  \item \texttt{lag\_pairs\_ms}
+  \item \texttt{binance\_candles\_1s}, \texttt{binance\_candles\_5s},
+        \texttt{binance\_candles\_1m}, \texttt{binance\_candles\_5m},
+        \texttt{binance\_candles\_15m}, \texttt{binance\_candles\_1h}
+\end{itemize}
