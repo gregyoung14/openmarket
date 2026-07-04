@@ -302,8 +302,9 @@ def plot_calibration_curve(out: Path) -> dict:
     fig.tight_layout()
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
+    source = step3.relative_to(REPO).as_posix() if step3 and step3.is_relative_to(REPO) else "none"
     return {
-        "source": str(step3) if step3 else "none",
+        "source": source,
         "rows": int(len(y)),
         "ece": ece,
         "auc_roc": auc,
