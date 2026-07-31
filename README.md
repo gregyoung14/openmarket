@@ -10,6 +10,7 @@
 [![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![Dataset](https://img.shields.io/badge/HF-dataset-yellow.svg)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
 [![Models](https://img.shields.io/badge/HF-models-yellow.svg)](https://huggingface.co/gregyoung14/openmarket-models)
+[![arXiv](https://img.shields.io/badge/arXiv-2607.26245-b31b1b.svg)](https://arxiv.org/abs/2607.26245)
 
 [![Rows](https://img.shields.io/badge/rows-727M-blue)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
 [![Snapshots](https://img.shields.io/badge/snapshots-202-blue)](https://huggingface.co/datasets/gregyoung14/openmarket-btc-polymarket)
@@ -25,6 +26,17 @@ OpenMarket is an open-source Rust research platform and frozen dataset release f
 The goal is **reproducible prediction-market research**, not a black-box trading bot. The repository contains collectors, a recorder, exporters, trainers, backtesters, schemas, documentation, and release scripts. Large datasets and pretrained models are released separately through Hugging Face.
 
 > **Archive status:** OpenMarket is in archival shutdown. The complete 202-snapshot CDN archive is published on Hugging Face and the project is frozen as a public research record at source tag `v0.5.2`.
+
+## Paper
+
+[*OpenMarket: A Synchronized Polymarket-Binance Dataset for High-Frequency
+Prediction-Market Research*](https://arxiv.org/abs/2607.26245) documents the
+dataset, synchronization methodology, reproducible pipeline, microstructure
+findings, and null out-of-sample forecasting result.
+
+Read it on [arXiv](https://arxiv.org/abs/2607.26245) or the [Hugging Face paper
+page](https://huggingface.co/papers/2607.26245). Reproducible paper sources are
+kept under [`paper/`](paper/).
 
 ## At a glance
 
@@ -246,13 +258,17 @@ openmarket/
 - [Release process](docs/release/releases.md)
 - [Project status](docs/release/PROJECT-STATUS.md)
 - [Operational reproduction scripts](research/operational/README.md)
-- [Systems paper](paper/paper.md)
+- [Paper (arXiv)](https://arxiv.org/abs/2607.26245)
+- [Paper source](paper/paper.md)
 
 ## Citation
 
-See [`CITATION.md`](CITATION.md) for BibTeX entries. In text:
+Please cite the [arXiv paper](https://arxiv.org/abs/2607.26245) and report the
+exact dataset version and Hugging Face revision used. See
+[`CITATION.md`](CITATION.md) for BibTeX entries. In text:
 
-> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag `v0.5.2`) [Young, 2026].
+> We use the OpenMarket BTC–Polymarket corpus (`v0.4.3-unified`, source tag
+> `v0.5.2`) [Young, 2026, arXiv:2607.26245].
 
 **Repository visibility:** GitHub source, dataset artifacts, and model artifacts are public.
 

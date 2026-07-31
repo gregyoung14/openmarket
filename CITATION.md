@@ -1,8 +1,23 @@
 # How to Cite OpenMarket
 
-Use the versioned dataset and source tag in every derivative publication.
+Please cite the paper and identify the exact dataset version, source tag, and
+Hugging Face revision used in every derivative publication.
 
-## Dataset (recommended)
+## Paper (recommended)
+
+```bibtex
+@misc{young2026openmarketsynchronizedpolymarketbinancedataset,
+  title         = {OpenMarket: A Synchronized Polymarket-Binance Dataset for High-Frequency Prediction-Market Research},
+  author        = {Gregory Young},
+  year          = {2026},
+  eprint        = {2607.26245},
+  archivePrefix = {arXiv},
+  primaryClass  = {q-fin.TR},
+  url           = {https://arxiv.org/abs/2607.26245}
+}
+```
+
+## Dataset
 
 ```bibtex
 @misc{openmarket_dataset_2026,
@@ -14,7 +29,7 @@ Use the versioned dataset and source tag in every derivative publication.
 }
 ```
 
-## Software and paper
+## Software
 
 ```bibtex
 @misc{openmarket_software_2026,
@@ -22,7 +37,7 @@ Use the versioned dataset and source tag in every derivative publication.
   author       = {Young, Gregory},
   year         = {2026},
   howpublished = {\url{https://github.com/gregyoung14/openmarket}},
-  note         = {Source tag v0.5.2; systems paper in repository \texttt{paper/}}
+  note         = {Source tag v0.5.2}
 }
 ```
 
@@ -41,6 +56,6 @@ Use the versioned dataset and source tag in every derivative publication.
 ## In-text example
 
 > We use the OpenMarket BTC–Polymarket corpus (v0.4.3-unified, source tag v0.5.2)
-> [Young, 2026].
+> [Young, 2026, arXiv:2607.26245].
 
 Report the Hugging Face dataset revision hash when available.

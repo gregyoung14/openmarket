@@ -11,6 +11,7 @@ tags:
   - market-microstructure
   - high-frequency-data
 pretty_name: OpenMarket BTC Polymarket
+arxiv: "2607.26245"
 size_categories:
   - 100M<n<1B
 ---
@@ -25,7 +26,30 @@ The dataset is released to support reproducible prediction-market
 research, feature engineering, market microstructure analysis, and
 backtesting.
 
+## Paper
+
+This dataset accompanies [*OpenMarket: A Synchronized Polymarket-Binance
+Dataset for High-Frequency Prediction-Market
+Research*](https://arxiv.org/abs/2607.26245) (arXiv:2607.26245).
+
 ## How to Cite
+
+If you use OpenMarket, cite the paper and report the dataset version and
+Hugging Face revision used in your experiment.
+
+```bibtex
+@misc{young2026openmarketsynchronizedpolymarketbinancedataset,
+  title         = {OpenMarket: A Synchronized Polymarket-Binance Dataset for High-Frequency Prediction-Market Research},
+  author        = {Gregory Young},
+  year          = {2026},
+  eprint        = {2607.26245},
+  archivePrefix = {arXiv},
+  primaryClass  = {q-fin.TR},
+  url           = {https://arxiv.org/abs/2607.26245}
+}
+```
+
+Dataset-specific citation:
 
 ```bibtex
 @misc{openmarket_dataset_2026,
@@ -298,8 +322,3 @@ Models:          huggingface.co/gregyoung14/openmarket-models
 Model version:   v0.2.1 (recommended; walk-forward logistic on unified step3)
                  v0.2 / v0.1 (historical)
 ```
-
-## Citation
-
-If you use OpenMarket, cite the GitHub repository and the dataset
-version used in your experiment.
