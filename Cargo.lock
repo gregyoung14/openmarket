@@ -1307,13 +1307,14 @@ dependencies = [
  "anyhow",
  "axum",
  "chrono",
+ "fin-primitives",
  "futures",
  "lazy_static",
  "rand 0.8.6",
  "rusqlite",
+ "rust_decimal",
  "serde",
  "serde_json",
- "ta",
  "tokio",
  "tokio-tungstenite 0.26.2",
  "tower-http",
@@ -2496,6 +2497,18 @@ checksum = "5c287a33c7f0a620c38e641e7f60827713987b3c0f26e8ddc9462cc69cf75759"
 dependencies = [
  "cfg-if",
  "libc",
+]
+
+[[package]]
+name = "fin-primitives"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea32cf978f4bc443476d0366f3e4f5ae10f669ce7b93b8d292653ff538d2c505"
+dependencies = [
+ "chrono",
+ "libm",
+ "rust_decimal",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -6117,12 +6130,6 @@ dependencies = [
  "core-foundation-sys",
  "libc",
 ]
-
-[[package]]
-name = "ta"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "609409d472a0a7d8d4dd9e19891bbdef546b9dce670c3057d0e02192dc541226"
 
 [[package]]
 name = "tap"

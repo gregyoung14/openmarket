@@ -3,8 +3,10 @@ mod db;
 mod handlers;
 mod models;
 mod services;
+#[cfg(feature = "indicators")]
+#[allow(dead_code)]
+mod ta;
 mod tasks;
-// mod ta;
 
 use axum::{Router, routing::get};
 use tokio::sync::{broadcast, mpsc};
